@@ -1,15 +1,15 @@
-library googleapis_auth.io;
+library googleapis_auth.auth_io;
 
 import 'dart:async';
 
 import 'package:http_base/http_base_io.dart' as http;
 
-import 'oauth2.dart';
+import 'auth.dart';
 import 'src/oauth2_flows/auth_code.dart';
 import 'src/oauth2_flows/jwt.dart';
 import 'src/oauth2_flows/metadata_server.dart';
 
-export 'oauth2.dart';
+export 'auth.dart';
 
 /// Function for directing the user or it's user-agent to [uri].
 ///
@@ -219,7 +219,7 @@ Future<AccessCredentials> obtainAccessCredentialsViaUserConsentManual(
 /// The [ServiceAccountCredentials] can be obtained in the Google Cloud Console.
 Future<AccessCredentials> obtainAccessCredentialsViaServiceAccount(
    ServiceAccountCredentials clientCredentials,
-   List<String> scopes, http.Client baseClient) {
+   List<String> scopes, http.RequestHandler baseClient) {
   return new JwtFlow(clientCredentials.email,
                      clientCredentials.privateRSAKey,
                      scopes,
@@ -237,7 +237,7 @@ Future<AccessCredentials> obtainAccessCredentialsViaServiceAccount(
 /// No credentials are needed. But this function is only intended to work on a
 /// Google Compute Engine VM with configured access to Google APIs.
 Future<AccessCredentials> obtainAccessCredentialsViaMetadataServer(
-    http.Client baseClient) {
+    http.RequestHandler baseClient) {
   return new MetadataServerAuthorizationFlow(baseClient).run();
 }
 

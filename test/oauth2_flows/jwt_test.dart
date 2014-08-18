@@ -3,7 +3,7 @@ library googleapis_auth.jwt_test;
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:googleapis_auth/oauth2.dart';
+import 'package:googleapis_auth/auth.dart';
 import 'package:googleapis_auth/src/oauth2_flows/jwt.dart';
 import 'package:http_base/http_base.dart';
 import 'package:unittest/unittest.dart';

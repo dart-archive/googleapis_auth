@@ -1,12 +1,12 @@
-library googleapis_auth.html;
+library googleapis_auth.auth_browser;
 
 import 'dart:async';
 import 'package:http_base/http_base_html.dart' as http;
 
-import 'oauth2.dart';
+import 'auth.dart';
 import 'src/oauth2_flows/implicit.dart';
 
-export 'oauth2.dart';
+export 'auth.dart';
 
 /// Will create and complete with a [BrowserOAuth2Flow] object.
 ///

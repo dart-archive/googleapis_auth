@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:googleapis_auth/oauth2.dart';
+import 'package:googleapis_auth/auth.dart';
 import 'package:googleapis_auth/src/utils.dart';
 import 'package:http_base/http_base.dart';
 import 'package:unittest/unittest.dart';

@@ -5,7 +5,7 @@ import 'dart:convert';
 
 import 'package:http_base/http_base.dart' as http;
 import '../utils.dart';
-import '../../oauth2.dart';
+import '../../auth.dart';
 
 /// Obtains access credentials form the metadata server.
 ///

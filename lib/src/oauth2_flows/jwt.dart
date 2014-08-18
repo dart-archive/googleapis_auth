@@ -10,7 +10,7 @@ import 'dart:convert';
 import 'package:crypto/crypto.dart';
 
 import 'package:http_base/http_base.dart' as http;
-import '../../oauth2.dart';
+import '../../auth.dart';
 import '../crypto/rsa.dart';
 import '../crypto/rsa_sign.dart';
 import '../utils.dart';
@@ -37,7 +37,7 @@ class JwtFlow {
       : _signer = new RS256Signer(key);
 
   Future<AccessCredentials> run() {
-    int timestamp = new DateTime.now().millisecondsSinceEpoch ~/ 1000
+    int timestamp = new DateTime.now().toUtc().millisecondsSinceEpoch ~/ 1000
         - MAX_EXPECTED_TIMEDIFF_IN_SECONDS;
 
     jwtHeader() => {"alg": "RS256", "typ": "JWT"};

@@ -5,7 +5,7 @@ import 'dart:html' as html;
 import "dart:js" as js;
 
 import '../utils.dart';
-import '../../oauth2.dart';
+import '../../auth.dart';
 
 /// This class performs the implicit browser-based oauth2 flow.
 ///

@@ -2,7 +2,7 @@ library googleapis_auth.test_utils;
 
 import 'dart:async';
 
-import 'package:googleapis_auth/oauth2.dart';
+import 'package:googleapis_auth/auth.dart';
 import 'package:googleapis_auth/src/crypto/pem.dart';
 import 'package:googleapis_auth/src/utils.dart';
 import 'package:http_base/http_base.dart';

@@ -1,4 +1,4 @@
-library googleapis_auth.oauth2_token;
+library googleapis_auth.auth;
 
 import 'dart:async';
 import 'dart:convert';
