@@ -27,16 +27,16 @@ class RS256Signer {
     var hash = (new SHA256()..add(bytes)).close();
     var digest = _digestInfo(hash);
 
-    var keyLen = (_rsaKey.n.bitLength + 7) ~/ 8;
-    var block = new Uint8List(keyLen);
+    var modulusLen = (_rsaKey.bitLength + 7) ~/ 8;
+
+    var block = new Uint8List(modulusLen);
     var padLength = block.length - digest.length - 3;
     block[0] = 0x00;
     block[1] = 0x01;
     block.fillRange(2, 2 + padLength, 0xFF);
     block[2 + padLength] = 0x00;
     block.setRange(2 + padLength + 1, block.length, digest);
-
-    return RSAAlgorithm.encrypt(_rsaKey, block);
+    return RSAAlgorithm.encrypt(_rsaKey, block, modulusLen);
   }
 
   static Uint8List _digestInfo(List<int> hash) {

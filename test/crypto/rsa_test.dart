@@ -8,16 +8,18 @@ import '../test_utils.dart';
 main() {
   group('rsa-algorithm', () {
     test('integer-to-bytes', () {
-      expect(RSAAlgorithm.integer2Bytes(1), equals([1]));
-      expect(RSAAlgorithm.integer2Bytes(2 << 64),
+      expect(RSAAlgorithm.integer2Bytes(1, 1), equals([1]));
+      expect(RSAAlgorithm.integer2Bytes(2 << 64, 9),
              equals([2, 0, 0, 0, 0, 0, 0, 0, 0]));
-      expect(() => RSAAlgorithm.integer2Bytes(0), throwsA(isArgumentError));
+      expect(RSAAlgorithm.integer2Bytes(2 << 64, 12),
+             equals([0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0]));
+      expect(() => RSAAlgorithm.integer2Bytes(0, 1), throwsA(isArgumentError));
     });
 
     test('bytes-to-integer', () {
       expect(RSAAlgorithm.bytes2Integer([1]), equals(1));
       expect(RSAAlgorithm.bytes2Integer([2, 0, 0, 0, 0, 0, 0, 0, 0]),
-             2 << 64);;
+             2 << 64);
     });
 
     test('encrypt', () {
@@ -40,7 +42,8 @@ main() {
            226, 91, 54, 178, 241, 240, 85, 53, 148, 172, 138, 107, 131, 14, 157,
            183, 137, 46, 130, 51, 233, 26, 217, 230, 133, 217, 76];
       expect(
-          RSAAlgorithm.encrypt(TestPrivateKey, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]),
+          RSAAlgorithm.encrypt(TestPrivateKey, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+                               256),
           equals(encryptedData));
     });
   });

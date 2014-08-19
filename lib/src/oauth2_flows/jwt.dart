@@ -55,8 +55,9 @@ class JwtFlow {
     var jwtHeaderBase64 = _base64url(ASCII.encode(JSON.encode(jwtHeader())));
     var jwtClaimSetBase64 = _base64url(UTF8.encode(JSON.encode(jwtClaimSet())));
     var jwtSignatureInput = '$jwtHeaderBase64.$jwtClaimSetBase64';
+    var jwtSignatureInputInBytes = ASCII.encode(jwtSignatureInput);
 
-    var signature = _signer.sign(ASCII.encode(jwtSignatureInput));
+    var signature = _signer.sign(jwtSignatureInputInBytes);
     var jwt = "$jwtSignatureInput.${_base64url(signature)}";
 
     var uri = 'urn:ietf:params:oauth:grant-type:jwt-bearer';

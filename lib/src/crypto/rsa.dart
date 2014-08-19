@@ -59,6 +59,9 @@ class RSAPrivateKey {
   /// A coefificient which satisfies `coeff=q^-1 mod p`.
   final int coeff;
 
+  /// The number of bits used for the modulus. Usually 1024, 2048 or 4096 bits.
+  int get bitLength => n.bitLength;
+
   RSAPrivateKey(this.n, this.e, this.d, this.p, this.q,
                 this.dmp1, this.dmq1, this.coeff);
 }
@@ -69,10 +72,13 @@ abstract class RSAAlgorithm {
   /// Performs the encryption of [bytes] with the private [key].
   /// Others who have access to the public key will be able to decrypt this
   /// the result.
-  static List<int> encrypt(RSAPrivateKey key, List<int> bytes) {
+  ///
+  /// The [intendedLength] argument specifies the number of bytes in which the
+  /// result should be encoded. Zero bytes will be used for padding.
+  static List<int> encrypt(RSAPrivateKey key, List<int> bytes, intendedLength) {
     var message = bytes2Integer(bytes);
     var encryptedMessage = _encryptInteger(key, message);
-    return integer2Bytes(encryptedMessage);
+    return integer2Bytes(encryptedMessage, intendedLength);
    }
 
   static int _encryptInteger(RSAPrivateKey key, int x) {
@@ -112,13 +118,12 @@ abstract class RSAAlgorithm {
     return number;
   }
 
-  static List<int> integer2Bytes(int integer) {
+  static List<int> integer2Bytes(int integer, int intendedLength) {
     if (integer < 1) {
       throw new ArgumentError('Only positive integers are supported.');
     }
     var bits = integer.bitLength;
-    var numBytes = (bits + 7) ~/ 8;
-    var bytes = new Uint8List(numBytes);
+    var bytes = new Uint8List(intendedLength);
     for (int i = bytes.length - 1; i >= 0; i--) {
       bytes[i] = integer & 0xff;
       integer >>= 8;

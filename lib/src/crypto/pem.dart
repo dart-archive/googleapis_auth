@@ -60,7 +60,8 @@ RSAPrivateKey _extractRSAKeyFromDERBytes(Uint8List bytes) {
     if (version.integer != 0) {
       throw new ArgumentError('Expected version 0, got: ${version.integer}.');
     }
-    return new RSAPrivateKey(
+
+    var key = new RSAPrivateKey(
         objects[1].integer,
         objects[2].integer,
         objects[3].integer,
@@ -69,6 +70,14 @@ RSAPrivateKey _extractRSAKeyFromDERBytes(Uint8List bytes) {
         objects[6].integer,
         objects[7].integer,
         objects[8].integer);
+
+    var bitLength = key.bitLength;
+    if (bitLength != 1024 && bitLength != 2048 && bitLength != 4096) {
+      throw new ArgumentError(
+          'The RSA modulus has a bit length of $bitLength. '
+          'Only 1024, 2048 and 4096 are supported.');
+    }
+    return key;
   }
 
   try {
