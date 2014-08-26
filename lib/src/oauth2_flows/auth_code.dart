@@ -4,8 +4,9 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:http_base/http_base.dart' as http;
+import 'package:http/http.dart' as http;
 import '../utils.dart';
+import '../http_client_base.dart';
 import '../../auth_io.dart';
 
 /// Abstract class for obtaining access credentials via the authorization code
@@ -18,7 +19,7 @@ import '../../auth_io.dart';
 abstract class AuthorizationCodeGrantAbstractFlow {
   final ClientId clientId;
   final List<String> scopes;
-  final http.RequestHandler _client;
+  final http.Client _client;
 
   AuthorizationCodeGrantAbstractFlow(this.clientId, this.scopes, this._client);
 
@@ -27,10 +28,6 @@ abstract class AuthorizationCodeGrantAbstractFlow {
   Future<AccessCredentials> _obtainAccessCredentialsUsingCode(
       String code, String redirectUri) {
     var uri = Uri.parse('https://accounts.google.com/o/oauth2/token');
-    var headers = new http.HeadersImpl({
-      'content-type' : 'application/x-www-form-urlencoded',
-    });
-
     var formValues = [
         'grant_type=authorization_code',
         'code=${Uri.encodeQueryComponent(code)}',
@@ -39,13 +36,12 @@ abstract class AuthorizationCodeGrantAbstractFlow {
         'client_secret=${Uri.encodeQueryComponent(clientId.secret)}',
     ];
 
-    var body =
-        new Stream.fromIterable([ASCII.encode(formValues.join('&'))]);
-    var request = new http.RequestImpl(
-        'POST', uri, headers: headers, body: body);
+    var body = new Stream.fromIterable([ASCII.encode(formValues.join('&'))]);
+    var request = new RequestImpl('POST', uri, body);
+    request.headers['content-type'] = CONTENT_TYPE_URLENCODED;
 
-    return _client(request).then((http.ResponseImpl response) {
-      return response.read()
+    return _client.send(request).then((http.StreamedResponse response) {
+      return response.stream
         .transform(UTF8.decoder)
         .transform(JSON.decoder)
         .first.then((Map json) {
@@ -106,7 +102,7 @@ class AuthorizationCodeGrantServerFlow
   final PromptUserForConsent userPrompt;
 
   AuthorizationCodeGrantServerFlow(
-      ClientId clientId, List<String> scopes, http.RequestHandler client,
+      ClientId clientId, List<String> scopes, http.Client client,
       this.userPrompt) : super(clientId, scopes, client);
 
   Future<AccessCredentials> run() {
@@ -186,7 +182,7 @@ class AuthorizationCodeGrantManualFlow
   final PromptUserForConsentManual userPrompt;
 
   AuthorizationCodeGrantManualFlow(
-      ClientId clientId, List<String> scopes, http.RequestHandler client,
+      ClientId clientId, List<String> scopes, http.Client client,
       this.userPrompt) : super(clientId, scopes, client);
 
   Future<AccessCredentials> run() {

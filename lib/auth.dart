@@ -3,11 +3,12 @@ library googleapis_auth.auth;
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:http_base/http_base.dart';
+import 'package:http/http.dart';
 
+import 'src/auth_http_utils.dart';
 import 'src/crypto/pem.dart';
 import 'src/crypto/rsa.dart';
-
+import 'src/http_client_base.dart';
 import 'src/utils.dart';
 
 
@@ -152,70 +153,35 @@ class UserConsentException implements Exception {
 }
 
 
-/// Obtain an `http_base.RequestHandler` which automatically authenticates
+/// Obtain an `http.Client` which automatically authenticates
 /// requests using [credentials].
 ///
 /// Note that the returned `RequestHandler` will not auto-refresh the given
 /// [credentials].
-RequestHandler authenticatedClient(RequestHandler client,
-                                   AccessCredentials credentials) {
+///
+/// The user is responsible for closing the returned HTTP [Client].
+/// Closing the returned [Client] will not close [baseClient].
+Client authenticatedClient(Client baseClient, AccessCredentials credentials) {
   if (credentials.accessToken.type != 'Bearer') {
     throw new ArgumentError('Only Bearer access tokens are accepted.');
   }
-  var authString = 'Bearer ${credentials.accessToken.data}';
-
-  return (Request request) {
-    // Copy headers and add 'Authorization'.
-    var map = {};
-    for (var name in request.headers.names) {
-      // FIXME: this does not work with Cookies.
-      map[name] = request.headers.getMultiple(name).toList();
-    }
-    map['Authorization'] = authString;
-    var headers = new HeadersImpl(map);
-
-    // Make new request object and perform the authenticated request.
-    var modifiedRequest = new RequestImpl(
-        request.method, request.url, headers: headers, body: request.read());
-    return client(modifiedRequest).then((response) {
-      var wwwAuthenticate = response.headers['www-authenticate'];
-      if (wwwAuthenticate != null) {
-        return response.read().drain().then((_) {
-          throw new AccessDeniedException('Access was denied '
-              '(www-authenticate header was: $wwwAuthenticate).');
-        });
-      }
-      return response;
-    });
-  };
+  return new AuthenticatedClient(baseClient, credentials);
 }
 
 
-/// Obtain an `http_base.Client` which automatically refreshes [credentials]
+/// Obtain an `http.Client` which automatically refreshes [credentials]
 /// before they expire. Uses [baseClient] as a base for making authenticated
 /// http requests and for refreshing [credentials].
-RequestHandler autoRefreshingClient(ClientId clientId,
-                                    AccessCredentials credentials,
-                                    RequestHandler baseClient) {
+///
+/// The user is responsible for closing the returned HTTP [Client].
+/// Closing the returned [Client] will not close [baseClient].
+Client autoRefreshingClient(ClientId clientId,
+                            AccessCredentials credentials,
+                            Client baseClient) {
   if (credentials.refreshToken == null) {
     throw new ArgumentError('Refresh token in AccessCredentials was `null`.');
   }
-
-  var authClient = authenticatedClient(baseClient, credentials);
-  return (request) {
-    if (!credentials.accessToken.hasExpired) {
-      // TODO: Can this return a "access token expired" message?
-      // If so, we should handle it.
-      return authClient(request);
-    } else {
-      assert (credentials.refreshToken != null);
-      return refreshCredentials(clientId, credentials, baseClient).then((cred) {
-        credentials = cred;
-        authClient = authenticatedClient(baseClient, cred);
-        return authClient(request);
-      });
-    }
-  };
+  return new AutoRefreshingClient(baseClient, clientId, credentials);
 }
 
 
@@ -223,7 +189,7 @@ RequestHandler autoRefreshingClient(ClientId clientId,
 /// [client].
 Future<AccessCredentials> refreshCredentials(ClientId clientId,
                                              AccessCredentials credentials,
-                                             RequestHandler client) {
+                                             Client client) {
   var formValues = [
       'client_id=${Uri.encodeComponent(clientId.identifier)}',
       'client_secret=${Uri.encodeComponent(clientId.secret)}',
@@ -232,22 +198,24 @@ Future<AccessCredentials> refreshCredentials(ClientId clientId,
   ];
 
   var body = new Stream.fromIterable([(ASCII.encode(formValues.join('&')))]);
-  var request = new RequestImpl(
-      'POST', _GoogleTokenUri, headers: _TokenUriHeaders, body: body);
-  return client(request).then((response) {
+  var request = new RequestImpl('POST', _GoogleTokenUri, body);
+  request.headers['content-type'] = 'application/x-www-form-urlencoded';
+
+  return client.send(request).then((response) {
     var contentType = response.headers['content-type'];
     contentType = contentType == null ? null : contentType.toLowerCase();
 
     if (contentType == null ||
         (!contentType.contains('json') &&
          !contentType.contains('javascript'))) {
-      return response.read().drain().catchError((_) {}).then((_) {
+      return response.stream.drain().catchError((_) {}).then((_) {
         throw new Exception(
-            'Server responded with invalid content type: $contentType');
+            'Server responded with invalid content type: $contentType. '
+            'Expected json response.');
       });
     }
 
-    return response.read()
+    return response.stream
         .transform(ASCII.decoder)
         .transform(JSON.decoder).first.then((Map json) {
 
@@ -276,8 +244,3 @@ Future<AccessCredentials> refreshCredentials(ClientId clientId,
 
 
 final _GoogleTokenUri = Uri.parse('https://accounts.google.com/o/oauth2/token');
-
-
-final _TokenUriHeaders = new HeadersImpl({
-    'content-type' : ['application/x-www-form-urlencoded'],
-});

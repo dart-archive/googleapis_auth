@@ -3,7 +3,7 @@ library googleapis_auth.metadata_server_flow;
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:http_base/http_base.dart' as http;
+import 'package:http/http.dart' as http;
 import '../utils.dart';
 import '../../auth.dart';
 
@@ -13,20 +13,17 @@ import '../../auth.dart';
 /// ComputeEngine VM. It will retrieve the current access token from the
 /// metadata server.
 class MetadataServerAuthorizationFlow {
+  static const _HEADERS = const { 'X-Google-Metadata-Request' : 'True' };
   static const _SERVICE_ACCOUNT_URL_PREFIX =
       'http://metadata/computeMetadata/v1/instance/service-accounts';
-
-  static final http.HeadersImpl _HEADERS = new http.HeadersImpl(const {
-      'X-Google-Metadata-Request' : const ['True'],
-  });
 
   final String email;
   final Uri _scopesUrl;
   final Uri _tokenUrl;
-  final http.RequestHandler _client;
+  final http.Client _client;
 
   factory MetadataServerAuthorizationFlow(
-      http.RequestHandler client, {String email: 'default'}) {
+      http.Client client, {String email: 'default'}) {
     var encodedEmail = Uri.encodeComponent(email);
     var scopesUrl = Uri.parse(
         '$_SERVICE_ACCOUNT_URL_PREFIX/$encodedEmail/scopes');
@@ -70,19 +67,14 @@ class MetadataServerAuthorizationFlow {
   }
 
   Future<Map> _getToken() {
-    var tokenRequest =
-        new http.RequestImpl('GET', _tokenUrl, headers: _HEADERS);
-    return _client(tokenRequest).then((response) {
-      return response.read()
-          .transform(UTF8.decoder).transform(JSON.decoder).first;
+    return _client.get(_tokenUrl, headers: _HEADERS).then((response) {
+      return JSON.decode(response.body);
     });
   }
 
   Future<String> _getScopes() {
-    var scopesRequest =
-        new http.RequestImpl('GET', _scopesUrl, headers: _HEADERS);
-    return _client(scopesRequest).then((response) {
-      return response.read().transform(UTF8.decoder).join('');
+    return _client.get(_scopesUrl, headers: _HEADERS).then((response) {
+      return response.body;
     });
   }
 }

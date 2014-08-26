@@ -2,12 +2,14 @@ library googleapis_auth.auth_io;
 
 import 'dart:async';
 
-import 'package:http_base/http_base_io.dart' as http;
+import 'package:http/http.dart';
 
 import 'auth.dart';
+import 'src/auth_http_utils.dart';
 import 'src/oauth2_flows/auth_code.dart';
 import 'src/oauth2_flows/jwt.dart';
 import 'src/oauth2_flows/metadata_server.dart';
+import 'src/http_client_base.dart';
 
 export 'auth.dart';
 
@@ -41,18 +43,25 @@ typedef Future<String> PromptUserForConsentManual(String uri);
 ///
 /// If [baseClient] is not given, one will be automatically created. It will be
 /// used for making authenticated HTTP requests.
-Future<http.RequestHandler> clientViaUserConsent(
+///
+/// The user is responsible for closing the returned HTTP [Client].
+/// Closing the returned [Client] will not close [baseClient].
+Future<Client> clientViaUserConsent(
     ClientId clientId,
     List<String> scopes,
     PromptUserForConsent userPrompt,
-    {http.RequestHandler baseClient}) {
-  if (baseClient == null) baseClient = new http.Client();
+    {Client baseClient}) {
+  bool closeUnderlyingClient = false;
+  if (baseClient == null) {
+    baseClient = new Client();
+    closeUnderlyingClient = true;
+  }
 
   var flow = new AuthorizationCodeGrantServerFlow(
       clientId, scopes, baseClient, userPrompt);
-
-  return flow.run().then(
-      (credentials) => autoRefreshingClient(clientId, credentials, baseClient));
+  return flow.run().then((credentials) => new AutoRefreshingClient(
+      baseClient, clientId, credentials,
+      closeUnderlyingClient: closeUnderlyingClient));
 }
 
 
@@ -68,18 +77,25 @@ Future<http.RequestHandler> clientViaUserConsent(
 ///
 /// If [baseClient] is not given, one will be automatically created. It will be
 /// used for making authenticated HTTP requests.
-Future<http.RequestHandler> clientViaUserConsentManual(
+///
+/// The user is responsible for closing the returned HTTP [Client].
+/// Closing the returned [Client] will not close [baseClient].
+Future<Client> clientViaUserConsentManual(
     ClientId clientId,
     List<String> scopes,
     PromptUserForConsentManual userPrompt,
-    {http.RequestHandler baseClient}) {
-  if (baseClient == null) baseClient = new http.Client();
+    {Client baseClient}) {
+  bool closeUnderlyingClient = false;
+  if (baseClient == null) {
+    baseClient = new Client();
+    closeUnderlyingClient = true;
+  }
 
   var flow = new AuthorizationCodeGrantManualFlow(
       clientId, scopes, baseClient, userPrompt);
-
-  return flow.run().then(
-      (credentials) => autoRefreshingClient(clientId, credentials, baseClient));
+  return flow.run().then((credentials) => new AutoRefreshingClient(
+      baseClient, clientId, credentials,
+      closeUnderlyingClient: closeUnderlyingClient));
 }
 
 
@@ -95,30 +111,25 @@ Future<http.RequestHandler> clientViaUserConsentManual(
 /// If [baseClient] is not given, one will be automatically created. It will be
 /// used for making authenticated HTTP requests and for obtaining access
 /// credentials.
-Future<http.RequestHandler> clientViaServiceAccount(
+///
+/// The user is responsible for closing the returned HTTP [Client].
+/// Closing the returned [Client] will not close [baseClient].
+Future<Client> clientViaServiceAccount(
     ServiceAccountCredentials clientCredentials,
     List<String> scopes,
-    {http.RequestHandler baseClient}) {
-  if (baseClient == null) baseClient = new http.Client();
+    {Client baseClient}) {
+  if (baseClient == null) {
+    baseClient = new Client();
+  } else {
+    baseClient = nonClosingClient(baseClient);
+  }
 
   var flow = new JwtFlow(clientCredentials.email,
                          clientCredentials.privateRSAKey,
                          scopes,
                          baseClient);
-
   return flow.run().then((credentials) {
-    var authClient = authenticatedClient(baseClient, credentials);
-    return (request) {
-      if (!credentials.accessToken.hasExpired) {
-        return authClient(request);
-      } else {
-        return flow.run().then((newCredentials) {
-          credentials = newCredentials;
-          authClient = authenticatedClient(baseClient, credentials);
-          return authClient(request);
-        });
-      }
-    };
+    return new _ServiceAccountClient(baseClient, credentials, flow);
   });
 }
 
@@ -135,24 +146,19 @@ Future<http.RequestHandler> clientViaServiceAccount(
 /// If [baseClient] is not given, one will be automatically created. It will be
 /// used for making authenticated HTTP requests and for obtaining access
 /// credentials.
-Future<http.RequestHandler> clientViaMetadataServer(
-      {http.RequestHandler baseClient}) {
-  if (baseClient == null) baseClient = new http.Client();
+///
+/// The user is responsible for closing the returned HTTP [Client].
+/// Closing the returned [Client] will not close [baseClient].
+Future<Client> clientViaMetadataServer({Client baseClient}) {
+  if (baseClient == null) {
+    baseClient = new Client();
+  } else {
+    baseClient = nonClosingClient(baseClient);
+  }
 
   var flow = new MetadataServerAuthorizationFlow(baseClient);
   return flow.run().then((credentials) {
-    var authClient = authenticatedClient(baseClient, credentials);
-    return (request) {
-      if (!credentials.accessToken.hasExpired) {
-        return authClient(request);
-      } else {
-        return flow.run().then((newCredentials) {
-          credentials = newCredentials;
-          authClient = authenticatedClient(baseClient, credentials);
-          return authClient(request);
-        });
-      }
-    };
+    return new _MetadataServerClient(baseClient, credentials, flow);
   });
 }
 
@@ -176,7 +182,7 @@ Future<http.RequestHandler> clientViaMetadataServer(
 Future<AccessCredentials> obtainAccessCredentialsViaUserConsent(
     ClientId clientId,
     List<String> scopes,
-    http.RequestHandler client,
+    Client client,
     PromptUserForConsent userPrompt) {
   return new AuthorizationCodeGrantServerFlow(
       clientId, scopes, client, userPrompt).run();
@@ -202,7 +208,7 @@ Future<AccessCredentials> obtainAccessCredentialsViaUserConsent(
 Future<AccessCredentials> obtainAccessCredentialsViaUserConsentManual(
     ClientId clientId,
     List<String> scopes,
-    http.RequestHandler client,
+    Client client,
     PromptUserForConsentManual userPrompt) {
   return new AuthorizationCodeGrantManualFlow(
       clientId, scopes, client, userPrompt).run();
@@ -219,7 +225,7 @@ Future<AccessCredentials> obtainAccessCredentialsViaUserConsentManual(
 /// The [ServiceAccountCredentials] can be obtained in the Google Cloud Console.
 Future<AccessCredentials> obtainAccessCredentialsViaServiceAccount(
    ServiceAccountCredentials clientCredentials,
-   List<String> scopes, http.RequestHandler baseClient) {
+   List<String> scopes, Client baseClient) {
   return new JwtFlow(clientCredentials.email,
                      clientCredentials.privateRSAKey,
                      scopes,
@@ -237,10 +243,59 @@ Future<AccessCredentials> obtainAccessCredentialsViaServiceAccount(
 /// No credentials are needed. But this function is only intended to work on a
 /// Google Compute Engine VM with configured access to Google APIs.
 Future<AccessCredentials> obtainAccessCredentialsViaMetadataServer(
-    http.RequestHandler baseClient) {
+    Client baseClient) {
   return new MetadataServerAuthorizationFlow(baseClient).run();
 }
 
+
+
+/// Will close the underlying `http.Client`.
+class _ServiceAccountClient extends DelegatingClient {
+  final JwtFlow flow;
+  AccessCredentials credentials;
+  Client authClient;
+
+  _ServiceAccountClient(Client client, this.credentials, this.flow)
+      : super(client) {
+    authClient = authenticatedClient(baseClient, credentials);
+  }
+
+  Future<StreamedResponse> send(BaseRequest request) {
+    if (!credentials.accessToken.hasExpired) {
+      return authClient.send(request);
+    } else {
+      return flow.run().then((newCredentials) {
+        credentials = newCredentials;
+        authClient = authenticatedClient(baseClient, credentials);
+        return authClient.send(request);
+      });
+    }
+  }
+}
+
+/// Will close the underlying `http.Client`.
+class _MetadataServerClient extends DelegatingClient {
+  final MetadataServerAuthorizationFlow flow;
+  AccessCredentials credentials;
+  Client authClient;
+
+  _MetadataServerClient(Client client, this.credentials, this.flow)
+      : super(client) {
+    authClient = authenticatedClient(baseClient, credentials);
+  }
+
+  Future<StreamedResponse> send(BaseRequest request) {
+    if (!credentials.accessToken.hasExpired) {
+      return authClient.send(request);
+    } else {
+      return flow.run().then((newCredentials) {
+        credentials = newCredentials;
+        authClient = authenticatedClient(baseClient, credentials);
+        return authClient.send(request);
+      });
+    }
+  }
+}
 
 
 // TODO: User callback for obtaining/storing new [AccessCredentials]

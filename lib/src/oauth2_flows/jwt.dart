@@ -9,11 +9,12 @@ import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
 
-import 'package:http_base/http_base.dart' as http;
+import 'package:http/http.dart' as http;
 import '../../auth.dart';
 import '../crypto/rsa.dart';
 import '../crypto/rsa_sign.dart';
 import '../utils.dart';
+import '../http_client_base.dart';
 
 class JwtFlow {
   // All details are described at:
@@ -23,15 +24,10 @@ class JwtFlow {
   static const GOOGLE_OAUTH2_TOKEN_URL =
       'https://accounts.google.com/o/oauth2/token';
 
-  static final _Headers = new http.HeadersImpl({
-    'content-type' : ['application/x-www-form-urlencoded; charset=utf-8'],
-  });
-
   final String _clientEmail;
   final RS256Signer _signer;
   final List<String> _scopes;
-
-  final http.RequestHandler _client;
+  final http.Client _client;
 
   JwtFlow(this._clientEmail, RSAPrivateKey key, this._scopes, this._client)
       : _signer = new RS256Signer(key);
@@ -65,12 +61,12 @@ class JwtFlow {
                             'assertion=${Uri.encodeComponent(jwt)}';
 
     var body = new Stream.fromIterable([UTF8.encode(requestParameters)]);
-    var request = new http.RequestImpl(
-        'POST', Uri.parse(GOOGLE_OAUTH2_TOKEN_URL),
-        headers: _Headers, body: body);
+    var request = new RequestImpl(
+        'POST', Uri.parse(GOOGLE_OAUTH2_TOKEN_URL), body);
+    request.headers['content-type'] = CONTENT_TYPE_URLENCODED;
 
-    return _client(request).then((http.Response httpResponse) {
-      return httpResponse.read()
+    return _client.send(request).then((http.StreamedResponse httpResponse) {
+      return httpResponse.stream
           .transform(UTF8.decoder)
           .transform(JSON.decoder)
           .first.then((Map response) {

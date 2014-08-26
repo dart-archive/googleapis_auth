@@ -11,3 +11,7 @@ DateTime expiryDate(int seconds) {
   return new DateTime.now().toUtc().add(
     new Duration(seconds: seconds - MAX_EXPECTED_TIMEDIFF_IN_SECONDS));
 }
+
+/// Constant for the 'application/x-www-form-urlencoded' content type
+const CONTENT_TYPE_URLENCODED =
+    'application/x-www-form-urlencoded; charset=utf-8';

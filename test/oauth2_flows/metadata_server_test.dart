@@ -5,7 +5,8 @@ import 'dart:convert';
 
 import 'package:googleapis_auth/auth.dart';
 import 'package:googleapis_auth/src/oauth2_flows/metadata_server.dart';
-import 'package:http_base/http_base.dart';
+import 'package:http/http.dart';
+import 'package:http/testing.dart';
 import 'package:unittest/unittest.dart';
 
 import '../test_utils.dart';
@@ -19,40 +20,38 @@ main() {
     expect(request.method, equals('GET'));
     expect(request.url.toString(), equals(tokenUrl));
 
-    var body = (new StreamController()..add(UTF8.encode(JSON.encode({
+    var body = JSON.encode({
       'access_token' : 'atok',
       'expires_in' : 3600,
       'token_type' : 'Bearer',
-    })))..close()).stream;
-    return new Future.value(new ResponseImpl(200, body: body));
+    });
+    return new Future.value(new Response(body, 200));
   }
 
   Future<Response> invalidAccessToken(Request request) {
     expect(request.method, equals('GET'));
     expect(request.url.toString(), equals(tokenUrl));
 
-    var body = (new StreamController()..add(UTF8.encode(JSON.encode({
+    var body = JSON.encode({
       // Missing 'expires_in' entry
       'access_token' : 'atok',
       'token_type' : 'Bearer',
-    })))..close()).stream;
-    return new Future.value(new ResponseImpl(200, body: body));
+    });
+    return new Future.value(new Response(body, 200));
   }
 
   Future<Response> successfullScopes(Request request) {
     expect(request.method, equals('GET'));
     expect(request.url.toString(), equals(scopesUrl));
 
-    var body = (new StreamController()
-        ..add(UTF8.encode('s1\ns2'))
-        ..close()).stream;
-    return new Future.value(new ResponseImpl(200, body: body));
+    return new Future.value(new Response('s1\ns2', 200));
   }
 
   group('metadata-server-authorization-flow', () {
     test('successfull', () {
       int requestNr = 0;
-      var flow = new MetadataServerAuthorizationFlow(expectAsync((request) {
+      var flow = new MetadataServerAuthorizationFlow(
+          mockClient(expectAsync((request) {
         var url = request.url.toString();
         if (url == tokenUrl) {
           return successfullAccessToken(request);
@@ -61,7 +60,7 @@ main() {
         } else {
           fail("Invalid URL $url (expected: $tokenUrl or $scopesUrl).");
         }
-      }, count: 2));
+      }, count: 2), expectClose: false));
 
       flow.run().then(expectAsync((AccessCredentials credentials) {
         expect(credentials.accessToken.data, equals('atok'));
@@ -75,29 +74,34 @@ main() {
 
     test('invalid-server-reponse', () {
       int requestNr = 0;
-      var flow = new MetadataServerAuthorizationFlow(expectAsync((request) {
+      var flow = new MetadataServerAuthorizationFlow(
+          mockClient(expectAsync((request) {
         if (requestNr++ == 0) return invalidAccessToken(request);
         else return successfullScopes(request);
-      }, count: 2));
+      }, count: 2), expectClose: false));
       expect(flow.run(), throwsA(isException));
     });
 
 
     test('token-transport-error', () {
       int requestNr = 0;
-      var flow = new MetadataServerAuthorizationFlow(expectAsync((request) {
-        if (requestNr++ == 0) return transportFailure(request);
+      var flow = new MetadataServerAuthorizationFlow(
+          mockClient(expectAsync((request) {
+        var dummyRequest = new Request(request.method, request.url);
+        if (requestNr++ == 0) return transportFailure.send(dummyRequest);
         else return successfullScopes(request);
-      }, count: 2));
+      }, count: 2), expectClose: false));
       expect(flow.run(), throwsA(isTransportException));
     });
 
     test('scopes-transport-error', () {
       int requestNr = 0;
-      var flow = new MetadataServerAuthorizationFlow(expectAsync((request) {
+      var flow = new MetadataServerAuthorizationFlow(
+          mockClient(expectAsync((request) {
+        var dummyRequest = new Request(request.method, request.url);
         if (requestNr++ == 0) return successfullAccessToken(request);
-        else return transportFailure(request);
-      }, count: 2));
+        else return transportFailure.send(dummyRequest);
+      }, count: 2), expectClose: false));
       expect(flow.run(), throwsA(isTransportException));
     });
   });

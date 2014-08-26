@@ -5,7 +5,8 @@ import 'dart:async';
 import 'package:googleapis_auth/auth.dart';
 import 'package:googleapis_auth/src/crypto/pem.dart';
 import 'package:googleapis_auth/src/utils.dart';
-import 'package:http_base/http_base.dart';
+import 'package:http/http.dart';
+import 'package:http/testing.dart';
 import 'package:unittest/unittest.dart';
 
 const Matcher isUserConsentException = const _UserConsentException();
@@ -44,9 +45,8 @@ class _TransportException extends TypeMatcher {
 class TransportException implements Exception {}
 
 
-Future<Response> transportFailure(Request request) {
-  return new Future.error(new TransportException());
-}
+Client get transportFailure => new MockClient(
+    expectAsync((_) => new Future.error(new TransportException())));
 
 
 final TestPrivateKeyString = '''-----BEGIN RSA PRIVATE KEY-----
@@ -85,4 +85,23 @@ expectExpiryOneHourFromNow(AccessToken accessToken) {
   var diff = accessToken.expiry.difference(now).inSeconds -
       (3600 - MAX_EXPECTED_TIMEDIFF_IN_SECONDS);
   expect(-2 <= diff && diff <= 2, isTrue);
+}
+
+Client mockClient(Function requestHandler, {bool expectClose: true}) {
+  return new ExpectCloseMockClient(requestHandler, expectClose ? 1 : 0);
+}
+
+/// A client which will keep the VM alive until `close()` was called.
+class ExpectCloseMockClient extends MockClient {
+  Function _expectedToBeCalled;
+
+  ExpectCloseMockClient(Function requestHandler, int c)
+      : super(requestHandler) {
+    _expectedToBeCalled = expectAsync(() {}, count: c);
+  }
+
+  void close() {
+    super.close();
+    _expectedToBeCalled();
+  }
 }

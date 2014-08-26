@@ -3,8 +3,10 @@ import 'dart:convert';
 
 import 'package:googleapis_auth/auth.dart';
 import 'package:googleapis_auth/src/utils.dart';
-import 'package:http_base/http_base.dart';
+import 'package:googleapis_auth/src/http_client_base.dart';
 import 'package:unittest/unittest.dart';
+import 'package:http/http.dart';
+import 'package:http/testing.dart';
 
 import 'test_utils.dart';
 
@@ -92,38 +94,30 @@ main() {
     var aToken = new AccessToken('Bearer', 'bar', tomorrow);
     var credentials = new AccessCredentials(aToken, 'refresh', ['s1', 's2']);
 
-    Future successfulRefresh(request) {
+    Future successfulRefresh(Request request) {
       expect(request.method, equals('POST'));
       expect('${request.url}',
              equals('https://accounts.google.com/o/oauth2/token'));
+      expect(request.body, equals('client_id=id&'
+                                  'client_secret=secret&'
+                                  'refresh_token=refresh&'
+                                  'grant_type=refresh_token'));
+      var body = JSON.encode({
+          'token_type' : 'Bearer',
+          'access_token' : 'atoken',
+          'expires_in' : 3600,
+      });
 
-      return request.read().transform(ASCII.decoder).join('')
-          .then(expectAsync((String result) {
-        expect(result, equals('client_id=id&'
-                              'client_secret=secret&'
-                              'refresh_token=refresh&'
-                              'grant_type=refresh_token'));
-        var body = new StreamController()..add(ASCII.encode(JSON.encode({
-            'token_type' : 'Bearer',
-            'access_token' : 'atoken',
-            'expires_in' : 3600,
-        })))..close();
-
-        return new Future.value(new ResponseImpl(
-            200, headers: _JsonContentType, body: body.stream));
-      }));
+      return new Future.value(new Response(
+          body, 200, headers: _JsonContentType));
     }
 
     Future refreshErrorResponse(request) {
-      return request.read().transform(ASCII.decoder).join('')
-          .then(expectAsync((String result) {
-        var body = new StreamController()..add(ASCII.encode(JSON.encode({
-            'error' : 'An error occured'
-        })))..close();
-
-        return new Future.value(new ResponseImpl(
-            400, headers: _JsonContentType, body: body.stream));
-      }));
+      var body = JSON.encode({
+          'error' : 'An error occured'
+      });
+      return new Future.value(new Response(
+          body, 400, headers: _JsonContentType));
     }
 
     Future serverError(request) {
@@ -131,7 +125,8 @@ main() {
     }
 
     test('refreshCredentials-successfull', () {
-      refreshCredentials(clientId, credentials, expectAsync(successfulRefresh))
+      refreshCredentials(clientId, credentials,
+          mockClient(expectAsync(successfulRefresh), expectClose: false))
           .then(expectAsync((newCredentials) {
         var expectedResultUtc = new DateTime.now().toUtc().add(
             const Duration(seconds: 3600 - MAX_EXPECTED_TIMEDIFF_IN_SECONDS));
@@ -148,7 +143,8 @@ main() {
     });
 
     test('refreshCredentials-http-error', () {
-      refreshCredentials(clientId, credentials, serverError)
+      refreshCredentials(clientId, credentials,
+          mockClient(serverError, expectClose: false))
           .catchError(expectAsync((error) {
         expect(error.toString(),
                equals('Exception: transport layer exception'));
@@ -156,7 +152,8 @@ main() {
     });
 
     test('refreshCredentials-error-response', () {
-      refreshCredentials(clientId, credentials, refreshErrorResponse)
+      refreshCredentials(clientId, credentials,
+          mockClient(refreshErrorResponse, expectClose: false))
           .catchError(expectAsync((error) {
         expect(error is RefreshFailedException, isTrue);
       }));
@@ -166,32 +163,32 @@ main() {
       var url = Uri.parse('http://www.example.com');
 
       test('successfull', () {
-        var client = authenticatedClient(expectAsync((request) {
+        var client = authenticatedClient(mockClient(expectAsync((request) {
           expect(request.method, equals('POST'));
           expect(request.url, equals(url));
-          expect(request.headers.names.length, equals(1));
+          expect(request.headers.length, equals(1));
           expect(request.headers['Authorization'], equals('Bearer bar'));
 
-          return new Future.value(new ResponseImpl(204));
-        }), credentials);
+          return new Future.value(new Response('', 204));
+        }), expectClose: false), credentials);
 
-        client(new RequestImpl('POST', url)).then(expectAsync((response) {
+        client.send(new RequestImpl('POST', url)).then(expectAsync((response) {
           expect(response.statusCode, equals(204));
         }));
       });
 
       test('access-denied', () {
-        var client = authenticatedClient(expectAsync((request) {
+        var client = authenticatedClient(mockClient(expectAsync((request) {
           expect(request.method, equals('POST'));
           expect(request.url, equals(url));
-          expect(request.headers.names.length, equals(1));
+          expect(request.headers.length, equals(1));
           expect(request.headers['Authorization'], equals('Bearer bar'));
 
-          var headers = new HeadersImpl({'www-authenticate' : 'foobar'});
-          return new Future.value(new ResponseImpl(401, headers: headers));
-        }), credentials);
+          var headers = const {'www-authenticate' : 'foobar'};
+          return new Future.value(new Response('', 401, headers: headers));
+        }), expectClose: false), credentials);
 
-        expect(client(new RequestImpl('POST', url)),
+        expect(client.send(new RequestImpl('POST', url)),
                throwsA(isAccessDeniedException));
       });
 
@@ -201,8 +198,8 @@ main() {
             new AccessToken('foobar', aToken.data, aToken.expiry),
             'refresh', ['s1', 's2']);
 
-        expect(() => authenticatedClient((_) {}, nonBearerCredentials),
-               throwsA(isArgumentError));
+        expect(() => authenticatedClient(mockClient((_) {}, expectClose: false),
+               nonBearerCredentials), throwsA(isArgumentError));
       });
     });
 
@@ -211,11 +208,11 @@ main() {
 
       test('up-to-date', () {
         var client = autoRefreshingClient(clientId, credentials,
-            expectAsync((request) {
-          return new Future.value(new ResponseImpl(200));
-        }));
+            mockClient(expectAsync((request) {
+          return new Future.value(new Response('', 200));
+        }), expectClose: false));
 
-        client(new RequestImpl('POST', url)).then(expectAsync((response) {
+        client.send(new RequestImpl('POST', url)).then(expectAsync((response) {
           expect(response.statusCode, equals(200));
         }));
       });
@@ -224,8 +221,8 @@ main() {
         var credentials = new AccessCredentials(
             new AccessToken('Bearer', 'bar', yesterday), null, ['s1', 's2']);
 
-        expect(() => autoRefreshingClient(clientId, credentials, (_) {}),
-               throwsA(isArgumentError));
+        expect(() => autoRefreshingClient(clientId, credentials,
+            mockClient((_) {}, expectClose: false)), throwsA(isArgumentError));
       });
 
       test('refresh-failed', () {
@@ -233,16 +230,15 @@ main() {
             'Bearer', 'bar', yesterday), 'refresh', ['s1', 's2']);
 
         var client = autoRefreshingClient(clientId, credentials,
-            expectAsync((request) {
+            mockClient(expectAsync((request) {
           // This should be a refresh request.
           expect(request.headers['foo'], isNull);
           return refreshErrorResponse(request);
-        }));
+        }), expectClose: false));
 
-        var headers = new HeadersImpl({'foo' : 'bar'});
-
-        expect(client(new RequestImpl('POST', url, headers: headers)),
-               throwsA(isRefreshFailedException));
+        var request = new RequestImpl('POST', url);
+        request.headers.addAll({'foo' : 'bar'});
+        expect(client.send(request), throwsA(isRefreshFailedException));
       });
 
       test('invalid-content-type', () {
@@ -250,22 +246,17 @@ main() {
             'Bearer', 'bar', yesterday), 'refresh', ['s1', 's2']);
 
         var client = autoRefreshingClient(clientId, credentials,
-            expectAsync((request) {
+            mockClient(expectAsync((request) {
           // This should be a refresh request.
           expect(request.headers['foo'], isNull);
-          return request.read().drain().then((_) {
-            var body = new Stream.fromIterable([]);
-            var headers = new HeadersImpl({'content-type' : 'foobar'});
+          var headers = {'content-type' : 'image/png'};
 
-            return new Future.value(
-                new ResponseImpl(200, headers: headers, body: body));
-          });
-        }));
+          return new Future.value(new Response('', 200, headers: headers));
+        }), expectClose: false));
 
-        var headers = new HeadersImpl({'foo' : 'bar'});
-
-        expect(client(new RequestImpl('POST', url, headers: headers)),
-               throwsA(isException));
+        var request = new RequestImpl('POST', url);
+        request.headers.addAll({'foo' : 'bar'});
+        expect(client.send(request), throwsA(isException));
       });
 
       test('successful-refresh', () {
@@ -275,7 +266,7 @@ main() {
             new AccessToken('Bearer', 'bar', yesterday), 'refresh', ['s1']);
 
         var client = autoRefreshingClient(clientId, credentials,
-            expectAsync((request) {
+            mockClient(expectAsync((request) {
           if (serverInvocation++ == 0) {
             // This should be a refresh request.
             expect(request.headers['foo'], isNull);
@@ -283,13 +274,13 @@ main() {
           } else {
             // This is the real request.
             expect(request.headers['foo'], equals('bar'));
-            return new Future.value(new ResponseImpl(200));
+            return new Future.value(new Response('', 200));
           }
-        }, count: 2));
+        }, count: 2), expectClose: false));
 
-        var headers = new HeadersImpl({'foo' : 'bar'});
-        client(new RequestImpl('POST', url, headers: headers))
-            .then(expectAsync((response) {
+        var request = new RequestImpl('POST', url);
+        request.headers.addAll({'foo' : 'bar'});
+        client.send(request).then(expectAsync((response) {
           expect(response.statusCode, equals(200));
         }));
       });
@@ -297,4 +288,4 @@ main() {
   });
 }
 
-final _JsonContentType = new HeadersImpl({'content-type' : 'application/json'});
+final _JsonContentType = const {'content-type' : 'application/json'};

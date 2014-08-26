@@ -6,7 +6,9 @@ import 'dart:io';
 
 import 'package:googleapis_auth/auth.dart';
 import 'package:googleapis_auth/src/oauth2_flows/auth_code.dart';
-import 'package:http_base/http_base.dart';
+import 'package:googleapis_auth/src/http_client_base.dart';
+import 'package:http/http.dart';
+import 'package:http/testing.dart';
 import 'package:unittest/unittest.dart';
 
 import '../test_utils.dart';
@@ -22,54 +24,45 @@ main() {
       expect(request.method, equals('POST'));
       expect('${request.url}',
              equals('https://accounts.google.com/o/oauth2/token'));
-      expect(request.headers['content-type'],
-             equals('application/x-www-form-urlencoded'));
+      expect(request.headers['content-type']
+             .startsWith('application/x-www-form-urlencoded'), isTrue);
 
-      return request.read()
-          .transform(UTF8.decoder).join('').then((requestBody) {
-        var pairs = requestBody.split('&');
-        expect(pairs, hasLength(5));
-        expect(pairs[0], equals('grant_type=authorization_code'));
-        expect(pairs[1], equals('code=mycode'));
-        expect(pairs[3], equals('client_id=id'));
-        expect(pairs[4], equals('client_secret=secret'));
-        if (manual) {
-          expect(pairs[2],
-                 equals('redirect_uri=urn%3Aietf%3Awg%3Aoauth%3A2.0%3Aoob'));
-        } else {
-          expect(pairs[2], startsWith('redirect_uri='));
+      var pairs = request.body.split('&');
+      expect(pairs, hasLength(5));
+      expect(pairs[0], equals('grant_type=authorization_code'));
+      expect(pairs[1], equals('code=mycode'));
+      expect(pairs[3], equals('client_id=id'));
+      expect(pairs[4], equals('client_secret=secret'));
+      if (manual) {
+        expect(pairs[2],
+               equals('redirect_uri=urn%3Aietf%3Awg%3Aoauth%3A2.0%3Aoob'));
+      } else {
+        expect(pairs[2], startsWith('redirect_uri='));
 
-          var url = Uri.parse(Uri.decodeComponent(
-              pairs[2].substring('redirect_uri='.length)));
-          expect(url.scheme, equals('http'));
-          expect(url.host, equals('localhost'));
-        }
+        var url = Uri.parse(Uri.decodeComponent(
+            pairs[2].substring('redirect_uri='.length)));
+        expect(url.scheme, equals('http'));
+        expect(url.host, equals('localhost'));
+      }
 
-        var result = {
-            'token_type' : 'Bearer',
-            'access_token' : 'tokendata',
-            'expires_in' : 3600,
-            'refresh_token' : 'my-refresh-token',
-        };
-        var body = new Stream.fromIterable([ASCII.encode(JSON.encode(result))]);
-
-        return new ResponseImpl(200, body: body);
-      });
+      var result = {
+          'token_type' : 'Bearer',
+          'access_token' : 'tokendata',
+          'expires_in' : 3600,
+          'refresh_token' : 'my-refresh-token',
+      };
+      return new Response(JSON.encode(result), 200);
     };
   }
 
   Future<Response> invalidResponse(Request request) {
-    return request.read().transform(UTF8.decoder).join('').then((requestBody) {
-      // Missing expires_in field!
-      var result = {
-          'token_type' : 'Bearer',
-          'access_token' : 'tokendata',
-          'refresh_token' : 'my-refresh-token',
-      };
-      var body = new Stream.fromIterable([ASCII.encode(JSON.encode(result))]);
-
-      return new ResponseImpl(200, body: body);
-    });
+    // Missing expires_in field!
+    var result = {
+        'token_type' : 'Bearer',
+        'access_token' : 'tokendata',
+        'refresh_token' : 'my-refresh-token',
+    };
+    return new Future.value(new Response(JSON.encode(result), 200));
   }
 
 
@@ -118,7 +111,7 @@ main() {
         var flow = new AuthorizationCodeGrantManualFlow(
             clientId,
             scopes,
-            successFullResponse(manual: true),
+            mockClient(successFullResponse(manual: true), expectClose: false),
             manualUserPrompt);
         flow.run().then(expectAsync(validateAccessCredentials));
       });
@@ -131,7 +124,7 @@ main() {
         var flow = new AuthorizationCodeGrantManualFlow(
             clientId,
             scopes,
-            successFullResponse(manual: true),
+            mockClient(successFullResponse(manual: true), expectClose: false),
             manualUserPromptError);
         expect(flow.run(), throwsA(isTransportException));
       });
@@ -144,7 +137,8 @@ main() {
 
       test('invalid-server-response', () {
         var flow = new AuthorizationCodeGrantManualFlow(
-            clientId, scopes, invalidResponse, manualUserPrompt);
+            clientId, scopes, mockClient(invalidResponse, expectClose: false),
+            manualUserPrompt);
         expect(flow.run(), throwsA(isException));
       });
     });
@@ -190,7 +184,7 @@ main() {
         var flow = new AuthorizationCodeGrantServerFlow(
             clientId,
             scopes,
-            successFullResponse(manual: false),
+            mockClient(successFullResponse(manual: false), expectClose: false),
             expectAsync(userPrompt));
         flow.run().then(expectAsync(validateAccessCredentials));
       });
@@ -203,7 +197,8 @@ main() {
 
       test('invalid-server-response', () {
         var flow = new AuthorizationCodeGrantServerFlow(
-            clientId, scopes, invalidResponse, expectAsync(userPrompt));
+            clientId, scopes, mockClient(invalidResponse, expectClose: false),
+            expectAsync(userPrompt));
         expect(flow.run(), throwsA(isException));
       });
 
@@ -211,7 +206,7 @@ main() {
         var flow = new AuthorizationCodeGrantServerFlow(
             clientId,
             scopes,
-            successFullResponse(manual: false),
+            mockClient(successFullResponse(manual: false), expectClose: false),
             expectAsync(userPromptInvalidAuthCodeCallback));
         expect(flow.run(), throwsA(isUserConsentException));
       });
