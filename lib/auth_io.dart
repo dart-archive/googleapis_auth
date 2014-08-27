@@ -46,7 +46,7 @@ typedef Future<String> PromptUserForConsentManual(String uri);
 ///
 /// The user is responsible for closing the returned HTTP [Client].
 /// Closing the returned [Client] will not close [baseClient].
-Future<Client> clientViaUserConsent(
+Future<AutoRefreshingAuthClient> clientViaUserConsent(
     ClientId clientId,
     List<String> scopes,
     PromptUserForConsent userPrompt,
@@ -80,7 +80,7 @@ Future<Client> clientViaUserConsent(
 ///
 /// The user is responsible for closing the returned HTTP [Client].
 /// Closing the returned [Client] will not close [baseClient].
-Future<Client> clientViaUserConsentManual(
+Future<AutoRefreshingAuthClient> clientViaUserConsentManual(
     ClientId clientId,
     List<String> scopes,
     PromptUserForConsentManual userPrompt,
@@ -114,7 +114,7 @@ Future<Client> clientViaUserConsentManual(
 ///
 /// The user is responsible for closing the returned HTTP [Client].
 /// Closing the returned [Client] will not close [baseClient].
-Future<Client> clientViaServiceAccount(
+Future<AutoRefreshingAuthClient> clientViaServiceAccount(
     ServiceAccountCredentials clientCredentials,
     List<String> scopes,
     {Client baseClient}) {
@@ -149,7 +149,7 @@ Future<Client> clientViaServiceAccount(
 ///
 /// The user is responsible for closing the returned HTTP [Client].
 /// Closing the returned [Client] will not close [baseClient].
-Future<Client> clientViaMetadataServer({Client baseClient}) {
+Future<AutoRefreshingAuthClient> clientViaMetadataServer({Client baseClient}) {
   if (baseClient == null) {
     baseClient = new Client();
   } else {
@@ -250,7 +250,7 @@ Future<AccessCredentials> obtainAccessCredentialsViaMetadataServer(
 
 
 /// Will close the underlying `http.Client`.
-class _ServiceAccountClient extends DelegatingClient {
+class _ServiceAccountClient extends AutoRefreshDelegatingClient {
   final JwtFlow flow;
   AccessCredentials credentials;
   Client authClient;
@@ -265,6 +265,7 @@ class _ServiceAccountClient extends DelegatingClient {
       return authClient.send(request);
     } else {
       return flow.run().then((newCredentials) {
+        notifyAboutNewCredentials(newCredentials);
         credentials = newCredentials;
         authClient = authenticatedClient(baseClient, credentials);
         return authClient.send(request);
@@ -274,7 +275,7 @@ class _ServiceAccountClient extends DelegatingClient {
 }
 
 /// Will close the underlying `http.Client`.
-class _MetadataServerClient extends DelegatingClient {
+class _MetadataServerClient extends AutoRefreshDelegatingClient {
   final MetadataServerAuthorizationFlow flow;
   AccessCredentials credentials;
   Client authClient;
@@ -289,6 +290,7 @@ class _MetadataServerClient extends DelegatingClient {
       return authClient.send(request);
     } else {
       return flow.run().then((newCredentials) {
+        notifyAboutNewCredentials(newCredentials);
         credentials = newCredentials;
         authClient = authenticatedClient(baseClient, credentials);
         return authClient.send(request);
@@ -296,6 +298,3 @@ class _MetadataServerClient extends DelegatingClient {
     }
   }
 }
-
-
-// TODO: User callback for obtaining/storing new [AccessCredentials]

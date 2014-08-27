@@ -171,6 +171,7 @@ main() {
 
           return new Future.value(new Response('', 204));
         }), expectClose: false), credentials);
+        expect(client.credentials, equals(credentials));
 
         client.send(new RequestImpl('POST', url)).then(expectAsync((response) {
           expect(response.statusCode, equals(204));
@@ -187,6 +188,7 @@ main() {
           var headers = const {'www-authenticate' : 'foobar'};
           return new Future.value(new Response('', 401, headers: headers));
         }), expectClose: false), credentials);
+        expect(client.credentials, equals(credentials));
 
         expect(client.send(new RequestImpl('POST', url)),
                throwsA(isAccessDeniedException));
@@ -211,6 +213,7 @@ main() {
             mockClient(expectAsync((request) {
           return new Future.value(new Response('', 200));
         }), expectClose: false));
+        expect(client.credentials, equals(credentials));
 
         client.send(new RequestImpl('POST', url)).then(expectAsync((response) {
           expect(response.statusCode, equals(200));
@@ -235,6 +238,7 @@ main() {
           expect(request.headers['foo'], isNull);
           return refreshErrorResponse(request);
         }), expectClose: false));
+        expect(client.credentials, equals(credentials));
 
         var request = new RequestImpl('POST', url);
         request.headers.addAll({'foo' : 'bar'});
@@ -253,6 +257,7 @@ main() {
 
           return new Future.value(new Response('', 200, headers: headers));
         }), expectClose: false));
+        expect(client.credentials, equals(credentials));
 
         var request = new RequestImpl('POST', url);
         request.headers.addAll({'foo' : 'bar'});
@@ -277,11 +282,18 @@ main() {
             return new Future.value(new Response('', 200));
           }
         }, count: 2), expectClose: false));
+        expect(client.credentials, equals(credentials));
+
+        client.credentialUpdates.listen(expectAsync((newCredentials) {
+          expect(newCredentials.accessToken.type, equals('Bearer'));
+          expect(newCredentials.accessToken.data, equals('atoken'));
+        }), onDone: expectAsync(() {}));
 
         var request = new RequestImpl('POST', url);
         request.headers.addAll({'foo' : 'bar'});
         client.send(request).then(expectAsync((response) {
           expect(response.statusCode, equals(200));
+          client.close();
         }));
       });
     });

@@ -7,7 +7,7 @@ import '../auth.dart';
 import 'http_client_base.dart';
 
 /// Will close the underlying `http.Client` depending on a constructor argument.
-class AuthenticatedClient extends DelegatingClient {
+class AuthenticatedClient extends DelegatingClient implements AuthClient {
   final AccessCredentials credentials;
 
   AuthenticatedClient(Client client, this.credentials)
@@ -35,7 +35,7 @@ class AuthenticatedClient extends DelegatingClient {
 
 
 /// Will close the underlying `http.Client` depending on a constructor argument.
-class AutoRefreshingClient extends DelegatingClient {
+class AutoRefreshingClient extends AutoRefreshDelegatingClient {
   final ClientId clientId;
   AccessCredentials credentials;
   Client authClient;
@@ -54,10 +54,34 @@ class AutoRefreshingClient extends DelegatingClient {
       return authClient.send(request);
     } else {
       return refreshCredentials(clientId, credentials, baseClient).then((cred) {
+        notifyAboutNewCredentials(cred);
         credentials = cred;
         authClient = authenticatedClient(baseClient, cred);
         return authClient.send(request);
       });
     }
+  }
+}
+
+
+abstract class AutoRefreshDelegatingClient extends DelegatingClient
+                                           implements AutoRefreshingAuthClient {
+  final StreamController<AccessCredentials> _credentialStreamController
+      = new StreamController.broadcast(sync: true);
+
+  AutoRefreshDelegatingClient(Client client,
+                              {bool closeUnderlyingClient: true})
+      : super(client, closeUnderlyingClient: closeUnderlyingClient);
+
+  Stream<AccessCredentials> get credentialUpdates =>
+      _credentialStreamController.stream;
+
+  void notifyAboutNewCredentials(AccessCredentials credentials) {
+    _credentialStreamController.add(credentials);
+  }
+
+  void close() {
+    _credentialStreamController.close();
+    super.close();
   }
 }

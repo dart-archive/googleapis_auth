@@ -5,6 +5,7 @@ import 'package:http/http.dart';
 import 'package:http/browser_client.dart';
 
 import 'auth.dart';
+import 'src/auth_http_utils.dart';
 import 'src/oauth2_flows/implicit.dart';
 import 'src/http_client_base.dart';
 
@@ -97,7 +98,7 @@ class BrowserOAuth2Flow {
   /// `Future<Response>` or it's `Response.read()` stream.
   ///
   /// The user is responsible for closing the returned HTTP client.
-  Future<Client> clientViaUserConsent({bool forceUserConsent: true}) {
+  Future<AuthClient> clientViaUserConsent({bool forceUserConsent: true}) {
     _ensureOpen();
     return obtainAccessCredentialsViaUserConsent(
         forceUserConsent: forceUserConsent).then((credentials) {
@@ -130,24 +131,25 @@ class BrowserOAuth2Flow {
 }
 
 
-class _AutoRefreshingBrowserClient extends DelegatingClient {
-  AccessCredentials _credentials;
+class _AutoRefreshingBrowserClient extends AutoRefreshDelegatingClient {
+  AccessCredentials credentials;
   ImplicitFlow _flow;
   List<String> _scopes;
   Client _authClient;
 
-  _AutoRefreshingBrowserClient(Client client, this._credentials, this._scopes,
+  _AutoRefreshingBrowserClient(Client client, this.credentials, this._scopes,
       this._flow) : super(client) {
-    _authClient = authenticatedClient(baseClient, _credentials);
+    _authClient = authenticatedClient(baseClient, credentials);
   }
 
   Future<StreamedResponse> send(BaseRequest request) {
-    if (!_credentials.accessToken.hasExpired) {
+    if (!credentials.accessToken.hasExpired) {
       return _authClient.send(request);
     } else {
       return _flow.login(immediate: true).then((accessToken) {
-        _credentials = new AccessCredentials(accessToken, null, _scopes);
-        _authClient = authenticatedClient(baseClient, _credentials);
+        credentials = new AccessCredentials(accessToken, null, _scopes);
+        notifyAboutNewCredentials(credentials);
+        _authClient = authenticatedClient(baseClient, credentials);
         return _authClient.send(request);
       });
     }

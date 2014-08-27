@@ -129,6 +129,22 @@ class ServiceAccountCredentials {
 }
 
 
+/// A authenticated HTTP client.
+abstract class AuthClient implements Client {
+  /// The credentials currently used for making HTTP requests.
+  AccessCredentials get credentials;
+}
+
+
+/// A autorefreshing, authenticated HTTP client.
+abstract class AutoRefreshingAuthClient implements AuthClient {
+  /// A broadcast stream of [AccessCredentials].
+  ///
+  /// A listener will get notified when new [AccessCredentials] were obtained.
+  Stream<AccessCredentials> get credentialUpdates;
+}
+
+
 /// Thrown if an attempt to refresh a token failed.
 class RefreshFailedException implements Exception {
   final String message;
@@ -161,7 +177,8 @@ class UserConsentException implements Exception {
 ///
 /// The user is responsible for closing the returned HTTP [Client].
 /// Closing the returned [Client] will not close [baseClient].
-Client authenticatedClient(Client baseClient, AccessCredentials credentials) {
+AuthClient authenticatedClient(Client baseClient,
+                               AccessCredentials credentials) {
   if (credentials.accessToken.type != 'Bearer') {
     throw new ArgumentError('Only Bearer access tokens are accepted.');
   }
@@ -175,9 +192,9 @@ Client authenticatedClient(Client baseClient, AccessCredentials credentials) {
 ///
 /// The user is responsible for closing the returned HTTP [Client].
 /// Closing the returned [Client] will not close [baseClient].
-Client autoRefreshingClient(ClientId clientId,
-                            AccessCredentials credentials,
-                            Client baseClient) {
+AutoRefreshingAuthClient autoRefreshingClient(ClientId clientId,
+                                              AccessCredentials credentials,
+                                              Client baseClient) {
   if (credentials.refreshToken == null) {
     throw new ArgumentError('Refresh token in AccessCredentials was `null`.');
   }
