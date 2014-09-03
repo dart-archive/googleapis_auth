@@ -242,7 +242,7 @@ Future<AccessCredentials> refreshCredentials(ClientId clientId,
       var error = json['error'];
 
       if (response.statusCode != 200 && error != null) {
-        throw new RefreshFailedException('Refresing attempt failed. '
+        throw new RefreshFailedException('Refreshing attempt failed. '
             'Response was ${response.statusCode}. Error message was $error.');
       }
 

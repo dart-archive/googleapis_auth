@@ -39,8 +39,10 @@ Future<BrowserOAuth2Flow> createImplicitBrowserFlow(
   }
 
   var flow = new ImplicitFlow(clientId.identifier, scopes);
-  return flow.initialize().then(
-      (_) => new BrowserOAuth2Flow._(flow, scopes, baseClient));
+  return flow.initialize().catchError((error, stack) {
+    baseClient.close();
+    return new Future.error(error, stack);
+  }).then((_) => new BrowserOAuth2Flow._(flow, scopes, baseClient));
 }
 
 

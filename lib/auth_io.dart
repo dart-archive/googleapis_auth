@@ -59,7 +59,12 @@ Future<AutoRefreshingAuthClient> clientViaUserConsent(
 
   var flow = new AuthorizationCodeGrantServerFlow(
       clientId, scopes, baseClient, userPrompt);
-  return flow.run().then((credentials) => new AutoRefreshingClient(
+  return flow.run().catchError((error, stack) {
+    if (closeUnderlyingClient) {
+      baseClient.close();
+    }
+    return new Future.error(error, stack);
+  }).then((credentials) => new AutoRefreshingClient(
       baseClient, clientId, credentials,
       closeUnderlyingClient: closeUnderlyingClient));
 }
@@ -93,7 +98,12 @@ Future<AutoRefreshingAuthClient> clientViaUserConsentManual(
 
   var flow = new AuthorizationCodeGrantManualFlow(
       clientId, scopes, baseClient, userPrompt);
-  return flow.run().then((credentials) => new AutoRefreshingClient(
+  return flow.run().catchError((error, stack) {
+    if (closeUnderlyingClient) {
+      baseClient.close();
+    }
+    return new Future.error(error, stack);
+  }).then((credentials) => new AutoRefreshingClient(
       baseClient, clientId, credentials,
       closeUnderlyingClient: closeUnderlyingClient));
 }
@@ -128,7 +138,10 @@ Future<AutoRefreshingAuthClient> clientViaServiceAccount(
                          clientCredentials.privateRSAKey,
                          scopes,
                          baseClient);
-  return flow.run().then((credentials) {
+  return flow.run().catchError((error, stack) {
+    baseClient.close();
+    return new Future.error(error, stack);
+  }).then((credentials) {
     return new _ServiceAccountClient(baseClient, credentials, flow);
   });
 }
@@ -157,7 +170,10 @@ Future<AutoRefreshingAuthClient> clientViaMetadataServer({Client baseClient}) {
   }
 
   var flow = new MetadataServerAuthorizationFlow(baseClient);
-  return flow.run().then((credentials) {
+  return flow.run().catchError((error, stack) {
+    baseClient.close();
+    return new Future.error(error, stack);
+  }).then((credentials) {
     return new _MetadataServerClient(baseClient, credentials, flow);
   });
 }

@@ -109,9 +109,7 @@ class AuthorizationCodeGrantServerFlow
     return HttpServer.bind('localhost', 0).then((HttpServer server) {
       var port = server.port;
       var redirectionUri = 'http://localhost:$port';
-
-      // TODO: Make this random??
-      var state = 'foobar';
+      var state = 'authcodestate${new DateTime.now().millisecondsSinceEpoch}';
 
       // Prompt user and wait until he goes to URL and the google authorization
       // server calls back to our locally running HTTP server.
@@ -151,11 +149,24 @@ class AuthorizationCodeGrantServerFlow
 
         return _obtainAccessCredentialsUsingCode(code, redirectionUri)
             .then((AccessCredentials credentials) {
-          // NOTE: We could introduce a user-defined redirect page.
+          // TODO: We could introduce a user-defined redirect page.
           request.response
               ..statusCode = 200
-              ..write('Application has successfully obtained access credentials'
-                      '. This window can be closed now.');
+              ..headers.set('content-type', 'text/html; charset=UTF-8')
+              ..write('''
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Authorization successful.</title>
+  </head>
+
+  <body>
+    <h2 style="text-align: center">Application has successfully obtained access credentials</h2>
+    <p style="text-align: center">This window can be closed now.</p>
+  </body>
+</html>''');
           return request.response.close().then((_) => credentials);
         }).catchError((error, stack) {
           return request.response.close()
