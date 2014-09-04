@@ -10,7 +10,6 @@ import 'dart:convert';
 import 'package:googleapis_auth/auth.dart';
 import 'package:googleapis_auth/src/oauth2_flows/jwt.dart';
 import 'package:http/http.dart';
-import 'package:http/testing.dart';
 import 'package:unittest/unittest.dart';
 
 import '../test_utils.dart';

@@ -10,9 +10,7 @@ import 'dart:io';
 
 import 'package:googleapis_auth/auth.dart';
 import 'package:googleapis_auth/src/oauth2_flows/auth_code.dart';
-import 'package:googleapis_auth/src/http_client_base.dart';
 import 'package:http/http.dart';
-import 'package:http/testing.dart';
 import 'package:unittest/unittest.dart';
 
 import '../test_utils.dart';
