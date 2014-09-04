@@ -1,3 +1,7 @@
+// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 library googleapis_auth.auth_browser;
 
 import 'dart:async';
@@ -100,7 +104,8 @@ class BrowserOAuth2Flow {
   /// `Future<Response>` or it's `Response.read()` stream.
   ///
   /// The user is responsible for closing the returned HTTP client.
-  Future<AuthClient> clientViaUserConsent({bool forceUserConsent: true}) {
+  Future<AutoRefreshingAuthClient> clientViaUserConsent(
+      {bool forceUserConsent: true}) {
     _ensureOpen();
     return obtainAccessCredentialsViaUserConsent(
         forceUserConsent: forceUserConsent).then((credentials) {
