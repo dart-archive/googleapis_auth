@@ -51,6 +51,17 @@ Future<BrowserOAuth2Flow> createImplicitBrowserFlow(
 
 
 /// Used for obtaining oauth2 access credentials.
+///
+/// Warning:
+///
+/// The methods `obtainAccessCredentialsViaUserConsent` and
+/// `clientViaUserConsent` try to open a popup window for the user authorization
+/// dialog.
+///
+/// In order to prevent browsers from blocking the popup window, these
+/// methods should only be called inside an event handler, since most
+/// browsers do not block popup windows created in response to a user
+/// interaction.
 class BrowserOAuth2Flow {
   final ImplicitFlow _flow;
   final List<String> _scopes;
