@@ -37,6 +37,39 @@ class AuthenticatedClient extends DelegatingClient implements AuthClient {
   }
 }
 
+/// Adds 'key' query parameter when making HTTP requests.
+///
+/// If 'key' is already present on the URI, it will complete with an exception.
+/// This will prevent accedential overrides of a query parameter with the API
+/// key.
+class ApiKeyClient extends DelegatingClient {
+  final String _encodedApiKey;
+
+  ApiKeyClient(Client client, String apiKey)
+      : super(client, closeUnderlyingClient: true),
+        _encodedApiKey = Uri.encodeQueryComponent(apiKey);
+
+  Future<StreamedResponse> send(BaseRequest request) {
+    var url = request.url;
+    if (url.queryParameters.containsKey('key')) {
+      return new Future.error(new Exception(
+          'Tried to make a HTTP request which has already a "key" query '
+          'parameter. Adding the API key would override that existing value.'));
+    }
+
+    if (url.query == '') {
+      url = url.replace(query: 'key=$_encodedApiKey');
+    } else {
+      url = url.replace(query: '${url.query}&key=$_encodedApiKey');
+    }
+
+    var modifiedRequest = new RequestImpl(
+        request.method, url, request.finalize());
+    modifiedRequest.headers.addAll(request.headers);
+    return baseClient.send(modifiedRequest);
+  }
+}
+
 
 /// Will close the underlying `http.Client` depending on a constructor argument.
 class AutoRefreshingClient extends AutoRefreshDelegatingClient {

@@ -7,6 +7,7 @@ library googleapis_auth.http_client_base_test;
 import 'dart:async';
 
 import 'package:googleapis_auth/src/http_client_base.dart';
+import 'package:googleapis_auth/src/auth_http_utils.dart';
 import 'package:unittest/unittest.dart';
 import 'package:http/http.dart';
 
@@ -75,6 +76,47 @@ main() {
         expect(() => client.close(), throwsA(isStateError));
       });
     });
+
+    group('api-client', () {
+      var key = 'foo%?bar';
+      var keyEncoded = 'key=${Uri.encodeQueryComponent(key)}';
+
+      request(String url) => new RequestImpl('GET', Uri.parse(url));
+      responseF() => new Future.value(new Response.bytes([], 200));
+
+      test('no-query-string', () {
+        var mock = mockClient((Request request) {
+          expect('${request.url}', equals('http://localhost/abc?$keyEncoded'));
+          return responseF();
+        }, expectClose: true);
+
+        var client = new ApiKeyClient(mock, key);
+        expect(client.send(request('http://localhost/abc')), completes);
+        client.close();
+      });
+
+      test('with-query-string', () {
+        var mock = mockClient((Request request) {
+          expect('${request.url}',
+                 equals('http://localhost/abc?x&$keyEncoded'));
+          return responseF();
+        }, expectClose: true);
+
+        var client = new ApiKeyClient(mock, key);
+        expect(client.send(request('http://localhost/abc?x')), completes);
+        client.close();
+      });
+
+      test('with-existing-key', () {
+        var mock = mockClient(
+            expectAsync((Request request) {}, count: 0), expectClose: true);
+
+        var client = new ApiKeyClient(mock, key);
+        expect(client.send(request('http://localhost/abc?key=a')), throws);
+        client.close();
+      });
+    });
+
     test('non-closing-client', () {
       var mock = mockClient((_) {}, expectClose: false);
       nonClosingClient(mock).close();

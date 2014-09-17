@@ -261,6 +261,35 @@ or an authenticated HTTP client via
 ```
 The authenticated HTTP client can now access APIs.
 
+
+#### Accessing Public Data with API Key
+
+It is possible to access some APIs by just using an API key without OAuth2.
+
+A API key can be obtained on the Google Developers Console by creating a Key
+at the "Public API access" section
+(under DevConsole -> Project -> APIs & auth -> Credentials).
+
+A key can be created for different application types: For browser applications
+it is necessary to specify a set of referer URls from which the application
+would like to access APIs. For server applications it is possible to specify
+a list of IP ranges from which the client application would like to access APIs.
+
+Note that the ApiKey is used for quota and billing purposes and should not be
+disclosed to third parties.
+
+Here is an example of getting an HTTP client which uses an API key for making
+HTTP requests.
+
+```
+  import "package:googleapis_auth/auth_io.dart";
+
+  var client = clientViaApiKey('<api-key-from-devconsole>');
+  // [client] can now be used to make REST calls to Google APIs.
+  // ...
+  client.close();
+```
+
 ### More information
 
 More information can be obtained from official Google Developers documentation:
