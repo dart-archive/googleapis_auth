@@ -10,3 +10,8 @@ dependencies:
   http: '>=0.11.1 <0.12.0'
 dev_dependencies:
   unittest: '>=0.11.0 <0.12.0'
+
+transformers:
+- $dart2js:
+    # auth_code_test uses dart:io for HttpClient.
+    $exclude: ["test/oauth2_flows/auth_code_test"]
