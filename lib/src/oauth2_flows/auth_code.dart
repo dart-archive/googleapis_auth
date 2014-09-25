@@ -43,7 +43,8 @@ Future<List<String>> obtainScopesFromAccessToken(String accessToken,
 }
 
 Future<AccessCredentials> obtainAccessCredentialsUsingCode(
-    ClientId clientId, String code, String redirectUrl, http.Client client) {
+    ClientId clientId, String code, String redirectUrl, http.Client client,
+    [List<String> scopes]) {
   var uri = Uri.parse('https://accounts.google.com/o/oauth2/token');
   var formValues = [
       'grant_type=authorization_code',
@@ -82,6 +83,13 @@ Future<AccessCredentials> obtainAccessCredentialsUsingCode(
             'Http status code was: ${response.statusCode}.');
       }
 
+      if (scopes != null) {
+        return new AccessCredentials(
+            new AccessToken('Bearer', accessToken, expiryDate(seconds)),
+            refreshToken,
+            scopes);
+      }
+
       return obtainScopesFromAccessToken(accessToken, client)
           .then((List<String> scopes) {
         return new AccessCredentials(
@@ -111,8 +119,10 @@ abstract class AuthorizationCodeGrantAbstractFlow {
   Future<AccessCredentials> run();
 
   Future<AccessCredentials> _obtainAccessCredentialsUsingCode(
-      String code, String redirectUri)
-      => obtainAccessCredentialsUsingCode(clientId, code, redirectUri, _client);
+      String code, String redirectUri) {
+    return obtainAccessCredentialsUsingCode(
+        clientId, code, redirectUri, _client, scopes);
+  }
 
   String _authenticationUri(String redirectUri, {String state}) {
     // TODO: Increase scopes with [include_granted_scopes].

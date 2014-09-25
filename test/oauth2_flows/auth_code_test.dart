@@ -214,4 +214,43 @@ main() {
       });
     });
   });
+
+  group('scopes-from-tokeninfo-endpoint', () {
+    var successfulResponseJson = JSON.encode({
+        "issued_to": "XYZ.apps.googleusercontent.com",
+        "audience": "XYZ.apps.googleusercontent.com",
+        "scope": "scopeA scopeB",
+        "expires_in": 3210,
+        "access_type": "offline"
+    });
+    var expectedUri =
+        'https://www.googleapis.com/oauth2/v2/tokeninfo?access_token=my_token';
+
+    test('successfull', () {
+      var http = mockClient(expectAsync((BaseRequest request) {
+        expect(request.url.toString(), expectedUri);
+        return new Response(successfulResponseJson, 200);
+      }), expectClose: false);
+      obtainScopesFromAccessToken('my_token', http)
+          .then(expectAsync((List<String> scopes) {
+        expect(scopes, equals(['scopeA', 'scopeB']));
+      }));
+    });
+
+    test('non-200-status-code', () {
+      var http = mockClient(expectAsync((BaseRequest request) {
+        expect(request.url.toString(), expectedUri);
+        return new Response(successfulResponseJson, 201);
+      }), expectClose: false);
+      expect(obtainScopesFromAccessToken('my_token', http), throws);
+    });
+
+    test('no-scope', () {
+      var http = mockClient(expectAsync((BaseRequest request) {
+        expect(request.url.toString(), expectedUri);
+        return new Response(JSON.encode({}), 200);
+      }), expectClose: false);
+      expect(obtainScopesFromAccessToken('my_token', http), throws);
+    });
+  });
 }
