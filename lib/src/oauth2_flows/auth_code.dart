@@ -13,6 +13,87 @@ import '../utils.dart';
 import '../http_client_base.dart';
 import '../../auth_io.dart';
 
+// The OAuth2 Token endpoint can be used to make requests as
+//    https://www.googleapis.com/oauth2/v2/tokeninfo?access_token=<token>
+//
+// A successfull response from the server will give an HTTP response status
+// 200 and a body of the following type:
+// {
+//   "issued_to": "XYZ.apps.googleusercontent.com",
+//   "audience": "XYZ.apps.googleusercontent.com",
+//   "scope": "https://www.googleapis.com/auth/bigquery",
+//   "expires_in": 3547,
+//   "access_type": "offline"
+// }
+//
+// Scopes are separated by spaces.
+Future<List<String>> obtainScopesFromAccessToken(String accessToken,
+                                                 http.Client client) {
+  var url = Uri.parse(
+      'https://www.googleapis.com/oauth2/v2/tokeninfo'
+      '?access_token=${Uri.encodeQueryComponent(accessToken)}');
+  return client.post(url).then((http.Response response) {
+    if (response.statusCode == 200) {
+      return JSON.decode(response.body)['scope'].split(' ').toList();
+    } else {
+      throw new Exception('Unable to obtain list of scopes an access token '
+          'is valid for. Server responded with ${response.statusCode}.');
+    }
+  });
+}
+
+Future<AccessCredentials> obtainAccessCredentialsUsingCode(
+    ClientId clientId, String code, String redirectUrl, http.Client client) {
+  var uri = Uri.parse('https://accounts.google.com/o/oauth2/token');
+  var formValues = [
+      'grant_type=authorization_code',
+      'code=${Uri.encodeQueryComponent(code)}',
+      'redirect_uri=${Uri.encodeQueryComponent(redirectUrl)}',
+      'client_id=${Uri.encodeQueryComponent(clientId.identifier)}',
+      'client_secret=${Uri.encodeQueryComponent(clientId.secret)}',
+  ];
+
+  var body = new Stream.fromIterable([ASCII.encode(formValues.join('&'))]);
+  var request = new RequestImpl('POST', uri, body);
+  request.headers['content-type'] = CONTENT_TYPE_URLENCODED;
+
+  return client.send(request).then((http.StreamedResponse response) {
+    return response.stream
+      .transform(UTF8.decoder)
+      .transform(JSON.decoder)
+      .first.then((Map json) {
+
+      var tokenType = json['token_type'];
+      var accessToken = json['access_token'];
+      var seconds = json['expires_in'];
+      var refreshToken = json['refresh_token'];
+      var error = json['error'];
+
+      if (response.statusCode != 200 && error != null) {
+        throw new Exception('Failed to exchange authorization code. '
+            'Response was ${response.statusCode}. Error message was $error.');
+      }
+
+      if (response.statusCode != 200 ||
+          accessToken == null || seconds is! int || tokenType != 'Bearer') {
+        throw new Exception(
+            'Failed to exchange authorization code. '
+            'Invalid server response. '
+            'Http status code was: ${response.statusCode}.');
+      }
+
+      return obtainScopesFromAccessToken(accessToken, client)
+          .then((List<String> scopes) {
+        return new AccessCredentials(
+            new AccessToken('Bearer', accessToken, expiryDate(seconds)),
+            refreshToken,
+            scopes);
+      });
+    });
+  });
+}
+
+
 /// Abstract class for obtaining access credentials via the authorization code
 /// grant flow
 ///
@@ -30,49 +111,8 @@ abstract class AuthorizationCodeGrantAbstractFlow {
   Future<AccessCredentials> run();
 
   Future<AccessCredentials> _obtainAccessCredentialsUsingCode(
-      String code, String redirectUri) {
-    var uri = Uri.parse('https://accounts.google.com/o/oauth2/token');
-    var formValues = [
-        'grant_type=authorization_code',
-        'code=${Uri.encodeQueryComponent(code)}',
-        'redirect_uri=${Uri.encodeQueryComponent(redirectUri)}',
-        'client_id=${Uri.encodeQueryComponent(clientId.identifier)}',
-        'client_secret=${Uri.encodeQueryComponent(clientId.secret)}',
-    ];
-
-    var body = new Stream.fromIterable([ASCII.encode(formValues.join('&'))]);
-    var request = new RequestImpl('POST', uri, body);
-    request.headers['content-type'] = CONTENT_TYPE_URLENCODED;
-
-    return _client.send(request).then((http.StreamedResponse response) {
-      return response.stream
-        .transform(UTF8.decoder)
-        .transform(JSON.decoder)
-        .first.then((Map json) {
-
-        var tokenType = json['token_type'];
-        var accessToken = json['access_token'];
-        var seconds = json['expires_in'];
-        var refreshToken = json['refresh_token'];
-        var error = json['error'];
-
-        if (response.statusCode != 200 && error != null) {
-          throw new UserConsentException('Failed to obtain user consent. '
-              'Response was ${response.statusCode}. Error message was $error.');
-        }
-
-        if (accessToken == null || seconds is! int || tokenType != 'Bearer') {
-          throw new Exception(
-              'Failed to obtain user consent. Invalid server response.');
-        }
-
-        return new AccessCredentials(
-            new AccessToken('Bearer', accessToken, expiryDate(seconds)),
-            refreshToken,
-            scopes);
-      });
-    });
-  }
+      String code, String redirectUri)
+      => obtainAccessCredentialsUsingCode(clientId, code, redirectUri, _client);
 
   String _authenticationUri(String redirectUri, {String state}) {
     // TODO: Increase scopes with [include_granted_scopes].

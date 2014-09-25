@@ -286,6 +286,35 @@ Future<AccessCredentials> obtainAccessCredentialsViaMetadataServer(
 }
 
 
+/// Obtain oauth2 [AccessCredentials] by exchanging an authorization code.
+///
+/// Running a hybrid oauth2 flow as described in the
+/// `googleapis_auth.auth_browser` library results in a `HybridFlowResult` which
+/// contains short-lived [AccessCredentials] for the client and an authorization
+/// code. This authorization code needs to be transferred to the server, which
+/// can exchange it against long-lived [AccessCredentials].
+///
+/// If the authorization code was obtained using the mentioned hybrid flow, the
+/// [redirectUrl] must be `"postmessage"` (default).
+///
+/// If you obtained the authorization code using a different mechanism, the
+/// [redirectUrl] must be the same that was used to obtain the code.
+///
+/// NOTE: Only the server application will know the `client secret` - which is
+/// necessary to exchange an authorization code against access tokens.
+///
+/// NOTE: It is important to transmit the authorization code in a secure manner
+/// to the server. You should use "anti-request forgery state tokens" to guard
+/// against "cross site request forgery" attacks.
+/// An example on how to do this can be found here:
+///   https://developers.google.com/+/web/signin/server-side-flow
+Future<AccessCredentials> obtainAccessCredentialsViaCodeExchange(
+    Client baseClient, ClientId clientId, String code,
+    {String redirectUrl: 'postmessage'}) {
+  return obtainAccessCredentialsUsingCode(
+      clientId, code, redirectUrl, baseClient);
+}
+
 
 /// Will close the underlying `http.Client`.
 class _ServiceAccountClient extends AutoRefreshDelegatingClient {

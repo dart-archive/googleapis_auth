@@ -24,7 +24,12 @@ import '../../auth.dart';
 ///      => This might create a popup which asks the user for consent.
 ///    - will wait until the flow is completed (successfully or not)
 ///      => Completes with AccessToken or an Exception.
-///
+/// 3. Call loginHybrid() as often as needed.
+///    - will call the 'gapi' JavaScript lib to trigger an oauth2 browser flow
+///      => This might create a popup which asks the user for consent.
+///    - will wait until the flow is completed (successfully or not)
+///      => Completes with a tuple [AccessCredentials cred, String authCode]
+///         or an Exception.
 class ImplicitFlow {
   final String _clientId;
   final List<String> _scopes;
@@ -51,35 +56,65 @@ class ImplicitFlow {
     return completer.future;
   }
 
-  Future<AccessToken> login({bool immediate: false}) {
+
+  Future loginHybrid({bool immediate: false}) {
+    return _login(immediate, true);
+  }
+
+  Future<AccessCredentials> login({bool immediate: false}) {
+    return _login(immediate, false);
+  }
+
+  // Completes with either credentials or a tuple of credentials and authCode.
+  //  hybrid  =>  [AccessCredentials credentials, String authCode]
+  // !hybrid  =>  AccessCredentials
+  Future _login(bool immediate, bool hybrid) {
     var completer = new Completer();
 
     var gapi = js.context['gapi']['auth'];
-    gapi.callMethod('authorize', [new js.JsObject.jsify({
-      'client_id' : _clientId,
-      'immediate' : immediate,
-      'response_type' : 'token',
-      'scope' : _scopes.join(' '),
-    }), (jsTokenObject) {
+
+    var json = {
+        'client_id' : _clientId,
+        'immediate' : immediate,
+        'approval_prompt' : 'auto',
+        'response_type' : hybrid ? 'code token' : 'token',
+        'scope' : _scopes.join(' '),
+        'access_type': hybrid ? 'offline' : 'online',
+    };
+
+    gapi.callMethod('authorize', [new js.JsObject.jsify(json), (jsTokenObject) {
       var tokenType = jsTokenObject['token_type'];
       var token = jsTokenObject['access_token'];
-      var expiresIn = jsTokenObject['expires_in'];
+      var expiresInRaw = jsTokenObject['expires_in'];
+      var code = jsTokenObject['code'];
       var state = jsTokenObject['state'];
       var error = jsTokenObject['error'];
 
-      if (expiresIn is String) {
-        expiresIn = int.parse(expiresIn);
+      var expiresIn;
+      if (expiresInRaw is String) {
+        expiresIn = int.parse(expiresInRaw);
       }
 
       if (error != null) {
         completer.completeError(new UserConsentException(
             'Failed to get user consent: $error.'));
       } else if (token == null || expiresIn is! int || tokenType != 'Bearer') {
-        completer.complete(new Exception(
+        completer.completeError(new Exception(
             'Failed to obtain user consent. Invalid server response.'));
       } else {
-        completer.complete(
-            new AccessToken('Bearer', token, expiryDate(expiresIn)));
+        var accessToken =
+            new AccessToken('Bearer', token, expiryDate(expiresIn));
+        var credentials = new AccessCredentials(accessToken, null, _scopes);
+
+        if (hybrid) {
+          if (code == null) {
+            completer.completeError(new Exception('Expected to get auth code '
+                'from server in hybrid flow, but did not.'));
+          }
+          completer.complete([credentials, code]);
+        } else {
+          completer.complete(credentials);
+        }
       }
     }]);
 

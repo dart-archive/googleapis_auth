@@ -63,9 +63,8 @@ Future<BrowserOAuth2Flow> createImplicitBrowserFlow(
   return flow.initialize().catchError((error, stack) {
     baseClient.close();
     return new Future.error(error, stack);
-  }).then((_) => new BrowserOAuth2Flow._(flow, scopes, baseClient));
+  }).then((_) => new BrowserOAuth2Flow._(flow, baseClient));
 }
-
 
 /// Used for obtaining oauth2 access credentials.
 ///
@@ -81,21 +80,21 @@ Future<BrowserOAuth2Flow> createImplicitBrowserFlow(
 /// interaction.
 class BrowserOAuth2Flow {
   final ImplicitFlow _flow;
-  final List<String> _scopes;
   final RefCountedClient _client;
 
   bool _wasClosed = false;
 
   /// The HTTP client passed in will be closed if `close` was called and all
   /// generated HTTP clients via [clientViaUserConsent] were closed.
-  BrowserOAuth2Flow._(this._flow, this._scopes, this._client);
+  BrowserOAuth2Flow._(this._flow, this._client);
 
   /// Obtain oauth2 [AccessCredentials].
   ///
   /// If [forceUserConsent] is `true`, a new popup window will be created. The
   /// user will be presented with the list of scopes that this application
   /// would like to access on his behalf. The user either approves the request
-  /// for permission for the application or denies it.
+  /// for permission for the application or cancels. If the user has already
+  /// granted access, the popup might close automatically again.
   ///
   /// If [forceUserConsent] is `false`, it will try to obtain access credentials
   /// without user interaction.
@@ -109,9 +108,7 @@ class BrowserOAuth2Flow {
   Future<AccessCredentials> obtainAccessCredentialsViaUserConsent(
       {bool forceUserConsent: true}) {
     _ensureOpen();
-    return _flow.login(immediate: !forceUserConsent).then((accessToken) {
-      return new AccessCredentials(accessToken, null, _scopes);
-    });
+    return _flow.login(immediate: !forceUserConsent);
   }
 
   /// Obtains [AccessCredentials] and returns an authenticated HTTP client.
@@ -136,10 +133,27 @@ class BrowserOAuth2Flow {
       {bool forceUserConsent: true}) {
     _ensureOpen();
     return obtainAccessCredentialsViaUserConsent(
-        forceUserConsent: forceUserConsent).then((credentials) {
-      _client.acquire();
-      return new _AutoRefreshingBrowserClient(
-          _client, credentials, _scopes, _flow);
+        forceUserConsent: forceUserConsent).then(_clientFromCredentials);
+  }
+
+  /// Obtains [AccessCredentials] and an authorization code which can be
+  /// exchanged for permanent access credentials.
+  ///
+  /// Use case:
+  /// A web application might want to get consent for accessing data on behalf
+  /// of a user. The client part is a dynamic webapp which wants to open a
+  /// popup which asks the user for consent. The webapp might want to use the
+  /// credentials to make API calls, but the server may want to have offline
+  /// access to user data as well.
+  Future<HybridFlowResult> runHybridFlow({bool forceUserConsent: true}) {
+    _ensureOpen();
+
+    buildHybridFlowResult(credentials, code)
+        => new HybridFlowResult(this, credentials, code);
+
+    return _flow.loginHybrid(immediate: !forceUserConsent).then((List tuple) {
+      assert (tuple.length == 2);
+      return new HybridFlowResult(this, tuple[0], tuple[1]);
     });
   }
 
@@ -147,11 +161,15 @@ class BrowserOAuth2Flow {
   /// using.
   ///
   /// The clients obtained via [clientViaUserConsent] will continue to work.
+  /// The client obtained via `newClient` of obtained [HybridFlowResult] objects
+  /// will continue to work.
+  ///
   /// After this flow object and all obtained clients were closed the underlying
   /// HTTP client will be closed as well.
   ///
-  /// After calling this `close` method, calls to [clientViaUserConsent] and
-  /// [obtainAccessCredentialsViaUserConsent] will fail.
+  /// After calling this `close` method, calls to [clientViaUserConsent],
+  /// [obtainAccessCredentialsViaUserConsent] and to `newClient` on returned
+  /// [HybridFlowResult] objects will fail.
   void close() {
     _ensureOpen();
     _wasClosed = true;
@@ -163,17 +181,54 @@ class BrowserOAuth2Flow {
       throw new StateError('BrowserOAuth2Flow has already been closed.');
     }
   }
+
+  AutoRefreshingAuthClient _clientFromCredentials(AccessCredentials cred) {
+    _ensureOpen();
+    _client.acquire();
+    return new _AutoRefreshingBrowserClient(_client, cred, _flow);
+  }
+}
+
+/// Represents the result of running a browser based hybrid flow.
+///
+/// The `credentials` field holds credentials which can be used on the client
+/// side. The `newClient` function can be used to make a new authenticated HTTP
+/// client using these credentials.
+///
+/// The `authorizationCode` can be sent to the server, which knows the
+/// "client secret" and can exchange it with long-lived access credentials.
+///
+/// See the `obtainAccessCredentialsViaCodeExchange` function in the
+/// `googleapis_auth.auth_io` library for more details on how to use the
+/// authorization code.
+class HybridFlowResult {
+  final BrowserOAuth2Flow _flow;
+
+  /// Access credentials for making authenticated HTTP requests.
+  final AccessCredentials credentials;
+
+  /// The authorization code received from the authorization endpoint.
+  ///
+  /// The auth code can be used to receive permanent access credentials.
+  /// This requires a confidential client which can keep a secret.
+  final String authorizationCode;
+
+  HybridFlowResult(this._flow, this.credentials, this.authorizationCode);
+
+  AutoRefreshingAuthClient newClient() {
+    _flow._ensureOpen();
+    return _flow._clientFromCredentials(credentials);
+  }
 }
 
 
 class _AutoRefreshingBrowserClient extends AutoRefreshDelegatingClient {
   AccessCredentials credentials;
   ImplicitFlow _flow;
-  List<String> _scopes;
   Client _authClient;
 
-  _AutoRefreshingBrowserClient(Client client, this.credentials, this._scopes,
-      this._flow) : super(client) {
+  _AutoRefreshingBrowserClient(Client client, this.credentials, this._flow)
+      : super(client) {
     _authClient = authenticatedClient(baseClient, credentials);
   }
 
@@ -181,8 +236,8 @@ class _AutoRefreshingBrowserClient extends AutoRefreshDelegatingClient {
     if (!credentials.accessToken.hasExpired) {
       return _authClient.send(request);
     } else {
-      return _flow.login(immediate: true).then((accessToken) {
-        credentials = new AccessCredentials(accessToken, null, _scopes);
+      return _flow.login(immediate: true).then((newCredentials) {
+        credentials = newCredentials;
         notifyAboutNewCredentials(credentials);
         _authClient = authenticatedClient(baseClient, credentials);
         return _authClient.send(request);

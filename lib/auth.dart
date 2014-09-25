@@ -16,7 +16,7 @@ import 'src/http_client_base.dart';
 import 'src/utils.dart';
 
 
-/// Represents an oauth2 access token.
+/// An OAuth2 access token.
 class AccessToken {
   /// The token type, usually "Bearer"
   final String type;
@@ -46,12 +46,14 @@ class AccessToken {
 }
 
 
-/// Represents oauth2 credentials
+/// OAuth2 Credentials.
 class AccessCredentials {
   /// An access token.
   final AccessToken accessToken;
 
-  /// A refresh token.
+  /// A refresh token, which can be used to refresh the access credentials.
+  ///
+  /// This field may be null.
   final String refreshToken;
 
   /// Scopes these credentials are valid for.
