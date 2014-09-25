@@ -11,6 +11,9 @@ import "dart:js" as js;
 import '../utils.dart';
 import '../../auth.dart';
 
+// This will be overridden by tests.
+String GapiUrl = 'https://apis.google.com/js/client.js';
+
 /// This class performs the implicit browser-based oauth2 flow.
 ///
 /// It has to be used in two steps:
@@ -31,6 +34,8 @@ import '../../auth.dart';
 ///      => Completes with a tuple [AccessCredentials cred, String authCode]
 ///         or an Exception.
 class ImplicitFlow {
+  static const CallbackTimeout = const Duration(seconds: 20);
+
   final String _clientId;
   final List<String> _scopes;
 
@@ -39,23 +44,33 @@ class ImplicitFlow {
   Future initialize() {
     var completer = new Completer();
 
+    var timeout = new Timer(CallbackTimeout, () {
+      completer.completeError(new Exception(
+          'Timed out while waiting for the gapi.auth library to load.'));
+    });
+
     js.context['dartGapiLoaded'] = () {
-      var gapi = js.context['gapi']['auth'];
-      gapi.callMethod('init', [() {
-        completer.complete();
-      }]);
+      timeout.cancel();
+      try {
+        var gapi = js.context['gapi']['auth'];
+        gapi.callMethod('init', [() {
+          completer.complete();
+        }]);
+      } catch (error, stack) {
+        completer.completeError(error, stack);
+      }
     };
 
     var script = new html.ScriptElement();
-    script.src = 'https://apis.google.com/js/client.js?onload=dartGapiLoaded';
+    script.src = '${GapiUrl}?onload=dartGapiLoaded';
     script.onError.first.then((errorEvent) {
+      timeout.cancel();
       completer.completeError(new Exception('Failed to load gapi library.'));
     });
     html.document.body.append(script);
 
     return completer.future;
   }
-
 
   Future loginHybrid({bool immediate: false}) {
     return _login(immediate, true);

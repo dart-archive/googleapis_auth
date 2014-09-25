@@ -2,6 +2,10 @@
 */*/packages/*: Skip
 */*/*/packages/*: Skip
 
+[ $runtime == vm ]
+test/oauth2_flows/implicit/*: Skip # Uses dart:html
+build/test/oauth2_flows/implicit/*: Skip # Uses dart:html
+
 [ $runtime != vm ]
 test/oauth2_flows/auth_code_test: Skip # Uses dart:io
 build/test/oauth2_flows/auth_code_test: Skip # Uses dart:io
