@@ -60,7 +60,7 @@
 
     if (client_id == 'foo_client' &&
         immediate == false &&
-        approval_prompt == 'auto' &&
+        approval_prompt == 'force' &&
         response_type == 'code token' &&
         scope == 'scope1 scope2' &&
         access_type == 'offline') {

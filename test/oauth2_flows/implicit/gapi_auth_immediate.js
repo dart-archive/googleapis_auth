@@ -59,7 +59,7 @@
     var access_type = json['access_type'];
 
     if (client_id == 'foo_client' &&
-        immediate == false &&
+        immediate == true &&
         approval_prompt == 'auto' &&
         response_type == 'token' &&
         scope == 'scope1 scope2' &&

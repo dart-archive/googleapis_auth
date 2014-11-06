@@ -18,7 +18,7 @@ main() {
 
     auth.createImplicitBrowserFlow(clientId, scopes)
         .then(expectAsync((auth.BrowserOAuth2Flow flow) {
-      flow.obtainAccessCredentialsViaUserConsent(forceUserConsent: false)
+      flow.obtainAccessCredentialsViaUserConsent()
           .then(expectAsync((auth.AccessCredentials credentials) {
         var date = new DateTime.now().toUtc().add(const Duration(
             seconds: 3210 - utils.MAX_EXPECTED_TIMEDIFF_IN_SECONDS));

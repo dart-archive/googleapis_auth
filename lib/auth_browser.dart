@@ -90,14 +90,13 @@ class BrowserOAuth2Flow {
 
   /// Obtain oauth2 [AccessCredentials].
   ///
-  /// If [forceUserConsent] is `true`, a new popup window will be created. The
-  /// user will be presented with the list of scopes that this application
-  /// would like to access on his behalf. The user either approves the request
-  /// for permission for the application or cancels. If the user has already
-  /// granted access, the popup might close automatically again.
+  /// If [immediate] is `true` there will be no user involvement. If the user
+  /// is either not logged in or has not already granted the application access,
+  /// a `UserConsentException` will be thrown.
   ///
-  /// If [forceUserConsent] is `false`, it will try to obtain access credentials
-  /// without user interaction.
+  /// If [immediate] is `false` the user might be asked to login (if he is not
+  /// already logged in) and might get asked to grant the application access
+  /// (if the application hasn't been granted access before).
   ///
   /// The returned future will complete with `AccessCredentials` if the user
   /// has given the application access to it's data. Otherwise the future will
@@ -106,9 +105,9 @@ class BrowserOAuth2Flow {
   /// In case another error occurs the returned future will complete with an
   /// `Exception`.
   Future<AccessCredentials> obtainAccessCredentialsViaUserConsent(
-      {bool forceUserConsent: true}) {
+      {bool immediate: false}) {
     _ensureOpen();
-    return _flow.login(immediate: !forceUserConsent);
+    return _flow.login(force: false, immediate: immediate);
   }
 
   /// Obtains [AccessCredentials] and returns an authenticated HTTP client.
@@ -130,10 +129,9 @@ class BrowserOAuth2Flow {
   ///
   /// The user is responsible for closing the returned HTTP client.
   Future<AutoRefreshingAuthClient> clientViaUserConsent(
-      {bool forceUserConsent: true}) {
-    _ensureOpen();
-    return obtainAccessCredentialsViaUserConsent(
-        forceUserConsent: forceUserConsent).then(_clientFromCredentials);
+      {bool immediate: false}) {
+    return obtainAccessCredentialsViaUserConsent(immediate: immediate)
+        .then(_clientFromCredentials);
   }
 
   /// Obtains [AccessCredentials] and an authorization code which can be
@@ -145,13 +143,14 @@ class BrowserOAuth2Flow {
   /// popup which asks the user for consent. The webapp might want to use the
   /// credentials to make API calls, but the server may want to have offline
   /// access to user data as well.
-  Future<HybridFlowResult> runHybridFlow({bool forceUserConsent: true}) {
+  ///
+  /// This will create a popup window and ask the user to grant the application
+  /// offline access. In case the user is not already logged in, he will be
+  /// presented with an login dialog first.
+  Future<HybridFlowResult> runHybridFlow() {
     _ensureOpen();
-
-    buildHybridFlowResult(credentials, code)
-        => new HybridFlowResult(this, credentials, code);
-
-    return _flow.loginHybrid(immediate: !forceUserConsent).then((List tuple) {
+    return _flow.loginHybrid(force: true,
+                             immediate: false).then((List tuple) {
       assert (tuple.length == 2);
       return new HybridFlowResult(this, tuple[0], tuple[1]);
     });
