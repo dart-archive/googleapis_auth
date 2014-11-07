@@ -144,13 +144,24 @@ class BrowserOAuth2Flow {
   /// credentials to make API calls, but the server may want to have offline
   /// access to user data as well.
   ///
-  /// This will create a popup window and ask the user to grant the application
-  /// offline access. In case the user is not already logged in, he will be
-  /// presented with an login dialog first.
-  Future<HybridFlowResult> runHybridFlow() {
+  /// If [force] is `true` this will create a popup window and ask the user to
+  /// grant the application offline access. In case the user is not already
+  /// logged in, he will be presented with an login dialog first.
+  ///
+  /// If [force] is `false` this will only create a popup window if the user
+  /// has not already granted the application access. Please note that the
+  /// authorization code can only be exchanged for a refresh token if the user
+  /// had to grant access via the popup window. Otherwise the code exchange
+  /// will only give an access token.
+  ///
+  /// If [immediate] is `true` there will be no user involvement. If the user
+  /// is either not logged in or has not already granted the application access,
+  /// a `UserConsentException` will be thrown.
+  Future<HybridFlowResult> runHybridFlow(
+      {bool force: true, bool immediate: false}) {
     _ensureOpen();
-    return _flow.loginHybrid(force: true,
-                             immediate: false).then((List tuple) {
+    return _flow.loginHybrid(force: force,
+                             immediate: immediate).then((List tuple) {
       assert (tuple.length == 2);
       return new HybridFlowResult(this, tuple[0], tuple[1]);
     });
