@@ -10,16 +10,16 @@ import 'package:googleapis_auth/src/utils.dart' as utils;
 import 'utils.dart';
 
 main() {
-  impl.GapiUrl = resource('gapi_auth_hybrid.js');
+  impl.GapiUrl = resource('gapi_auth_hybrid_nonforce.js');
 
-  test('gapi-auth-hybrid-test', () {
+  test('gapi-auth-hybrid-nonforce-test', () {
     var clientId = new auth.ClientId('foo_client', 'foo_secret');
     var scopes = ['scope1', 'scope2'];
 
     auth.createImplicitBrowserFlow(clientId, scopes)
         .then(expectAsync((auth.BrowserOAuth2Flow flow) {
 
-      flow.runHybridFlow().then(expectAsync((auth.HybridFlowResult result) {
+      flow.runHybridFlow(force: false).then(expectAsync((auth.HybridFlowResult result) {
         var credentials = result.credentials;
 
         var date = new DateTime.now().toUtc().add(const Duration(
