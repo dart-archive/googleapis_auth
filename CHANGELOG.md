@@ -1,3 +1,6 @@
+## 0.2.1
+- Merged: Added force/immediate flags to runHybridFlow().
+
 ## 0.2.0
 - Rename forceUserConsent parameter to immediate.
 - Add runHybridFlow() function to auth_browser, plus corresponding
