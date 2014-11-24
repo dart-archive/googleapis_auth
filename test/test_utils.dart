@@ -53,7 +53,7 @@ Client get transportFailure => new MockClient(
     expectAsync((_) => new Future.error(new TransportException())));
 
 
-final TestPrivateKeyString = '''-----BEGIN RSA PRIVATE KEY-----
+const TestPrivateKeyString = '''-----BEGIN RSA PRIVATE KEY-----
 MIIEowIBAAKCAQEAuDOwXO14ltE1j2O0iDSuqtbw/1kMKjeiki3oehk2zNoUte42
 /s2rX15nYCkKtYG/r8WYvKzb31P4Uow1S4fFydKNWxgX4VtEjHgeqfPxeCL9wiJc
 9KkEt4fyhj1Jo7193gCLtovLAFwPzAMbFLiXWkfqalJ5Z77fOE4Mo7u4pEgxNPgL

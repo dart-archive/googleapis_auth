@@ -103,8 +103,16 @@ class ServiceAccountCredentials {
   /// Private key as an [RSAPrivateKey].
   final RSAPrivateKey privateRSAKey;
 
-  factory ServiceAccountCredentials.fromJson(String string) {
-    var json = JSON.decode(string);
+  /// Creates a new [ServiceAccountCredentials] from JSON.
+  ///
+  /// [json] can be either a [Map] or a JSON map encoded as a [String].
+  factory ServiceAccountCredentials.fromJson(json) {
+    if (json is String) {
+      json = JSON.decode(json);
+    }
+    if (json is! Map) {
+      throw new ArgumentError('json must be a Map or a String encoding a Map.');
+    }
     var identifier = json['client_id'];
     var privateKey = json['private_key'];
     var email = json['client_email'];

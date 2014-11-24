@@ -1,13 +1,18 @@
+## 0.2.2
+
+- Allow `ServiceAccountCredentials.fromJson` to accept a `Map`.
+- Cleaned up `README.md`
+
 ## 0.2.1
-- Merged: Added force/immediate flags to runHybridFlow().
+- Added optinoal `force` and `immediate` arguments to `runHybridFlow`.
 
 ## 0.2.0
-- Rename forceUserConsent parameter to immediate.
-- Add runHybridFlow() function to auth_browser, plus corresponding
-  HybridFlowResult class
+- Renamed `forceUserConsent` parameter to `immediate`.
+- Added `runHybridFlow` function to `auth_browser`, with corresponding
+  `HybridFlowResult` class.
 
 ## 0.1.1
-- Add clientViaApiKey() functions to auth_io/auth_browser.
+- Add `clientViaApiKey` functions to `auth_io` ad `auth_browser`.
 
 ## 0.1.0
-
+- First release.

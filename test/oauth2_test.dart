@@ -60,34 +60,51 @@ main() {
     expect(clientId.secret, equals('secret'));
   });
 
-  test('service-account-credentials', () {
+  group('service-account-credentials', () {
     var clientId = new ClientId.serviceAccount('id');
 
-    expect(() => new ServiceAccountCredentials(
-        null, clientId, TestPrivateKeyString), throwsArgumentError);
-    expect(() => new ServiceAccountCredentials('email', null,
-        TestPrivateKeyString), throwsArgumentError);
-    expect(() => new ServiceAccountCredentials('email', clientId, null),
-            throwsArgumentError);
+    var credentials = const {
+       "private_key_id": "301029",
+       "private_key": TestPrivateKeyString,
+       "client_email": "a@b.com",
+       "client_id": "myid",
+       "type": "service_account"
+     };
 
-    var credentials =
-        new ServiceAccountCredentials('email', clientId, TestPrivateKeyString);
-    expect(credentials.email, equals('email'));
-    expect(credentials.clientId, equals(clientId));
-    expect(credentials.privateKey, equals(TestPrivateKeyString));
+    test('from-invalid-individual-params', () {
+      expect(() => new ServiceAccountCredentials(
+          null, clientId, TestPrivateKeyString), throwsArgumentError);
+      expect(() => new ServiceAccountCredentials('email', null,
+          TestPrivateKeyString), throwsArgumentError);
+      expect(() => new ServiceAccountCredentials('email', clientId, null),
+              throwsArgumentError);
+    });
 
-    var credentialsFromJson = new ServiceAccountCredentials.fromJson(
-        JSON.encode({
-        "private_key_id": "301029",
-        "private_key": TestPrivateKeyString,
-        "client_email": "a@b.com",
-        "client_id": "myid",
-        "type": "service_account"
-    }));
-    expect(credentialsFromJson.email, equals('a@b.com'));
-    expect(credentialsFromJson.clientId.identifier, equals('myid'));
-    expect(credentialsFromJson.clientId.secret, isNull);
-    expect(credentialsFromJson.privateKey, equals(TestPrivateKeyString));
+    test('from-valid-individual-params', () {
+      var credentials = new ServiceAccountCredentials('email', clientId,
+          TestPrivateKeyString);
+      expect(credentials.email, equals('email'));
+      expect(credentials.clientId, equals(clientId));
+      expect(credentials.privateKey, equals(TestPrivateKeyString));
+    });
+
+    test('from-json-string', () {
+      var credentialsFromJson =
+          new ServiceAccountCredentials.fromJson(JSON.encode(credentials));
+      expect(credentialsFromJson.email, equals('a@b.com'));
+      expect(credentialsFromJson.clientId.identifier, equals('myid'));
+      expect(credentialsFromJson.clientId.secret, isNull);
+      expect(credentialsFromJson.privateKey, equals(TestPrivateKeyString));
+    });
+
+    test('from-json-map', () {
+      var credentialsFromJson =
+          new ServiceAccountCredentials.fromJson(credentials);
+      expect(credentialsFromJson.email, equals('a@b.com'));
+      expect(credentialsFromJson.clientId.identifier, equals('myid'));
+      expect(credentialsFromJson.clientId.secret, isNull);
+      expect(credentialsFromJson.privateKey, equals(TestPrivateKeyString));
+    });
   });
 
   group('client-wrappers', () {
