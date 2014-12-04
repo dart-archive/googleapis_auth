@@ -139,9 +139,10 @@ Future<AutoRefreshingAuthClient> clientViaServiceAccount(
   }
 
   var flow = new JwtFlow(clientCredentials.email,
-                         clientCredentials.privateRSAKey,
-                         scopes,
-                         baseClient);
+                clientCredentials.privateRSAKey,
+                scopes,
+                baseClient,
+                userEmail: clientCredentials.userEmail);
   return flow.run().catchError((error, stack) {
     baseClient.close();
     return new Future.error(error, stack);

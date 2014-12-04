@@ -68,7 +68,8 @@ main() {
        "private_key": TestPrivateKeyString,
        "client_email": "a@b.com",
        "client_id": "myid",
-       "type": "service_account"
+       "type": "service_account",
+        "user_email": "c@d.com"
      };
 
     test('from-invalid-individual-params', () {
@@ -95,6 +96,7 @@ main() {
       expect(credentialsFromJson.clientId.identifier, equals('myid'));
       expect(credentialsFromJson.clientId.secret, isNull);
       expect(credentialsFromJson.privateKey, equals(TestPrivateKeyString));
+      expect(credentialsFromJson.userEmail, equals("c@d.com"));
     });
 
     test('from-json-map', () {
@@ -104,6 +106,7 @@ main() {
       expect(credentialsFromJson.clientId.identifier, equals('myid'));
       expect(credentialsFromJson.clientId.secret, isNull);
       expect(credentialsFromJson.privateKey, equals(TestPrivateKeyString));
+      expect(credentialsFromJson.userEmail, equals("c@d.com"));
     });
   });
 

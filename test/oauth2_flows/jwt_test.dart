@@ -45,11 +45,12 @@ main() {
 
   group('jwt-flow', () {
     var clientEmail = 'a@b.com';
+    var userEmail = 'c@d.com';
     var scopes = ['s1', 's2'];
 
     test('successfull', () {
       var flow = new JwtFlow(clientEmail, TestPrivateKey, scopes,
-          mockClient(expectAsync(successfullSignRequest), expectClose: false));
+          mockClient(expectAsync(successfullSignRequest), expectClose: false), userEmail: userEmail);
 
       flow.run().then(expectAsync((AccessCredentials credentials) {
         expect(credentials.accessToken.data, equals('atok'));
