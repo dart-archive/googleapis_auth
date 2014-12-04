@@ -28,9 +28,10 @@ class JwtFlow {
   final RS256Signer _signer;
   final List<String> _scopes;
   final http.Client _client;
+  final String _userEmail;
 
-  JwtFlow(this._clientEmail, RSAPrivateKey key, this._scopes, this._client)
-      : _signer = new RS256Signer(key);
+  JwtFlow(this._clientEmail, RSAPrivateKey key, this._scopes, this._client, {String userEmail})
+      : _signer = new RS256Signer(key), _userEmail = userEmail;
 
   Future<AccessCredentials> run() {
     int timestamp = new DateTime.now().toUtc().millisecondsSinceEpoch ~/ 1000
@@ -40,11 +41,12 @@ class JwtFlow {
 
     jwtClaimSet() {
       return {
-        'iss' : _clientEmail,
-        'scope' :  _scopes.join(' '),
-        'aud' : GOOGLE_OAUTH2_TOKEN_URL,
-        'exp' : timestamp + 3600 ,
-        'iat' : timestamp,
+          'iss' : _clientEmail,
+          'scope' : _scopes.join(' '),
+          'aud' : GOOGLE_OAUTH2_TOKEN_URL,
+          'exp' : timestamp + 3600,
+          'iat' : timestamp,
+          'sub': _userEmail
       };
     }
 

@@ -103,6 +103,9 @@ class ServiceAccountCredentials {
   /// Private key as an [RSAPrivateKey].
   final RSAPrivateKey privateRSAKey;
 
+  /// For delegating access.
+  final String userEmail;
+
   /// Creates a new [ServiceAccountCredentials] from JSON.
   ///
   /// [json] can be either a [Map] or a JSON map encoded as a [String].
@@ -117,6 +120,7 @@ class ServiceAccountCredentials {
     var privateKey = json['private_key'];
     var email = json['client_email'];
     var type = json['type'];
+    var userEmail = json['user_email'];
 
     if (type != 'service_account') {
       throw new ArgumentError('The given credentials are not of type '
@@ -129,10 +133,10 @@ class ServiceAccountCredentials {
     }
 
     var clientId = new ClientId(identifier, null);
-    return new ServiceAccountCredentials(email, clientId, privateKey);
+    return new ServiceAccountCredentials(email, clientId, privateKey, userEmail: userEmail);
   }
 
-  ServiceAccountCredentials(this.email, this.clientId, String privateKey)
+  ServiceAccountCredentials(this.email, this.clientId, String privateKey, {this.userEmail})
       : privateKey = privateKey,
         privateRSAKey = keyFromString(privateKey) {
     if (email == null || clientId == null || privateKey == null) {
