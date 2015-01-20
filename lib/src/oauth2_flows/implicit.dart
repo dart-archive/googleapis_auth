@@ -102,7 +102,6 @@ class ImplicitFlow {
       var token = jsTokenObject['access_token'];
       var expiresInRaw = jsTokenObject['expires_in'];
       var code = jsTokenObject['code'];
-      var state = jsTokenObject['state'];
       var error = jsTokenObject['error'];
 
       var expiresIn;
