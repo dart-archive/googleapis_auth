@@ -8,8 +8,8 @@ import "dart:async";
 import 'dart:html' as html;
 import "dart:js" as js;
 
-import '../utils.dart';
 import '../../auth.dart';
+import '../utils.dart';
 
 // This will be overridden by tests.
 String GapiUrl = 'https://apis.google.com/js/client.js';

@@ -9,9 +9,10 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:http/http.dart' as http;
-import '../utils.dart';
-import '../http_client_base.dart';
+
 import '../../auth_io.dart';
+import '../http_client_base.dart';
+import '../utils.dart';
 
 // The OAuth2 Token endpoint can be used to make requests as
 //    https://www.googleapis.com/oauth2/v2/tokeninfo?access_token=<token>

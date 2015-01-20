@@ -8,11 +8,12 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
+
 import '../../auth.dart';
 import '../crypto/rsa.dart';
 import '../crypto/rsa_sign.dart';
-import '../utils.dart';
 import '../http_client_base.dart';
+import '../utils.dart';
 
 class JwtFlow {
   // All details are described at:

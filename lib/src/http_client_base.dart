@@ -5,6 +5,7 @@
 library googleapis_auth.http_client_base;
 
 import 'dart:async';
+
 import 'package:http/http.dart';
 
 /// Base class for delegating HTTP clients.

@@ -7,8 +7,8 @@ library googleapis_auth.pem;
 import 'dart:typed_data';
 import 'dart:convert';
 
-import 'rsa.dart';
 import 'asn1.dart';
+import 'rsa.dart';
 
 /// Decode a [RSAPrivateKey] from the string content of a PEM file.
 ///

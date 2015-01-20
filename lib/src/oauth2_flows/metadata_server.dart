@@ -8,8 +8,9 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
-import '../utils.dart';
+
 import '../../auth.dart';
+import '../utils.dart';
 
 /// Obtains access credentials form the metadata server.
 ///
