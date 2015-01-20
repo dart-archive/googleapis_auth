@@ -14,26 +14,10 @@ import 'src/http_client_base.dart';
 import 'src/oauth2_flows/auth_code.dart';
 import 'src/oauth2_flows/jwt.dart';
 import 'src/oauth2_flows/metadata_server.dart';
+import 'src/typedefs.dart';
 
 export 'auth.dart';
-
-/// Function for directing the user or it's user-agent to [uri].
-///
-/// The user is required to go to [uri] and either approve or decline the
-/// application's request for access resources on his behalf.
-typedef void PromptUserForConsent(String uri);
-
-
-/// Function for directing the user or it's user-agent to [uri].
-///
-/// The user is required to go to [uri] and either approve or decline the
-/// application's request for access resources on his behalf.
-///
-/// The user will be given an authorization code. This function should complete
-/// with this authorization code. If the user declined to give access this
-/// function should complete with an error.
-typedef Future<String> PromptUserForConsentManual(String uri);
-
+export 'src/typedefs.dart';
 
 /// Obtains oauth2 credentials and returns an authenticated HTTP client.
 ///

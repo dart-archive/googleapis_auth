@@ -10,8 +10,9 @@ import 'dart:io';
 
 import 'package:http/http.dart' as http;
 
-import '../../auth_io.dart';
+import '../../auth.dart';
 import '../http_client_base.dart';
+import '../typedefs.dart';
 import '../utils.dart';
 
 // The OAuth2 Token endpoint can be used to make requests as

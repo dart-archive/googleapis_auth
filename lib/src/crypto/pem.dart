@@ -4,8 +4,8 @@
 
 library googleapis_auth.pem;
 
-import 'dart:typed_data';
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'asn1.dart';
 import 'rsa.dart';
