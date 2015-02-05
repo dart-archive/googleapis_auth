@@ -48,7 +48,7 @@ main() {
     var scopes = ['s1', 's2'];
 
     test('successfull', () {
-      var flow = new JwtFlow(clientEmail, TestPrivateKey, scopes,
+      var flow = new JwtFlow(clientEmail, TestPrivateKey, null, scopes,
           mockClient(expectAsync(successfullSignRequest), expectClose: false));
 
       flow.run().then(expectAsync((AccessCredentials credentials) {
@@ -59,15 +59,27 @@ main() {
       }));
     });
 
+    test('successfull-with-user', () {
+      var flow = new JwtFlow(clientEmail, TestPrivateKey, 'x@y.com', scopes,
+      mockClient(expectAsync(successfullSignRequest), expectClose: false));
+
+      flow.run().then(expectAsync((AccessCredentials credentials) {
+        expect(credentials.accessToken.data, equals('atok'));
+        expect(credentials.accessToken.type, equals('Bearer'));
+        expect(credentials.scopes, equals(['s1', 's2']));
+        expectExpiryOneHourFromNow(credentials.accessToken);
+      }));
+    });
+
     test('invalid-server-response', () {
-      var flow = new JwtFlow(clientEmail, TestPrivateKey, scopes,
+      var flow = new JwtFlow(clientEmail, TestPrivateKey, null, scopes,
           mockClient(expectAsync(invalidAccessToken), expectClose: false));
 
       expect(flow.run(), throwsA(isException));
     });
 
     test('transport-failure', () {
-      var flow = new JwtFlow(clientEmail, TestPrivateKey, scopes,
+      var flow = new JwtFlow(clientEmail, TestPrivateKey, null, scopes,
           transportFailure);
 
       expect(flow.run(), throwsA(isTransportException));

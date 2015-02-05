@@ -140,6 +140,7 @@ Future<AutoRefreshingAuthClient> clientViaServiceAccount(
 
   var flow = new JwtFlow(clientCredentials.email,
                          clientCredentials.privateRSAKey,
+                         clientCredentials.impersonatedUser,
                          scopes,
                          baseClient);
   return flow.run().catchError((error, stack) {
@@ -266,6 +267,7 @@ Future<AccessCredentials> obtainAccessCredentialsViaServiceAccount(
    List<String> scopes, Client baseClient) {
   return new JwtFlow(clientCredentials.email,
                      clientCredentials.privateRSAKey,
+                     clientCredentials.impersonatedUser,
                      scopes,
                      baseClient).run();
 }

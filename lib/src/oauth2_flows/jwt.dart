@@ -27,9 +27,11 @@ class JwtFlow {
   final String _clientEmail;
   final RS256Signer _signer;
   final List<String> _scopes;
+  final String _user;
   final http.Client _client;
 
-  JwtFlow(this._clientEmail, RSAPrivateKey key, this._scopes, this._client)
+  JwtFlow(this._clientEmail, RSAPrivateKey key, this._user,
+          this._scopes, this._client)
       : _signer = new RS256Signer(key);
 
   Future<AccessCredentials> run() {
@@ -39,13 +41,15 @@ class JwtFlow {
     jwtHeader() => {"alg": "RS256", "typ": "JWT"};
 
     jwtClaimSet() {
-      return {
+      var claimSet = {
         'iss' : _clientEmail,
         'scope' :  _scopes.join(' '),
         'aud' : GOOGLE_OAUTH2_TOKEN_URL,
         'exp' : timestamp + 3600 ,
         'iat' : timestamp,
       };
+      if (_user != null) claimSet['sub'] = _user;
+      return claimSet;
     }
 
     var jwtHeaderBase64 = _base64url(ASCII.encode(JSON.encode(jwtHeader())));

@@ -219,6 +219,18 @@ clientViaServiceAccount(accountCredentials, scopes).then((AuthClient client) {
 
 The authenticated HTTP client can now access APIs.
 
+##### Impersonation
+
+For some APIs the use of a service account also requires to impersonate a
+user. To support that the `ServiceAccountCredentials` constructors have an
+optional argument `user` to specify the user to impersonate.
+
+One example of this are the Google Apps APIs. See [Perform Google Apps
+Domain-Wide Delegation of Authority]
+(https://developers.google.com/admin-sdk/directory/v1/guides/delegation)
+for information on the additional security configuration required to
+enable this for a service account.
+
 
 #### Autonomous Application / Compute Engine using metadata service
 

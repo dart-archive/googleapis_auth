@@ -86,6 +86,17 @@ main() {
       expect(credentials.email, equals('email'));
       expect(credentials.clientId, equals(clientId));
       expect(credentials.privateKey, equals(TestPrivateKeyString));
+      expect(credentials.impersonatedUser, isNull);
+    });
+
+    test('from-valid-individual-params-with-user', () {
+      var credentials = new ServiceAccountCredentials(
+          'email', clientId, TestPrivateKeyString,
+          impersonatedUser: 'x@y.com');
+      expect(credentials.email, equals('email'));
+      expect(credentials.clientId, equals(clientId));
+      expect(credentials.privateKey, equals(TestPrivateKeyString));
+      expect(credentials.impersonatedUser, equals('x@y.com'));
     });
 
     test('from-json-string', () {
@@ -95,6 +106,18 @@ main() {
       expect(credentialsFromJson.clientId.identifier, equals('myid'));
       expect(credentialsFromJson.clientId.secret, isNull);
       expect(credentialsFromJson.privateKey, equals(TestPrivateKeyString));
+      expect(credentialsFromJson.impersonatedUser, isNull);
+    });
+
+    test('from-json-string-with-user', () {
+      var credentialsFromJson =
+      new ServiceAccountCredentials.fromJson(
+          JSON.encode(credentials), impersonatedUser: 'x@y.com');
+      expect(credentialsFromJson.email, equals('a@b.com'));
+      expect(credentialsFromJson.clientId.identifier, equals('myid'));
+      expect(credentialsFromJson.clientId.secret, isNull);
+      expect(credentialsFromJson.privateKey, equals(TestPrivateKeyString));
+      expect(credentialsFromJson.impersonatedUser, equals('x@y.com'));
     });
 
     test('from-json-map', () {
@@ -104,6 +127,18 @@ main() {
       expect(credentialsFromJson.clientId.identifier, equals('myid'));
       expect(credentialsFromJson.clientId.secret, isNull);
       expect(credentialsFromJson.privateKey, equals(TestPrivateKeyString));
+      expect(credentialsFromJson.impersonatedUser, isNull);
+    });
+
+    test('from-json-map-with-user', () {
+      var credentialsFromJson =
+      new ServiceAccountCredentials.fromJson(
+          credentials, impersonatedUser: 'x@y.com');
+      expect(credentialsFromJson.email, equals('a@b.com'));
+      expect(credentialsFromJson.clientId.identifier, equals('myid'));
+      expect(credentialsFromJson.clientId.secret, isNull);
+      expect(credentialsFromJson.privateKey, equals(TestPrivateKeyString));
+      expect(credentialsFromJson.impersonatedUser, equals('x@y.com'));
     });
   });
 

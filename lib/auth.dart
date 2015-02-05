@@ -91,14 +91,17 @@ class ClientId {
 
 /// Represents credentials for a service account.
 class ServiceAccountCredentials {
-  /// The email addres of this service account
+  /// The email address of this service account.
   final String email;
 
-  /// The clientId
+  /// The clientId.
   final ClientId clientId;
 
-  /// Private key
+  /// Private key.
   final String privateKey;
+
+  /// Impersonated user, if any. If not impersonating any user this is `null`.
+  final String impersonatedUser;
 
   /// Private key as an [RSAPrivateKey].
   final RSAPrivateKey privateRSAKey;
@@ -106,7 +109,10 @@ class ServiceAccountCredentials {
   /// Creates a new [ServiceAccountCredentials] from JSON.
   ///
   /// [json] can be either a [Map] or a JSON map encoded as a [String].
-  factory ServiceAccountCredentials.fromJson(json) {
+  ///
+  /// The optional named argument [impersonatedUser] is used to set the user
+  /// to impersonate if impersonating a user.
+  factory ServiceAccountCredentials.fromJson(json, {String impersonatedUser}) {
     if (json is String) {
       json = JSON.decode(json);
     }
@@ -124,15 +130,30 @@ class ServiceAccountCredentials {
     }
 
     if (identifier == null || privateKey == null || email == null) {
-      throw new ArgumentError('The given credentials do not contain a'
-          'identifier, privateKey or email field.');
+      throw new ArgumentError('The given credentials do not contain all the '
+          'fields: client_id, private_key and client_email.');
     }
 
     var clientId = new ClientId(identifier, null);
-    return new ServiceAccountCredentials(email, clientId, privateKey);
+    return new ServiceAccountCredentials(
+        email, clientId, privateKey, impersonatedUser: impersonatedUser);
   }
 
-  ServiceAccountCredentials(this.email, this.clientId, String privateKey)
+  /// Creates a new [ServiceAccountCredentials].
+  ///
+  /// [email] is the e-mail address of the service account.
+  ///
+  /// [clientId] is the client ID for the service account.
+  ///
+  /// [privateKey] is the base 64 encoded, unencrypted private key, including
+  /// the '-----BEGIN PRIVATE KEY-----' and '-----END PRIVATE KEY-----'
+  /// boundaries.
+  ///
+  /// The optional named argument [impersonatedUser] is used to set the user
+  /// to impersonate if impersonating a user is needed.
+  ServiceAccountCredentials(
+      this.email, this.clientId, String privateKey,
+      {String this.impersonatedUser})
       : privateKey = privateKey,
         privateRSAKey = keyFromString(privateKey) {
     if (email == null || clientId == null || privateKey == null) {
