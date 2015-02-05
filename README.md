@@ -223,7 +223,7 @@ The authenticated HTTP client can now access APIs.
 
 For some APIs the use of a service account also requires to impersonate a
 user. To support that the `ServiceAccountCredentials` constructors have an
-optional argument `user` to specify the user to impersonate.
+optional argument `impersonatedUser` to specify the user to impersonate.
 
 One example of this are the Google Apps APIs. See [Perform Google Apps
 Domain-Wide Delegation of Authority]
