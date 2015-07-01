@@ -24,3 +24,6 @@ build/test/crypto/rsa_sign_test: Skip # Big integer
 build/test/crypto/rsa_test: Skip # Big integer
 build/test/oauth2_flows/jwt_test: Skip # Big integer
 build/test/oauth2_test: Skip # Big integer
+
+[ $compiler == dart2js && ($runtime == d8 || $runtime == jsshell) ]
+*: Skip
