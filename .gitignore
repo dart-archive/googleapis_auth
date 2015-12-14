@@ -1,2 +1,4 @@
-pubspec.lock
+.packages
+.pub
 packages
+pubspec.lock
