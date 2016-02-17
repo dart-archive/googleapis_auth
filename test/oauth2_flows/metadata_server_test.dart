@@ -16,12 +16,15 @@ import '../test_utils.dart';
 
 main() {
   var apiUrl = 'http://metadata/computeMetadata/v1';
+  var apiHeaderKey = 'Metadata-Flavor';
+  var apiHeaderValue = 'Google';
   var tokenUrl = '$apiUrl/instance/service-accounts/default/token';
   var scopesUrl = '$apiUrl/instance/service-accounts/default/scopes';
 
   Future<Response> successfullAccessToken(Request request) {
     expect(request.method, equals('GET'));
     expect(request.url.toString(), equals(tokenUrl));
+    expect(request.headers[apiHeaderKey], equals(apiHeaderValue));
 
     var body = JSON.encode({
       'access_token' : 'atok',
@@ -34,6 +37,7 @@ main() {
   Future<Response> invalidAccessToken(Request request) {
     expect(request.method, equals('GET'));
     expect(request.url.toString(), equals(tokenUrl));
+    expect(request.headers[apiHeaderKey], equals(apiHeaderValue));
 
     var body = JSON.encode({
       // Missing 'expires_in' entry
@@ -46,6 +50,7 @@ main() {
   Future<Response> successfullScopes(Request request) {
     expect(request.method, equals('GET'));
     expect(request.url.toString(), equals(scopesUrl));
+    expect(request.headers[apiHeaderKey], equals(apiHeaderValue));
 
     return new Future.value(new Response('s1\ns2', 200));
   }
