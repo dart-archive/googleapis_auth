@@ -1,3 +1,9 @@
+## 0.2.3+2
+
+- Use preferred "Metadata-Flavor" HTTP header in
+  `MetadataServerAuthorizationFlow` instead of the deprecated
+  "X-Google-Metadata-Request" header.
+
 ## 0.2.3
 
 - Allow `ServiceAccountCredentials` constructors to take an optional
