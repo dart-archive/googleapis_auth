@@ -17,7 +17,7 @@ import '../../auth.dart';
 /// ComputeEngine VM. It will retrieve the current access token from the
 /// metadata server.
 class MetadataServerAuthorizationFlow {
-  static const _HEADERS = const { 'X-Google-Metadata-Request' : 'True' };
+  static const _HEADERS = const { 'Metadata-Flavor' : 'Google' };
   static const _SERVICE_ACCOUNT_URL_PREFIX =
       'http://metadata/computeMetadata/v1/instance/service-accounts';
 
