@@ -7,8 +7,6 @@ library jwt_token_generator;
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:crypto/crypto.dart';
-
 import 'package:http/http.dart' as http;
 import '../../auth.dart';
 import '../crypto/rsa.dart';
@@ -95,7 +93,6 @@ class JwtFlow {
   }
 
   String _base64url(List<int> bytes) {
-    return CryptoUtils.bytesToBase64(bytes)
-      .replaceAll('+', '-').replaceAll('/', '_').replaceAll('=', '');
+    return BASE64.encode(bytes).replaceAll('+', '-').replaceAll('/', '_').replaceAll('=', '');
   }
 }
