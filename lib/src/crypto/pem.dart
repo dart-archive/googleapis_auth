@@ -5,8 +5,7 @@
 library googleapis_auth.pem;
 
 import 'dart:typed_data';
-
-import 'package:crypto/crypto.dart';
+import 'dart:convert';
 
 import 'rsa.dart';
 import 'asn1.dart';
@@ -40,7 +39,7 @@ Uint8List _getBytesFromPEMString(String pemString) {
                             'begin/end markers expected in a PEM file.');
   }
   var base64 = lines.sublist(1, lines.length - 1).join('');
-  return new Uint8List.fromList(CryptoUtils.base64StringToBytes(base64));
+  return new Uint8List.fromList(BASE64.decode(base64));
 }
 
 

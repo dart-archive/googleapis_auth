@@ -1,3 +1,9 @@
+## 0.3.0
+
+- Upgrade dart sdk dependency to >=1.13 to make use of the new
+  dart:convert base64 codec.
+- Upgrade crypto to 1.0.0
+
 ## 0.2.3+2
 
 - Use preferred "Metadata-Flavor" HTTP header in
