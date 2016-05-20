@@ -1,3 +1,7 @@
+## 0.2.3+3
+
+- Support package:crypto >= 0.9.2
+
 ## 0.2.3+2
 
 - Use preferred "Metadata-Flavor" HTTP header in

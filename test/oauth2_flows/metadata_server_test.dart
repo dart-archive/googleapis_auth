@@ -57,7 +57,6 @@ main() {
 
   group('metadata-server-authorization-flow', () {
     test('successfull', () {
-      int requestNr = 0;
       var flow = new MetadataServerAuthorizationFlow(
           mockClient(expectAsync((request) {
         var url = request.url.toString();
@@ -75,7 +74,6 @@ main() {
         expect(credentials.accessToken.type, equals('Bearer'));
         expect(credentials.scopes, equals(['s1', 's2']));
 
-        var now = new DateTime.now().toUtc();
         expectExpiryOneHourFromNow(credentials.accessToken);
       }));
     });

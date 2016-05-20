@@ -5,7 +5,6 @@
 import 'package:unittest/unittest.dart';
 import 'package:googleapis_auth/auth_browser.dart' as auth;
 import 'package:googleapis_auth/src/oauth2_flows/implicit.dart' as impl;
-import 'package:googleapis_auth/src/utils.dart' as utils;
 
 import 'utils.dart';
 

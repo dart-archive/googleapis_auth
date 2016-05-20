@@ -98,7 +98,6 @@ abstract class RSAAlgorithm {
     if (integer < 1) {
       throw new ArgumentError('Only positive integers are supported.');
     }
-    var bits = integer.bitLength;
     var bytes = new Uint8List(intendedLength);
     for (int i = bytes.length - 1; i >= 0; i--) {
       bytes[i] = integer & 0xff;

@@ -6,7 +6,7 @@ library googleapis_auth.rsa_sign;
 
 import 'dart:typed_data';
 
-import 'package:crypto/crypto.dart' show SHA256;
+import 'package:crypto/crypto.dart';
 
 import 'asn1.dart';
 import 'rsa.dart';
@@ -28,9 +28,7 @@ class RS256Signer {
   RS256Signer(this._rsaKey);
 
   List<int> sign(List<int> bytes) {
-    var hash = (new SHA256()..add(bytes)).close();
-    var digest = _digestInfo(hash);
-
+    var digest = _digestInfo(sha256.convert(bytes).bytes);
     var modulusLen = (_rsaKey.bitLength + 7) ~/ 8;
 
     var block = new Uint8List(modulusLen);
