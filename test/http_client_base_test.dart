@@ -8,7 +8,7 @@ import 'dart:async';
 
 import 'package:googleapis_auth/src/http_client_base.dart';
 import 'package:googleapis_auth/src/auth_http_utils.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'package:http/http.dart';
 
 import 'test_utils.dart';
@@ -17,7 +17,7 @@ class DelegatingClientImpl extends DelegatingClient {
   DelegatingClientImpl(Client base, {bool closeUnderlyingClient})
       : super(base, closeUnderlyingClient: closeUnderlyingClient);
 
-  Future send(request) => throw 'unsupported';
+  Future<StreamedResponse> send(BaseRequest request) => throw 'unsupported';
 }
 
 
@@ -81,8 +81,9 @@ main() {
       var key = 'foo%?bar';
       var keyEncoded = 'key=${Uri.encodeQueryComponent(key)}';
 
-      request(String url) => new RequestImpl('GET', Uri.parse(url));
-      responseF() => new Future.value(new Response.bytes([], 200));
+      RequestImpl request(String url) => new RequestImpl('GET', Uri.parse(url));
+      Future<Response> responseF()
+          => new Future<Response>.value(new Response.bytes([], 200));
 
       test('no-query-string', () {
         var mock = mockClient((Request request) {
@@ -109,7 +110,7 @@ main() {
 
       test('with-existing-key', () {
         var mock = mockClient(
-            expectAsync((Request request) {}, count: 0), expectClose: true);
+            expectAsyncT((Request request) {}, count: 0), expectClose: true);
 
         var client = new ApiKeyClient(mock, key);
         expect(client.send(request('http://localhost/abc?key=a')), throws);

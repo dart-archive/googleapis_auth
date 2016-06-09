@@ -5,16 +5,17 @@
 import 'dart:html';
 import 'dart:js' as js;
 
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'package:googleapis_auth/auth_browser.dart' as auth;
 import 'package:googleapis_auth/src/oauth2_flows/implicit.dart' as impl;
 
 import 'utils.dart';
+import '../../test_utils.dart';
 
 main() {
   // The default timeout is too small for us to detect the timeout of loading
   // the gapi.auth library.
-  unittestConfiguration.timeout = const Duration(hours: 1);
+  Timeout timeout = const Timeout(const Duration(hours: 1));
 
   var clientId = new auth.ClientId('a', 'b');
   var scopes = ['scope1', 'scope2'];
@@ -23,7 +24,7 @@ main() {
     impl.GapiUrl = resource('non_existent.js');
     expect(auth.createImplicitBrowserFlow(clientId, scopes),
            throws);
-  });
+  }, timeout: timeout);
 
   test('gapi-load-failure--syntax-error', () {
     impl.GapiUrl = resource('gapi_load_failure.js');
@@ -33,7 +34,7 @@ main() {
     // is produced.
     js.context['onerror'] = null;
 
-    window.onError.listen(expectAsync((Event error) {
+    window.onError.listen(expectAsyncT((error) {
       error.preventDefault();
     }));
 
@@ -43,5 +44,5 @@ main() {
       var elapsed = (sw.elapsed - impl.ImplicitFlow.CallbackTimeout).inSeconds;
       expect(-3 <= elapsed && elapsed <= 3, isTrue);
     }));
-  });
+  }, timeout: timeout);
 }

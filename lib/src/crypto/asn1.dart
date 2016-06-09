@@ -92,7 +92,7 @@ class ASN1Parser {
           }
           int endOfSequence = offset + lengthInBytes;
 
-          var objects = [];
+          var objects = <ASN1Object>[];
           while (offset < endOfSequence) {
             objects.add(decodeObject());
           }

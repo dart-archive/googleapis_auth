@@ -9,7 +9,7 @@ import 'dart:convert';
 import 'package:googleapis_auth/auth.dart';
 import 'package:googleapis_auth/src/utils.dart';
 import 'package:googleapis_auth/src/http_client_base.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'package:http/http.dart';
 
 import 'test_utils.dart';
@@ -150,7 +150,7 @@ main() {
     var aToken = new AccessToken('Bearer', 'bar', tomorrow);
     var credentials = new AccessCredentials(aToken, 'refresh', ['s1', 's2']);
 
-    Future successfulRefresh(Request request) {
+    Future<Response> successfulRefresh(Request request) {
       expect(request.method, equals('POST'));
       expect('${request.url}',
              equals('https://accounts.google.com/o/oauth2/token'));
@@ -168,40 +168,39 @@ main() {
           body, 200, headers: _JsonContentType));
     }
 
-    Future refreshErrorResponse(request) {
+    Future<Response> refreshErrorResponse(Request request) {
       var body = JSON.encode({
           'error' : 'An error occured'
       });
-      return new Future.value(new Response(
+      return new Future<Response>.value(new Response(
           body, 400, headers: _JsonContentType));
     }
 
-    Future serverError(request) {
-      return new Future.error(new Exception('transport layer exception'));
+    Future<Response> serverError(Request request) {
+      return new Future<Response>.error(new Exception('transport layer exception'));
     }
 
-    test('refreshCredentials-successfull', () {
-      refreshCredentials(clientId, credentials,
-          mockClient(expectAsync(successfulRefresh), expectClose: false))
-          .then(expectAsync((newCredentials) {
-        var expectedResultUtc = new DateTime.now().toUtc().add(
-            const Duration(seconds: 3600 - MAX_EXPECTED_TIMEDIFF_IN_SECONDS));
+    test('refreshCredentials-successfull', () async {
+      var newCredentials = await refreshCredentials(
+          clientId, credentials,
+          mockClient(expectAsyncT(successfulRefresh), expectClose: false));
+      var expectedResultUtc = new DateTime.now().toUtc().add(
+          const Duration(seconds: 3600 - MAX_EXPECTED_TIMEDIFF_IN_SECONDS));
 
-        var accessToken = newCredentials.accessToken;
-        expect(accessToken.type, equals('Bearer'));
-        expect(accessToken.data, equals('atoken'));
-        expect(accessToken.expiry.difference(expectedResultUtc).inSeconds,
-               equals(0));
+      var accessToken = newCredentials.accessToken;
+      expect(accessToken.type, equals('Bearer'));
+      expect(accessToken.data, equals('atoken'));
+      expect(accessToken.expiry.difference(expectedResultUtc).inSeconds,
+             equals(0));
 
-        expect(newCredentials.refreshToken, equals('refresh'));
-        expect(newCredentials.scopes, equals(['s1', 's2']));
-      }));
+      expect(newCredentials.refreshToken, equals('refresh'));
+      expect(newCredentials.scopes, equals(['s1', 's2']));
     });
 
     test('refreshCredentials-http-error', () {
       refreshCredentials(clientId, credentials,
           mockClient(serverError, expectClose: false))
-          .catchError(expectAsync((error) {
+          .catchError(expectAsyncT((error) {
         expect(error.toString(),
                equals('Exception: transport layer exception'));
       }));
@@ -210,7 +209,7 @@ main() {
     test('refreshCredentials-error-response', () {
       refreshCredentials(clientId, credentials,
           mockClient(refreshErrorResponse, expectClose: false))
-          .catchError(expectAsync((error) {
+          .catchError(expectAsyncT((error) {
         expect(error is RefreshFailedException, isTrue);
       }));
     });
@@ -218,8 +217,8 @@ main() {
     group('authenticatedClient', () {
       var url = Uri.parse('http://www.example.com');
 
-      test('successfull', () {
-        var client = authenticatedClient(mockClient(expectAsync((request) {
+      test('successfull', () async {
+        var client = authenticatedClient(mockClient(expectAsyncT((request) {
           expect(request.method, equals('POST'));
           expect(request.url, equals(url));
           expect(request.headers.length, equals(1));
@@ -229,13 +228,12 @@ main() {
         }), expectClose: false), credentials);
         expect(client.credentials, equals(credentials));
 
-        client.send(new RequestImpl('POST', url)).then(expectAsync((response) {
-          expect(response.statusCode, equals(204));
-        }));
+        var response = await client.send(new RequestImpl('POST', url));
+        expect(response.statusCode, equals(204));
       });
 
       test('access-denied', () {
-        var client = authenticatedClient(mockClient(expectAsync((request) {
+        var client = authenticatedClient(mockClient(expectAsyncT((request) {
           expect(request.method, equals('POST'));
           expect(request.url, equals(url));
           expect(request.headers.length, equals(1));
@@ -264,16 +262,15 @@ main() {
     group('autoRefreshingClient', () {
       var url = Uri.parse('http://www.example.com');
 
-      test('up-to-date', () {
+      test('up-to-date', () async {
         var client = autoRefreshingClient(clientId, credentials,
-            mockClient(expectAsync((request) {
+            mockClient(expectAsyncT((request) {
           return new Future.value(new Response('', 200));
         }), expectClose: false));
         expect(client.credentials, equals(credentials));
 
-        client.send(new RequestImpl('POST', url)).then(expectAsync((response) {
-          expect(response.statusCode, equals(200));
-        }));
+        var response = await client.send(new RequestImpl('POST', url));
+        expect(response.statusCode, equals(200));
       });
 
       test('no-refresh-token', () {
@@ -289,7 +286,7 @@ main() {
             'Bearer', 'bar', yesterday), 'refresh', ['s1', 's2']);
 
         var client = autoRefreshingClient(clientId, credentials,
-            mockClient(expectAsync((request) {
+            mockClient(expectAsyncT((request) {
           // This should be a refresh request.
           expect(request.headers['foo'], isNull);
           return refreshErrorResponse(request);
@@ -306,7 +303,7 @@ main() {
             'Bearer', 'bar', yesterday), 'refresh', ['s1', 's2']);
 
         var client = autoRefreshingClient(clientId, credentials,
-            mockClient(expectAsync((request) {
+            mockClient(expectAsyncT((request) {
           // This should be a refresh request.
           expect(request.headers['foo'], isNull);
           var headers = {'content-type' : 'image/png'};
@@ -320,14 +317,14 @@ main() {
         expect(client.send(request), throwsA(isException));
       });
 
-      test('successful-refresh', () {
+      test('successful-refresh', () async {
         int serverInvocation = 0;
 
         var credentials = new AccessCredentials(
             new AccessToken('Bearer', 'bar', yesterday), 'refresh', ['s1']);
 
         var client = autoRefreshingClient(clientId, credentials,
-            mockClient(expectAsync((request) {
+            mockClient(expectAsyncT((request) {
           if (serverInvocation++ == 0) {
             // This should be a refresh request.
             expect(request.headers['foo'], isNull);
@@ -340,17 +337,19 @@ main() {
         }, count: 2), expectClose: false));
         expect(client.credentials, equals(credentials));
 
-        client.credentialUpdates.listen(expectAsync((newCredentials) {
+        bool executed = false;
+        await for (var newCredentials in client.credentialUpdates) {
           expect(newCredentials.accessToken.type, equals('Bearer'));
           expect(newCredentials.accessToken.data, equals('atoken'));
-        }), onDone: expectAsync(() {}));
+          executed = true;
+        }
+        expect(executed, isTrue);
 
         var request = new RequestImpl('POST', url);
         request.headers.addAll({'foo' : 'bar'});
-        client.send(request).then(expectAsync((response) {
-          expect(response.statusCode, equals(200));
-          client.close();
-        }));
+        var response = await client.send(request);
+        expect(response.statusCode, equals(200));
+        await client.close();
       });
     });
   });

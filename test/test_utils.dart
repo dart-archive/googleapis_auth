@@ -11,7 +11,7 @@ import 'package:googleapis_auth/src/crypto/pem.dart';
 import 'package:googleapis_auth/src/utils.dart';
 import 'package:http/http.dart';
 import 'package:http/testing.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 const Matcher isUserConsentException = const _UserConsentException();
 
@@ -49,9 +49,15 @@ class _TransportException extends TypeMatcher {
 class TransportException implements Exception {}
 
 
-Client get transportFailure => new MockClient(
-    expectAsync((_) => new Future.error(new TransportException())));
+Client get transportFailure {
+  return new MockClient(expectAsyncT((Request _) {
+    return new Future<Response>.error(new TransportException());
+  }));
+}
 
+Function/*=T*/ expectAsyncT/*<T>*/(Function /*=T*/ handler, {int count}) {
+  return expectAsync(handler as Function, count: count) as Function /*=T*/;
+}
 
 const TestPrivateKeyString = '''-----BEGIN RSA PRIVATE KEY-----
 MIIEowIBAAKCAQEAuDOwXO14ltE1j2O0iDSuqtbw/1kMKjeiki3oehk2zNoUte42
@@ -91,7 +97,8 @@ expectExpiryOneHourFromNow(AccessToken accessToken) {
   expect(-2 <= diff && diff <= 2, isTrue);
 }
 
-Client mockClient(Function requestHandler, {bool expectClose: true}) {
+Client mockClient(Future<Response> requestHandler(Request _),
+                  {bool expectClose: true}) {
   return new ExpectCloseMockClient(requestHandler, expectClose ? 1 : 0);
 }
 
@@ -99,7 +106,7 @@ Client mockClient(Function requestHandler, {bool expectClose: true}) {
 class ExpectCloseMockClient extends MockClient {
   Function _expectedToBeCalled;
 
-  ExpectCloseMockClient(Function requestHandler, int c)
+  ExpectCloseMockClient(Future<Response> requestHandler(Request _), int c)
       : super(requestHandler) {
     _expectedToBeCalled = expectAsync(() {}, count: c);
   }

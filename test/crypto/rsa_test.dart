@@ -5,7 +5,7 @@
 library googleapis_auth.test.rsa_test;
 
 import 'package:googleapis_auth/src/crypto/rsa.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 import '../test_utils.dart';
 

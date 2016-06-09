@@ -7,10 +7,9 @@ library googleapis_auth.jwt_test;
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:googleapis_auth/auth.dart';
 import 'package:googleapis_auth/src/oauth2_flows/jwt.dart';
 import 'package:http/http.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 import '../test_utils.dart';
 
@@ -47,33 +46,31 @@ main() {
     var clientEmail = 'a@b.com';
     var scopes = ['s1', 's2'];
 
-    test('successfull', () {
+    test('successfull', () async {
       var flow = new JwtFlow(clientEmail, TestPrivateKey, null, scopes,
-          mockClient(expectAsync(successfullSignRequest), expectClose: false));
+          mockClient(expectAsyncT(successfullSignRequest), expectClose: false));
 
-      flow.run().then(expectAsync((AccessCredentials credentials) {
-        expect(credentials.accessToken.data, equals('atok'));
-        expect(credentials.accessToken.type, equals('Bearer'));
-        expect(credentials.scopes, equals(['s1', 's2']));
-        expectExpiryOneHourFromNow(credentials.accessToken);
-      }));
+      var credentials = await flow.run();
+      expect(credentials.accessToken.data, equals('atok'));
+      expect(credentials.accessToken.type, equals('Bearer'));
+      expect(credentials.scopes, equals(['s1', 's2']));
+      expectExpiryOneHourFromNow(credentials.accessToken);
     });
 
-    test('successfull-with-user', () {
+    test('successfull-with-user', () async {
       var flow = new JwtFlow(clientEmail, TestPrivateKey, 'x@y.com', scopes,
-      mockClient(expectAsync(successfullSignRequest), expectClose: false));
+      mockClient(expectAsyncT(successfullSignRequest), expectClose: false));
 
-      flow.run().then(expectAsync((AccessCredentials credentials) {
-        expect(credentials.accessToken.data, equals('atok'));
-        expect(credentials.accessToken.type, equals('Bearer'));
-        expect(credentials.scopes, equals(['s1', 's2']));
-        expectExpiryOneHourFromNow(credentials.accessToken);
-      }));
+      var credentials = await flow.run();
+      expect(credentials.accessToken.data, equals('atok'));
+      expect(credentials.accessToken.type, equals('Bearer'));
+      expect(credentials.scopes, equals(['s1', 's2']));
+      expectExpiryOneHourFromNow(credentials.accessToken);
     });
 
     test('invalid-server-response', () {
       var flow = new JwtFlow(clientEmail, TestPrivateKey, null, scopes,
-          mockClient(expectAsync(invalidAccessToken), expectClose: false));
+          mockClient(expectAsyncT(invalidAccessToken), expectClose: false));
 
       expect(flow.run(), throwsA(isException));
     });

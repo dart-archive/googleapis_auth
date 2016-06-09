@@ -7,7 +7,7 @@ library googleapis_auth.test.crypto_rsa_sign_test;
 import 'dart:convert';
 
 import 'package:googleapis_auth/src/crypto/rsa_sign.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 import '../test_utils.dart';
 

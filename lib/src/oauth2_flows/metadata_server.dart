@@ -40,34 +40,35 @@ class MetadataServerAuthorizationFlow {
   MetadataServerAuthorizationFlow._(
       this._client, this.email, this._scopesUrl, this._tokenUrl);
 
-  Future<AccessCredentials> run() {
-    return Future.wait([_getToken(), _getScopes()]).then((List results) {
-      var json = results[0];
-      var scopes = results[1]
-          .replaceAll('\n', ' ')
-          .split(' ')
-          .where((part) => part.length > 0)
-          .toList();
+  Future<AccessCredentials> run() async {
+    Future<Map> tokenFuture = _getToken();
+    Future<String> scopesFuture = _getScopes();
 
-      var type = json['token_type'];
-      var accessToken = json['access_token'];
-      var expiresIn = json['expires_in'];
-      var error = json['error'];
+    var json = await tokenFuture;
+    var scopes = (await scopesFuture)
+        .replaceAll('\n', ' ')
+        .split(' ')
+        .where((part) => part.length > 0)
+        .toList();
 
-      if (error != null) {
-        throw new Exception('Error while obtaining credentials from metadata '
-            'server. Error message: $error.');
-      }
+    var type = json['token_type'];
+    var accessToken = json['access_token'];
+    var expiresIn = json['expires_in'];
+    var error = json['error'];
 
-      if (type != 'Bearer' || accessToken == null || expiresIn is! int) {
-        throw new Exception('Invalid response from metadata server.');
-      }
+    if (error != null) {
+      throw new Exception('Error while obtaining credentials from metadata '
+          'server. Error message: $error.');
+    }
 
-      return new AccessCredentials(
-          new AccessToken(type, accessToken, expiryDate(expiresIn)),
-          null,
-          scopes);
-    });
+    if (type != 'Bearer' || accessToken == null || expiresIn is! int) {
+      throw new Exception('Invalid response from metadata server.');
+    }
+
+    return new AccessCredentials(
+        new AccessToken(type, accessToken, expiryDate(expiresIn)),
+        null,
+        scopes);
   }
 
   Future<Map> _getToken() {

@@ -241,7 +241,7 @@ AutoRefreshingAuthClient autoRefreshingClient(ClientId clientId,
 /// [client].
 Future<AccessCredentials> refreshCredentials(ClientId clientId,
                                              AccessCredentials credentials,
-                                             Client client) {
+                                             Client client) async {
   var formValues = [
       'client_id=${Uri.encodeComponent(clientId.identifier)}',
       'client_secret=${Uri.encodeComponent(clientId.secret)}',
@@ -249,48 +249,48 @@ Future<AccessCredentials> refreshCredentials(ClientId clientId,
       'grant_type=refresh_token',
   ];
 
-  var body = new Stream.fromIterable([(ASCII.encode(formValues.join('&')))]);
+  var body = new Stream<List<int>>.fromIterable(
+      [(ASCII.encode(formValues.join('&')))]);
   var request = new RequestImpl('POST', _GoogleTokenUri, body);
   request.headers['content-type'] = 'application/x-www-form-urlencoded';
 
-  return client.send(request).then((response) {
-    var contentType = response.headers['content-type'];
-    contentType = contentType == null ? null : contentType.toLowerCase();
+  var response = await client.send(request);
+  var contentType = response.headers['content-type'];
+  contentType = contentType == null ? null : contentType.toLowerCase();
 
-    if (contentType == null ||
-        (!contentType.contains('json') &&
-         !contentType.contains('javascript'))) {
-      return response.stream.drain().catchError((_) {}).then((_) {
-        throw new Exception(
-            'Server responded with invalid content type: $contentType. '
-            'Expected json response.');
-      });
+  if (contentType == null ||
+      (!contentType.contains('json') &&
+       !contentType.contains('javascript'))) {
+    await response.stream.drain().catchError((_) {});
+    throw new Exception(
+        'Server responded with invalid content type: $contentType. '
+        'Expected json response.');
+  }
+
+  return response.stream
+      .transform(ASCII.decoder)
+      .transform(JSON.decoder).first.then((object) {
+    Map json = object as Map;
+
+    var token = json['access_token'];
+    var seconds = json['expires_in'];
+    var tokenType = json['token_type'];
+    var error = json['error'];
+
+    if (response.statusCode != 200 && error != null) {
+      throw new RefreshFailedException('Refreshing attempt failed. '
+          'Response was ${response.statusCode}. Error message was $error.');
     }
 
-    return response.stream
-        .transform(ASCII.decoder)
-        .transform(JSON.decoder).first.then((Map json) {
+    if (token == null || seconds is! int || tokenType != 'Bearer') {
+      throw new Exception('Refresing attempt failed. '
+          'Invalid server response.');
+    }
 
-      var token = json['access_token'];
-      var seconds = json['expires_in'];
-      var tokenType = json['token_type'];
-      var error = json['error'];
-
-      if (response.statusCode != 200 && error != null) {
-        throw new RefreshFailedException('Refreshing attempt failed. '
-            'Response was ${response.statusCode}. Error message was $error.');
-      }
-
-      if (token == null || seconds is! int || tokenType != 'Bearer') {
-        throw new Exception('Refresing attempt failed. '
-            'Invalid server response.');
-      }
-
-      return new AccessCredentials(
-          new AccessToken(tokenType, token, expiryDate(seconds)),
-          credentials.refreshToken,
-          credentials.scopes);
-    });
+    return new AccessCredentials(
+        new AccessToken(tokenType, token, expiryDate(seconds)),
+        credentials.refreshToken,
+        credentials.scopes);
   });
 }
 

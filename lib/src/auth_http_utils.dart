@@ -17,23 +17,21 @@ class AuthenticatedClient extends DelegatingClient implements AuthClient {
   AuthenticatedClient(Client client, this.credentials)
       : super(client, closeUnderlyingClient: false);
 
-  Future<StreamedResponse> send(BaseRequest request) {
+  Future<StreamedResponse> send(BaseRequest request) async {
     // Make new request object and perform the authenticated request.
     var modifiedRequest = new RequestImpl(
         request.method, request.url, request.finalize());
     modifiedRequest.headers.addAll(request.headers);
     modifiedRequest.headers['Authorization'] =
         'Bearer ${credentials.accessToken.data}';
-    return baseClient.send(modifiedRequest).then((response) {
-      var wwwAuthenticate = response.headers['www-authenticate'];
-      if (wwwAuthenticate != null) {
-        return response.stream.drain().then((_) {
-          throw new AccessDeniedException('Access was denied '
-              '(www-authenticate header was: $wwwAuthenticate).');
-        });
-      }
-      return response;
-    });
+    var response = await baseClient.send(modifiedRequest);
+    var wwwAuthenticate = response.headers['www-authenticate'];
+    if (wwwAuthenticate != null) {
+      await response.stream.drain();
+      throw new AccessDeniedException('Access was denied '
+          '(www-authenticate header was: $wwwAuthenticate).');
+    }
+    return response;
   }
 }
 
@@ -46,8 +44,8 @@ class ApiKeyClient extends DelegatingClient {
   final String _encodedApiKey;
 
   ApiKeyClient(Client client, String apiKey)
-      : super(client, closeUnderlyingClient: true),
-        _encodedApiKey = Uri.encodeQueryComponent(apiKey);
+      : _encodedApiKey = Uri.encodeQueryComponent(apiKey),
+        super(client, closeUnderlyingClient: true);
 
   Future<StreamedResponse> send(BaseRequest request) {
     var url = request.url;
@@ -84,18 +82,17 @@ class AutoRefreshingClient extends AutoRefreshDelegatingClient {
     authClient = authenticatedClient(baseClient, credentials);
   }
 
-  Future<StreamedResponse> send(BaseRequest request) {
+  Future<StreamedResponse> send(BaseRequest request) async {
     if (!credentials.accessToken.hasExpired) {
       // TODO: Can this return a "access token expired" message?
       // If so, we should handle it.
       return authClient.send(request);
     } else {
-      return refreshCredentials(clientId, credentials, baseClient).then((cred) {
-        notifyAboutNewCredentials(cred);
-        credentials = cred;
-        authClient = authenticatedClient(baseClient, cred);
-        return authClient.send(request);
-      });
+      var cred = await refreshCredentials(clientId, credentials, baseClient);
+      notifyAboutNewCredentials(cred);
+      credentials = cred;
+      authClient = authenticatedClient(baseClient, cred);
+      return authClient.send(request);
     }
   }
 }

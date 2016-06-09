@@ -34,7 +34,8 @@ Future<List<String>> obtainScopesFromAccessToken(String accessToken,
       '?access_token=${Uri.encodeQueryComponent(accessToken)}');
   return client.post(url).then((http.Response response) {
     if (response.statusCode == 200) {
-      return JSON.decode(response.body)['scope'].split(' ').toList();
+      Map json = JSON.decode(response.body);
+      return (json['scope'] as String).split(' ').toList();
     } else {
       throw new Exception('Unable to obtain list of scopes an access token '
           'is valid for. Server responded with ${response.statusCode}.');
@@ -44,7 +45,7 @@ Future<List<String>> obtainScopesFromAccessToken(String accessToken,
 
 Future<AccessCredentials> obtainAccessCredentialsUsingCode(
     ClientId clientId, String code, String redirectUrl, http.Client client,
-    [List<String> scopes]) {
+    [List<String> scopes]) async {
   var uri = Uri.parse('https://accounts.google.com/o/oauth2/token');
   var formValues = [
       'grant_type=authorization_code',
@@ -54,51 +55,48 @@ Future<AccessCredentials> obtainAccessCredentialsUsingCode(
       'client_secret=${Uri.encodeQueryComponent(clientId.secret)}',
   ];
 
-  var body = new Stream.fromIterable([ASCII.encode(formValues.join('&'))]);
+  var body = new Stream<List<int>>.fromIterable(
+      <List<int>>[ASCII.encode(formValues.join('&'))]);
   var request = new RequestImpl('POST', uri, body);
   request.headers['content-type'] = CONTENT_TYPE_URLENCODED;
 
-  return client.send(request).then((http.StreamedResponse response) {
-    return response.stream
-      .transform(UTF8.decoder)
-      .transform(JSON.decoder)
-      .first.then((Map json) {
+  var response = await client.send(request);
+  Map json = await response.stream
+    .transform(UTF8.decoder)
+    .transform(JSON.decoder)
+    .first;
 
-      var tokenType = json['token_type'];
-      var accessToken = json['access_token'];
-      var seconds = json['expires_in'];
-      var refreshToken = json['refresh_token'];
-      var error = json['error'];
+  var tokenType = json['token_type'];
+  var accessToken = json['access_token'];
+  var seconds = json['expires_in'];
+  var refreshToken = json['refresh_token'];
+  var error = json['error'];
 
-      if (response.statusCode != 200 && error != null) {
-        throw new Exception('Failed to exchange authorization code. '
-            'Response was ${response.statusCode}. Error message was $error.');
-      }
+  if (response.statusCode != 200 && error != null) {
+    throw new Exception('Failed to exchange authorization code. '
+        'Response was ${response.statusCode}. Error message was $error.');
+  }
 
-      if (response.statusCode != 200 ||
-          accessToken == null || seconds is! int || tokenType != 'Bearer') {
-        throw new Exception(
-            'Failed to exchange authorization code. '
-            'Invalid server response. '
-            'Http status code was: ${response.statusCode}.');
-      }
+  if (response.statusCode != 200 ||
+      accessToken == null || seconds is! int || tokenType != 'Bearer') {
+    throw new Exception(
+        'Failed to exchange authorization code. '
+        'Invalid server response. '
+        'Http status code was: ${response.statusCode}.');
+  }
 
-      if (scopes != null) {
-        return new AccessCredentials(
-            new AccessToken('Bearer', accessToken, expiryDate(seconds)),
-            refreshToken,
-            scopes);
-      }
+  if (scopes != null) {
+    return new AccessCredentials(
+        new AccessToken('Bearer', accessToken, expiryDate(seconds)),
+        refreshToken,
+        scopes);
+  }
 
-      return obtainScopesFromAccessToken(accessToken, client)
-          .then((List<String> scopes) {
-        return new AccessCredentials(
-            new AccessToken('Bearer', accessToken, expiryDate(seconds)),
-            refreshToken,
-            scopes);
-      });
-    });
-  });
+  scopes = await obtainScopesFromAccessToken(accessToken, client);
+  return new AccessCredentials(
+      new AccessToken('Bearer', accessToken, expiryDate(seconds)),
+      refreshToken,
+      scopes);
 }
 
 
@@ -159,8 +157,10 @@ class AuthorizationCodeGrantServerFlow
       ClientId clientId, List<String> scopes, http.Client client,
       this.userPrompt) : super(clientId, scopes, client);
 
-  Future<AccessCredentials> run() {
-    return HttpServer.bind('localhost', 0).then((HttpServer server) {
+  Future<AccessCredentials> run() async {
+    HttpServer server = await HttpServer.bind('localhost', 0);
+
+    try {
       var port = server.port;
       var redirectionUri = 'http://localhost:$port';
       var state = 'authcodestate${new DateTime.now().millisecondsSinceEpoch}';
@@ -169,45 +169,41 @@ class AuthorizationCodeGrantServerFlow
       // server calls back to our locally running HTTP server.
       userPrompt(_authenticationUri(redirectionUri, state: state));
 
-      return server.first.then(((HttpRequest request) {
-        var uri = request.uri;
+      var request = await server.first;
+      var uri = request.uri;
 
+      try {
         var returnedState = uri.queryParameters['state'];
         var code = uri.queryParameters['code'];
         var error = uri.queryParameters['error'];
 
-        fail(exception) {
-          (request.response..statusCode = 500).close().catchError((_) {});
-          throw exception;
-        }
-
         if (request.method != 'GET') {
-          fail(new Exception('Invalid response from server '
-              '(expected GET request callback, got: ${request.method}).'));
+          throw new Exception('Invalid response from server '
+              '(expected GET request callback, got: ${request.method}).');
         }
 
         if (state != returnedState) {
-          fail(new Exception(
-              'Invalid response from server (state did not match).'));
+          throw new Exception(
+              'Invalid response from server (state did not match).');
         }
 
         if (error != null) {
-          fail(new UserConsentException(
-              'Error occured while obtaining access credentials: $error'));
+          throw new UserConsentException(
+              'Error occured while obtaining access credentials: $error');
         }
 
         if (code == null || code == '') {
-          fail(new Exception(
-              'Invalid response from server (no auth code transmitted).'));
+          throw new Exception(
+              'Invalid response from server (no auth code transmitted).');
         }
+        var credentials = await _obtainAccessCredentialsUsingCode(
+            code, redirectionUri);
 
-        return _obtainAccessCredentialsUsingCode(code, redirectionUri)
-            .then((AccessCredentials credentials) {
-          // TODO: We could introduce a user-defined redirect page.
-          request.response
-              ..statusCode = 200
-              ..headers.set('content-type', 'text/html; charset=UTF-8')
-              ..write('''
+        // TODO: We could introduce a user-defined redirect page.
+        request.response
+            ..statusCode = 200
+            ..headers.set('content-type', 'text/html; charset=UTF-8')
+            ..write('''
 <!DOCTYPE html>
 
 <html>
@@ -221,13 +217,16 @@ class AuthorizationCodeGrantServerFlow
     <p style="text-align: center">This window can be closed now.</p>
   </body>
 </html>''');
-          return request.response.close().then((_) => credentials);
-        }).catchError((error, stack) {
-          return request.response.close()
-              .then((_) => new Future.error(error, stack));
-        });
-      })).whenComplete(() => server.close());
-    });
+        await request.response.close();
+        return credentials;
+      } catch (e) {
+        request.response.statusCode = 500;
+        await request.response.close().catchError((_) {});
+        rethrow;
+      }
+    } finally {
+      await server.close();
+    }
   }
 }
 
@@ -250,15 +249,14 @@ class AuthorizationCodeGrantManualFlow
       ClientId clientId, List<String> scopes, http.Client client,
       this.userPrompt) : super(clientId, scopes, client);
 
-  Future<AccessCredentials> run() {
+  Future<AccessCredentials> run() async {
     var redirectionUri = 'urn:ietf:wg:oauth:2.0:oob';
 
     // Prompt user and wait until he goes to URL and copy&pastes the auth code
     // in.
-    return userPrompt(_authenticationUri(redirectionUri)).then((String code) {
-      // Use code to obtain credentials
-      return _obtainAccessCredentialsUsingCode(code, redirectionUri);
-    });
+    var code = await userPrompt(_authenticationUri(redirectionUri));
+    // Use code to obtain credentials
+    return _obtainAccessCredentialsUsingCode(code, redirectionUri);
   }
 }
 

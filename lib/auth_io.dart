@@ -329,16 +329,15 @@ class _ServiceAccountClient extends AutoRefreshDelegatingClient {
     authClient = authenticatedClient(baseClient, credentials);
   }
 
-  Future<StreamedResponse> send(BaseRequest request) {
+  Future<StreamedResponse> send(BaseRequest request) async {
     if (!credentials.accessToken.hasExpired) {
       return authClient.send(request);
     } else {
-      return flow.run().then((newCredentials) {
-        notifyAboutNewCredentials(newCredentials);
-        credentials = newCredentials;
-        authClient = authenticatedClient(baseClient, credentials);
-        return authClient.send(request);
-      });
+      var newCredentials = await flow.run();
+      notifyAboutNewCredentials(newCredentials);
+      credentials = newCredentials;
+      authClient = authenticatedClient(baseClient, credentials);
+      return authClient.send(request);
     }
   }
 }
@@ -354,16 +353,15 @@ class _MetadataServerClient extends AutoRefreshDelegatingClient {
     authClient = authenticatedClient(baseClient, credentials);
   }
 
-  Future<StreamedResponse> send(BaseRequest request) {
+  Future<StreamedResponse> send(BaseRequest request) async {
     if (!credentials.accessToken.hasExpired) {
       return authClient.send(request);
     } else {
-      return flow.run().then((newCredentials) {
-        notifyAboutNewCredentials(newCredentials);
-        credentials = newCredentials;
-        authClient = authenticatedClient(baseClient, credentials);
-        return authClient.send(request);
-      });
+      var newCredentials = await flow.run();
+      notifyAboutNewCredentials(newCredentials);
+      credentials = newCredentials;
+      authClient = authenticatedClient(baseClient, credentials);
+      return authClient.send(request);
     }
   }
 }

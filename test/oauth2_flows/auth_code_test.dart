@@ -11,9 +11,11 @@ import 'dart:io';
 import 'package:googleapis_auth/auth.dart';
 import 'package:googleapis_auth/src/oauth2_flows/auth_code.dart';
 import 'package:http/http.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 import '../test_utils.dart';
+
+typedef Future<Response> RequestHandler(Request _);
 
 main() {
   var clientId = new ClientId('id', 'secret');
@@ -21,8 +23,8 @@ main() {
 
   // Validation + Responses from the authorization server.
 
-  Function successFullResponse({bool manual}) {
-    return (Request request) {
+  RequestHandler successFullResponse({bool manual}) {
+    return (Request request) async {
       expect(request.method, equals('POST'));
       expect('${request.url}',
              equals('https://accounts.google.com/o/oauth2/token'));
@@ -109,13 +111,13 @@ main() {
         return new Future.value('mycode');
       }
 
-      test('successfull', () {
+      test('successfull', () async {
         var flow = new AuthorizationCodeGrantManualFlow(
             clientId,
             scopes,
             mockClient(successFullResponse(manual: true), expectClose: false),
             manualUserPrompt);
-        flow.run().then(expectAsync(validateAccessCredentials));
+        validateAccessCredentials(await flow.run());
       });
 
       test('user-exception', () {
@@ -151,7 +153,7 @@ main() {
         ioClient.getUrl(authCodeCall)
             .then((request) => request.close())
             .then((response) => response.drain())
-            .whenComplete(expectAsync(() { ioClient.close(); }));
+            .whenComplete(expectAsyncT(() { ioClient.close(); }));
       }
 
       void userPrompt(String url) {
@@ -182,25 +184,25 @@ main() {
         callRedirectionEndpoint(authCodeCall);
       }
 
-      test('successfull', () {
+      test('successfull', () async {
         var flow = new AuthorizationCodeGrantServerFlow(
             clientId,
             scopes,
             mockClient(successFullResponse(manual: false), expectClose: false),
-            expectAsync(userPrompt));
-        flow.run().then(expectAsync(validateAccessCredentials));
+            expectAsyncT(userPrompt));
+        validateAccessCredentials(await flow.run());
       });
 
       test('transport-exception', () {
         var flow = new AuthorizationCodeGrantServerFlow(
-            clientId, scopes, transportFailure, expectAsync(userPrompt));
+            clientId, scopes, transportFailure, expectAsyncT(userPrompt));
         expect(flow.run(), throwsA(isTransportException));
       });
 
       test('invalid-server-response', () {
         var flow = new AuthorizationCodeGrantServerFlow(
             clientId, scopes, mockClient(invalidResponse, expectClose: false),
-            expectAsync(userPrompt));
+            expectAsyncT(userPrompt));
         expect(flow.run(), throwsA(isException));
       });
 
@@ -209,7 +211,7 @@ main() {
             clientId,
             scopes,
             mockClient(successFullResponse(manual: false), expectClose: false),
-            expectAsync(userPromptInvalidAuthCodeCallback));
+            expectAsyncT(userPromptInvalidAuthCodeCallback));
         expect(flow.run(), throwsA(isUserConsentException));
       });
     });
@@ -226,19 +228,17 @@ main() {
     var expectedUri =
         'https://www.googleapis.com/oauth2/v2/tokeninfo?access_token=my_token';
 
-    test('successfull', () {
-      var http = mockClient(expectAsync((BaseRequest request) {
+    test('successfull', () async {
+      var http = mockClient(expectAsyncT((BaseRequest request) async {
         expect(request.url.toString(), expectedUri);
         return new Response(successfulResponseJson, 200);
       }), expectClose: false);
-      obtainScopesFromAccessToken('my_token', http)
-          .then(expectAsync((List<String> scopes) {
-        expect(scopes, equals(['scopeA', 'scopeB']));
-      }));
+      List<String> scopes = await obtainScopesFromAccessToken('my_token', http);
+      expect(scopes, equals(['scopeA', 'scopeB']));
     });
 
     test('non-200-status-code', () {
-      var http = mockClient(expectAsync((BaseRequest request) {
+      var http = mockClient(expectAsyncT((BaseRequest request) async {
         expect(request.url.toString(), expectedUri);
         return new Response(successfulResponseJson, 201);
       }), expectClose: false);
@@ -246,7 +246,7 @@ main() {
     });
 
     test('no-scope', () {
-      var http = mockClient(expectAsync((BaseRequest request) {
+      var http = mockClient(expectAsyncT((BaseRequest request) async {
         expect(request.url.toString(), expectedUri);
         return new Response(JSON.encode({}), 200);
       }), expectClose: false);
