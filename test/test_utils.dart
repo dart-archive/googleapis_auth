@@ -55,7 +55,7 @@ Client get transportFailure {
   }));
 }
 
-Function/*=T*/ expectAsyncT/*<T>*/(Function /*=T*/ handler, {int count}) {
+Function/*=T*/ expectAsyncT/*<T>*/(Function /*=T*/ handler, {int count: 1}) {
   return expectAsync(handler as Function, count: count) as Function /*=T*/;
 }
 

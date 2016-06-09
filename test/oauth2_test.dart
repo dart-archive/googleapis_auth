@@ -338,17 +338,21 @@ main() {
         expect(client.credentials, equals(credentials));
 
         bool executed = false;
-        await for (var newCredentials in client.credentialUpdates) {
+        client.credentialUpdates.listen(expectAsyncT((newCredentials) {
           expect(newCredentials.accessToken.type, equals('Bearer'));
           expect(newCredentials.accessToken.data, equals('atoken'));
           executed = true;
-        }
-        expect(executed, isTrue);
+        }), onDone: expectAsyncT(() {}));
 
         var request = new RequestImpl('POST', url);
         request.headers.addAll({'foo' : 'bar'});
+
         var response = await client.send(request);
         expect(response.statusCode, equals(200));
+
+        // The `client.send()` will have trigged a credentials refresh.
+        expect(executed, isTrue);
+
         await client.close();
       });
     });
