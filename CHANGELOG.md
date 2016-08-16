@@ -1,3 +1,7 @@
+## 0.2.3+5
+
+- Support the latest version of `crypto` package.
+
 ## 0.2.3+4
 
 - Make package strong-mode compliant.
