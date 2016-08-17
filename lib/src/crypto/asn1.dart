@@ -107,7 +107,7 @@ class ASN1Parser {
     }
 
     var obj = decodeObject();
-    if (offset != bytes.length){
+    if (offset != bytes.length) {
       throw new ArgumentError('More bytes than expected in ASN1 encoding.');
     }
     return obj;
@@ -121,17 +121,17 @@ class ASN1Sequence extends ASN1Object {
   ASN1Sequence(this.objects);
 }
 
-class ASN1Integer extends ASN1Object{
+class ASN1Integer extends ASN1Object {
   final int integer;
   ASN1Integer(this.integer);
 }
 
-class ASN1OctetString extends ASN1Object{
+class ASN1OctetString extends ASN1Object {
   final List<int> bytes;
   ASN1OctetString(this.bytes);
 }
 
-class ASN1ObjectIdentifier extends ASN1Object{
+class ASN1ObjectIdentifier extends ASN1Object {
   final List<int> bytes;
   ASN1ObjectIdentifier(this.bytes);
 }

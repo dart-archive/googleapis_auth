@@ -12,7 +12,6 @@ import 'dart:async';
 /// application's request for access resources on his behalf.
 typedef void PromptUserForConsent(String uri);
 
-
 /// Function for directing the user or it's user-agent to [uri].
 ///
 /// The user is required to go to [uri] and either approve or decline the

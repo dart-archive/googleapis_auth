@@ -22,13 +22,15 @@ main() {
 
     // We are not asserting what comes after '&assertion=' because this is
     // time dependend.
-    expect(request.body, startsWith(
-        'grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer'
-        '&assertion='));
+    expect(
+        request.body,
+        startsWith(
+            'grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer'
+            '&assertion='));
     var body = JSON.encode({
-      'access_token' : 'atok',
-      'expires_in' : 3600,
-      'token_type' : 'Bearer',
+      'access_token': 'atok',
+      'expires_in': 3600,
+      'token_type': 'Bearer',
     });
     return new Future.value(new Response(body, 200));
   }
@@ -36,8 +38,8 @@ main() {
   Future<Response> invalidAccessToken(Request request) {
     var body = JSON.encode({
       // Missing 'expires_in' entry
-      'access_token' : 'atok',
-      'token_type' : 'Bearer',
+      'access_token': 'atok',
+      'token_type': 'Bearer',
     });
     return new Future.value(new Response(body, 200));
   }
@@ -59,7 +61,7 @@ main() {
 
     test('successfull-with-user', () async {
       var flow = new JwtFlow(clientEmail, TestPrivateKey, 'x@y.com', scopes,
-      mockClient(expectAsyncT(successfullSignRequest), expectClose: false));
+          mockClient(expectAsyncT(successfullSignRequest), expectClose: false));
 
       var credentials = await flow.run();
       expect(credentials.accessToken.data, equals('atok'));
@@ -76,8 +78,8 @@ main() {
     });
 
     test('transport-failure', () {
-      var flow = new JwtFlow(clientEmail, TestPrivateKey, null, scopes,
-          transportFailure);
+      var flow = new JwtFlow(
+          clientEmail, TestPrivateKey, null, scopes, transportFailure);
 
       expect(flow.run(), throwsA(isTransportException));
     });

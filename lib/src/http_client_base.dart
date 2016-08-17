@@ -32,7 +32,6 @@ abstract class DelegatingClient extends BaseClient {
   }
 }
 
-
 /// A reference counted HTTP client.
 ///
 /// It uses a base [Client] which will be closed once the reference count
@@ -87,13 +86,11 @@ class RefCountedClient extends DelegatingClient {
   }
 }
 
-
 // NOTE:
 // Calling close on the returned client once will not close the underlying
 // [baseClient].
-Client nonClosingClient(Client baseClient)
-    => new RefCountedClient(baseClient, initialRefCount: 2);
-
+Client nonClosingClient(Client baseClient) =>
+    new RefCountedClient(baseClient, initialRefCount: 2);
 
 class RequestImpl extends BaseRequest {
   final Stream<List<int>> _stream;

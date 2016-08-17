@@ -12,7 +12,7 @@ import 'package:test/test.dart';
 main() {
   expectArgumentError(List<int> bytes) {
     expect(() => ASN1Parser.parse(new Uint8List.fromList(bytes)),
-           throwsA(isArgumentError));
+        throwsA(isArgumentError));
   }
 
   invalidLenTest(int tagBytes) {
@@ -35,8 +35,12 @@ main() {
       });
 
       test('one-element', () {
-        var sequenceBytes =
-            [ASN1Parser.SEQUENCE_TAG, 1, ASN1Parser.NULL_TAG, 0];
+        var sequenceBytes = [
+          ASN1Parser.SEQUENCE_TAG,
+          1,
+          ASN1Parser.NULL_TAG,
+          0
+        ];
         var sequence = ASN1Parser.parse(new Uint8List.fromList(sequenceBytes));
         expect(sequence is ASN1Sequence, isTrue);
         expect((sequence as ASN1Sequence).objects, hasLength(1));
@@ -64,8 +68,7 @@ main() {
       test('small', () {
         for (int i = 0; i < 256; i++) {
           var integerBytes = [ASN1Parser.INTEGER_TAG, 1, i];
-          var integer =
-              ASN1Parser.parse(new Uint8List.fromList(integerBytes));
+          var integer = ASN1Parser.parse(new Uint8List.fromList(integerBytes));
           expect(integer is ASN1Integer, isTrue);
           expect((integer as ASN1Integer).integer, equals(i));
         }
@@ -73,8 +76,7 @@ main() {
 
       test('multi-byte', () {
         var integerBytes = [ASN1Parser.INTEGER_TAG, 3, 1, 2, 3];
-        var integer =
-            ASN1Parser.parse(new Uint8List.fromList(integerBytes));
+        var integer = ASN1Parser.parse(new Uint8List.fromList(integerBytes));
         expect(integer is ASN1Integer, isTrue);
         expect((integer as ASN1Integer).integer, equals(0x010203));
       });
@@ -112,8 +114,7 @@ main() {
       // the oid structure.
       test('small', () {
         var objIdBytes = [ASN1Parser.OBJECT_ID_TAG, 3, 1, 2, 3];
-        var objId =
-            ASN1Parser.parse(new Uint8List.fromList(objIdBytes));
+        var objId = ASN1Parser.parse(new Uint8List.fromList(objIdBytes));
         expect(objId is ASN1ObjectIdentifier, isTrue);
         expect((objId as ASN1ObjectIdentifier).bytes, equals([1, 2, 3]));
       });
@@ -135,8 +136,8 @@ main() {
   });
 
   test('null', () {
-    var objId = ASN1Parser.parse(
-        new Uint8List.fromList([ASN1Parser.NULL_TAG, 0x00]));
+    var objId =
+        ASN1Parser.parse(new Uint8List.fromList([ASN1Parser.NULL_TAG, 0x00]));
     expect(objId is ASN1Null, isTrue);
 
     expectArgumentError([ASN1Parser.NULL_TAG]);

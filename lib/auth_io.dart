@@ -35,9 +35,7 @@ export 'src/typedefs.dart';
 /// The user is responsible for closing the returned HTTP [Client].
 /// Closing the returned [Client] will not close [baseClient].
 Future<AutoRefreshingAuthClient> clientViaUserConsent(
-    ClientId clientId,
-    List<String> scopes,
-    PromptUserForConsent userPrompt,
+    ClientId clientId, List<String> scopes, PromptUserForConsent userPrompt,
     {Client baseClient}) {
   bool closeUnderlyingClient = false;
   if (baseClient == null) {
@@ -57,7 +55,6 @@ Future<AutoRefreshingAuthClient> clientViaUserConsent(
       closeUnderlyingClient: closeUnderlyingClient));
 }
 
-
 /// Obtains oauth2 credentials and returns an authenticated HTTP client.
 ///
 /// See [obtainAccessCredentialsViaUserConsentManual] for specifics about the
@@ -73,10 +70,8 @@ Future<AutoRefreshingAuthClient> clientViaUserConsent(
 ///
 /// The user is responsible for closing the returned HTTP [Client].
 /// Closing the returned [Client] will not close [baseClient].
-Future<AutoRefreshingAuthClient> clientViaUserConsentManual(
-    ClientId clientId,
-    List<String> scopes,
-    PromptUserForConsentManual userPrompt,
+Future<AutoRefreshingAuthClient> clientViaUserConsentManual(ClientId clientId,
+    List<String> scopes, PromptUserForConsentManual userPrompt,
     {Client baseClient}) {
   bool closeUnderlyingClient = false;
   if (baseClient == null) {
@@ -96,7 +91,6 @@ Future<AutoRefreshingAuthClient> clientViaUserConsentManual(
       closeUnderlyingClient: closeUnderlyingClient));
 }
 
-
 /// Obtains oauth2 credentials and returns an authenticated HTTP client.
 ///
 /// See [obtainAccessCredentialsViaServiceAccount] for specifics about the
@@ -113,8 +107,7 @@ Future<AutoRefreshingAuthClient> clientViaUserConsentManual(
 /// The user is responsible for closing the returned HTTP [Client].
 /// Closing the returned [Client] will not close [baseClient].
 Future<AutoRefreshingAuthClient> clientViaServiceAccount(
-    ServiceAccountCredentials clientCredentials,
-    List<String> scopes,
+    ServiceAccountCredentials clientCredentials, List<String> scopes,
     {Client baseClient}) {
   if (baseClient == null) {
     baseClient = new Client();
@@ -122,11 +115,12 @@ Future<AutoRefreshingAuthClient> clientViaServiceAccount(
     baseClient = nonClosingClient(baseClient);
   }
 
-  var flow = new JwtFlow(clientCredentials.email,
-                         clientCredentials.privateRSAKey,
-                         clientCredentials.impersonatedUser,
-                         scopes,
-                         baseClient);
+  var flow = new JwtFlow(
+      clientCredentials.email,
+      clientCredentials.privateRSAKey,
+      clientCredentials.impersonatedUser,
+      scopes,
+      baseClient);
   return flow.run().catchError((error, stack) {
     baseClient.close();
     return new Future.error(error, stack);
@@ -134,7 +128,6 @@ Future<AutoRefreshingAuthClient> clientViaServiceAccount(
     return new _ServiceAccountClient(baseClient, credentials, flow);
   });
 }
-
 
 /// Obtains oauth2 credentials and returns an authenticated HTTP client.
 ///
@@ -167,7 +160,6 @@ Future<AutoRefreshingAuthClient> clientViaMetadataServer({Client baseClient}) {
   });
 }
 
-
 /// Obtains a HTTP client which uses the given [apiKey] for making HTTP
 /// requests.
 ///
@@ -184,7 +176,6 @@ Client clientViaApiKey(String apiKey, {Client baseClient}) {
   }
   return new ApiKeyClient(baseClient, apiKey);
 }
-
 
 /// Obtain oauth2 [AccessCredentials] using the oauth2 authentication code flow.
 ///
@@ -208,9 +199,9 @@ Future<AccessCredentials> obtainAccessCredentialsViaUserConsent(
     Client client,
     PromptUserForConsent userPrompt) {
   return new AuthorizationCodeGrantServerFlow(
-      clientId, scopes, client, userPrompt).run();
+          clientId, scopes, client, userPrompt)
+      .run();
 }
-
 
 /// Obtain oauth2 [AccessCredentials] using the oauth2 authentication code flow.
 ///
@@ -234,9 +225,9 @@ Future<AccessCredentials> obtainAccessCredentialsViaUserConsentManual(
     Client client,
     PromptUserForConsentManual userPrompt) {
   return new AuthorizationCodeGrantManualFlow(
-      clientId, scopes, client, userPrompt).run();
+          clientId, scopes, client, userPrompt)
+      .run();
 }
-
 
 /// Obtain oauth2 [AccessCredentials] using service account credentials.
 ///
@@ -247,15 +238,13 @@ Future<AccessCredentials> obtainAccessCredentialsViaUserConsentManual(
 ///
 /// The [ServiceAccountCredentials] can be obtained in the Google Cloud Console.
 Future<AccessCredentials> obtainAccessCredentialsViaServiceAccount(
-   ServiceAccountCredentials clientCredentials,
-   List<String> scopes, Client baseClient) {
-  return new JwtFlow(clientCredentials.email,
-                     clientCredentials.privateRSAKey,
-                     clientCredentials.impersonatedUser,
-                     scopes,
-                     baseClient).run();
+    ServiceAccountCredentials clientCredentials,
+    List<String> scopes,
+    Client baseClient) {
+  return new JwtFlow(clientCredentials.email, clientCredentials.privateRSAKey,
+          clientCredentials.impersonatedUser, scopes, baseClient)
+      .run();
 }
-
 
 /// Obtain oauth2 [AccessCredentials] using the metadata API on ComputeEngine.
 ///
@@ -270,7 +259,6 @@ Future<AccessCredentials> obtainAccessCredentialsViaMetadataServer(
     Client baseClient) {
   return new MetadataServerAuthorizationFlow(baseClient).run();
 }
-
 
 /// Obtain oauth2 [AccessCredentials] by exchanging an authorization code.
 ///
@@ -300,7 +288,6 @@ Future<AccessCredentials> obtainAccessCredentialsViaCodeExchange(
   return obtainAccessCredentialsUsingCode(
       clientId, code, redirectUrl, baseClient);
 }
-
 
 /// Will close the underlying `http.Client`.
 class _ServiceAccountClient extends AutoRefreshDelegatingClient {

@@ -24,7 +24,7 @@ class _UserConsentException extends TypeMatcher {
 const Matcher isRefreshFailedException = const _RefreshFailedException();
 
 class _RefreshFailedException extends TypeMatcher {
-  const _RefreshFailedException(): super("RefreshFailedException");
+  const _RefreshFailedException() : super("RefreshFailedException");
 
   bool matches(item, Map matchState) => item is RefreshFailedException;
 }
@@ -32,7 +32,7 @@ class _RefreshFailedException extends TypeMatcher {
 const Matcher isAccessDeniedException = const _AccessDeniedException();
 
 class _AccessDeniedException extends TypeMatcher {
-  const _AccessDeniedException(): super("AccessDeniedException");
+  const _AccessDeniedException() : super("AccessDeniedException");
 
   bool matches(item, Map matchState) => item is AccessDeniedException;
 }
@@ -45,9 +45,7 @@ class _TransportException extends TypeMatcher {
   bool matches(item, Map matchState) => item is TransportException;
 }
 
-
 class TransportException implements Exception {}
-
 
 Client get transportFailure {
   return new MockClient(expectAsyncT((Request _) {
@@ -55,8 +53,8 @@ Client get transportFailure {
   }));
 }
 
-Function/*=T*/ expectAsyncT/*<T>*/(Function /*=T*/ handler, {int count: 1}) {
-  return expectAsync(handler as Function, count: count) as Function /*=T*/;
+Function/*=T*/ expectAsyncT/*<T>*/(Function/*=T*/ handler, {int count: 1}) {
+  return expectAsync(handler as Function, count: count) as Function/*=T*/;
 }
 
 const TestPrivateKeyString = '''-----BEGIN RSA PRIVATE KEY-----
@@ -89,7 +87,6 @@ QpYYDJZwkgZrVQoKMIdCs9xfyVhZERq945NYLekwE1t2W+tOVBgR
 
 final TestPrivateKey = keyFromString(TestPrivateKeyString);
 
-
 expectExpiryOneHourFromNow(AccessToken accessToken) {
   var now = new DateTime.now().toUtc();
   var diff = accessToken.expiry.difference(now).inSeconds -
@@ -98,7 +95,7 @@ expectExpiryOneHourFromNow(AccessToken accessToken) {
 }
 
 Client mockClient(Future<Response> requestHandler(Request _),
-                  {bool expectClose: true}) {
+    {bool expectClose: true}) {
   return new ExpectCloseMockClient(requestHandler, expectClose ? 1 : 0);
 }
 

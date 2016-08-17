@@ -18,7 +18,7 @@ import '../utils.dart';
 /// ComputeEngine VM. It will retrieve the current access token from the
 /// metadata server.
 class MetadataServerAuthorizationFlow {
-  static const _HEADERS = const { 'Metadata-Flavor' : 'Google' };
+  static const _HEADERS = const {'Metadata-Flavor': 'Google'};
   static const _SERVICE_ACCOUNT_URL_PREFIX =
       'http://metadata/computeMetadata/v1/instance/service-accounts';
 
@@ -27,13 +27,13 @@ class MetadataServerAuthorizationFlow {
   final Uri _tokenUrl;
   final http.Client _client;
 
-  factory MetadataServerAuthorizationFlow(
-      http.Client client, {String email: 'default'}) {
+  factory MetadataServerAuthorizationFlow(http.Client client,
+      {String email: 'default'}) {
     var encodedEmail = Uri.encodeComponent(email);
-    var scopesUrl = Uri.parse(
-        '$_SERVICE_ACCOUNT_URL_PREFIX/$encodedEmail/scopes');
-    var tokenUrl = Uri.parse(
-        '$_SERVICE_ACCOUNT_URL_PREFIX/$encodedEmail/token');
+    var scopesUrl =
+        Uri.parse('$_SERVICE_ACCOUNT_URL_PREFIX/$encodedEmail/scopes');
+    var tokenUrl =
+        Uri.parse('$_SERVICE_ACCOUNT_URL_PREFIX/$encodedEmail/token');
     return new MetadataServerAuthorizationFlow._(
         client, email, scopesUrl, tokenUrl);
   }

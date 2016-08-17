@@ -27,9 +27,11 @@ main() {
     return (Request request) async {
       expect(request.method, equals('POST'));
       expect('${request.url}',
-             equals('https://accounts.google.com/o/oauth2/token'));
-      expect(request.headers['content-type']
-             .startsWith('application/x-www-form-urlencoded'), isTrue);
+          equals('https://accounts.google.com/o/oauth2/token'));
+      expect(
+          request.headers['content-type']
+              .startsWith('application/x-www-form-urlencoded'),
+          isTrue);
 
       var pairs = request.body.split('&');
       expect(pairs, hasLength(5));
@@ -39,21 +41,21 @@ main() {
       expect(pairs[4], equals('client_secret=secret'));
       if (manual) {
         expect(pairs[2],
-               equals('redirect_uri=urn%3Aietf%3Awg%3Aoauth%3A2.0%3Aoob'));
+            equals('redirect_uri=urn%3Aietf%3Awg%3Aoauth%3A2.0%3Aoob'));
       } else {
         expect(pairs[2], startsWith('redirect_uri='));
 
-        var url = Uri.parse(Uri.decodeComponent(
-            pairs[2].substring('redirect_uri='.length)));
+        var url = Uri.parse(
+            Uri.decodeComponent(pairs[2].substring('redirect_uri='.length)));
         expect(url.scheme, equals('http'));
         expect(url.host, equals('localhost'));
       }
 
       var result = {
-          'token_type' : 'Bearer',
-          'access_token' : 'tokendata',
-          'expires_in' : 3600,
-          'refresh_token' : 'my-refresh-token',
+        'token_type': 'Bearer',
+        'access_token': 'tokendata',
+        'expires_in': 3600,
+        'refresh_token': 'my-refresh-token',
       };
       return new Response(JSON.encode(result), 200);
     };
@@ -62,13 +64,12 @@ main() {
   Future<Response> invalidResponse(Request request) {
     // Missing expires_in field!
     var result = {
-        'token_type' : 'Bearer',
-        'access_token' : 'tokendata',
-        'refresh_token' : 'my-refresh-token',
+      'token_type': 'Bearer',
+      'access_token': 'tokendata',
+      'refresh_token': 'my-refresh-token',
     };
     return new Future.value(new Response(JSON.encode(result), 200));
   }
-
 
   // Validation functions for user prompt and access credentials.
 
@@ -103,7 +104,6 @@ main() {
     return redirectUri;
   }
 
-
   group('authorization-code-flow', () {
     group('manual-copy-paste', () {
       Future<String> manualUserPrompt(String url) {
@@ -125,6 +125,7 @@ main() {
         Future<String> manualUserPromptError(String url) {
           return new Future.error(new TransportException());
         }
+
         var flow = new AuthorizationCodeGrantManualFlow(
             clientId,
             scopes,
@@ -140,9 +141,8 @@ main() {
       });
 
       test('invalid-server-response', () {
-        var flow = new AuthorizationCodeGrantManualFlow(
-            clientId, scopes, mockClient(invalidResponse, expectClose: false),
-            manualUserPrompt);
+        var flow = new AuthorizationCodeGrantManualFlow(clientId, scopes,
+            mockClient(invalidResponse, expectClose: false), manualUserPrompt);
         expect(flow.run(), throwsA(isException));
       });
     });
@@ -150,10 +150,13 @@ main() {
     group('http-server', () {
       void callRedirectionEndpoint(Uri authCodeCall) {
         var ioClient = new HttpClient();
-        ioClient.getUrl(authCodeCall)
+        ioClient
+            .getUrl(authCodeCall)
             .then((request) => request.close())
             .then((response) => response.drain())
-            .whenComplete(expectAsyncT(() { ioClient.close(); }));
+            .whenComplete(expectAsyncT(() {
+          ioClient.close();
+        }));
       }
 
       void userPrompt(String url) {
@@ -164,8 +167,8 @@ main() {
             port: redirectUri.port,
             path: redirectUri.path,
             queryParameters: {
-              'state' : Uri.parse(url).queryParameters['state'],
-              'code' : 'mycode',
+              'state': Uri.parse(url).queryParameters['state'],
+              'code': 'mycode',
             });
         callRedirectionEndpoint(authCodeCall);
       }
@@ -178,8 +181,8 @@ main() {
             port: redirectUri.port,
             path: redirectUri.path,
             queryParameters: {
-              'state' : Uri.parse(url).queryParameters['state'],
-              'error' : 'failed to authenticate',
+              'state': Uri.parse(url).queryParameters['state'],
+              'error': 'failed to authenticate',
             });
         callRedirectionEndpoint(authCodeCall);
       }
@@ -201,7 +204,9 @@ main() {
 
       test('invalid-server-response', () {
         var flow = new AuthorizationCodeGrantServerFlow(
-            clientId, scopes, mockClient(invalidResponse, expectClose: false),
+            clientId,
+            scopes,
+            mockClient(invalidResponse, expectClose: false),
             expectAsyncT(userPrompt));
         expect(flow.run(), throwsA(isException));
       });
@@ -219,11 +224,11 @@ main() {
 
   group('scopes-from-tokeninfo-endpoint', () {
     var successfulResponseJson = JSON.encode({
-        "issued_to": "XYZ.apps.googleusercontent.com",
-        "audience": "XYZ.apps.googleusercontent.com",
-        "scope": "scopeA scopeB",
-        "expires_in": 3210,
-        "access_type": "offline"
+      "issued_to": "XYZ.apps.googleusercontent.com",
+      "audience": "XYZ.apps.googleusercontent.com",
+      "scope": "scopeA scopeB",
+      "expires_in": 3210,
+      "access_type": "offline"
     });
     var expectedUri =
         'https://www.googleapis.com/oauth2/v2/tokeninfo?access_token=my_token';

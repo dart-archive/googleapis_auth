@@ -17,12 +17,12 @@ main() {
     var clientId = new auth.ClientId('foo_client', 'foo_secret');
     var scopes = ['scope1', 'scope2'];
 
-    auth.BrowserOAuth2Flow flow = await auth.createImplicitBrowserFlow(
-        clientId, scopes);
+    auth.BrowserOAuth2Flow flow =
+        await auth.createImplicitBrowserFlow(clientId, scopes);
     auth.AccessCredentials credentials =
         await flow.obtainAccessCredentialsViaUserConsent(immediate: true);
-    var date = new DateTime.now().toUtc().add(const Duration(
-        seconds: 3210 - utils.MAX_EXPECTED_TIMEDIFF_IN_SECONDS));
+    var date = new DateTime.now().toUtc().add(
+        const Duration(seconds: 3210 - utils.MAX_EXPECTED_TIMEDIFF_IN_SECONDS));
     var difference = credentials.accessToken.expiry.difference(date);
     var seconds = difference.inSeconds;
 
