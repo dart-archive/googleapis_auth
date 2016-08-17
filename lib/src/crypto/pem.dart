@@ -4,11 +4,11 @@
 
 library googleapis_auth.pem;
 
-import 'dart:typed_data';
 import 'dart:convert';
+import 'dart:typed_data';
 
-import 'rsa.dart';
 import 'asn1.dart';
+import 'rsa.dart';
 
 /// Decode a [RSAPrivateKey] from the string content of a PEM file.
 ///
@@ -23,7 +23,6 @@ RSAPrivateKey keyFromString(String pemFileString) {
   return _extractRSAKeyFromDERBytes(bytes);
 }
 
-
 /// Helper function for decoding the base64 in [pemString].
 Uint8List _getBytesFromPEMString(String pemString) {
   var lines = pemString
@@ -36,12 +35,11 @@ Uint8List _getBytesFromPEMString(String pemString) {
       !lines.first.startsWith('-----BEGIN') ||
       !lines.last.startsWith('-----END')) {
     throw new ArgumentError('The given string does not have the correct '
-                            'begin/end markers expected in a PEM file.');
+        'begin/end markers expected in a PEM file.');
   }
   var base64 = lines.sublist(1, lines.length - 1).join('');
   return new Uint8List.fromList(BASE64.decode(base64));
 }
-
 
 /// Helper to decode the ASN.1/DER bytes in [bytes] into an [RSAPrivateKey].
 RSAPrivateKey _extractRSAKeyFromDERBytes(Uint8List bytes) {
@@ -76,8 +74,7 @@ RSAPrivateKey _extractRSAKeyFromDERBytes(Uint8List bytes) {
 
     var bitLength = key.bitLength;
     if (bitLength != 1024 && bitLength != 2048 && bitLength != 4096) {
-      throw new ArgumentError(
-          'The RSA modulus has a bit length of $bitLength. '
+      throw new ArgumentError('The RSA modulus has a bit length of $bitLength. '
           'Only 1024, 2048 and 4096 are supported.');
     }
     return key;
@@ -86,7 +83,7 @@ RSAPrivateKey _extractRSAKeyFromDERBytes(Uint8List bytes) {
   try {
     var asn = ASN1Parser.parse(bytes);
     if (asn is ASN1Sequence) {
-      var objects= asn.objects;
+      var objects = asn.objects;
       if (objects.length == 3 && objects[2] is ASN1OctetString) {
         ASN1OctetString string = objects[2];
         // Seems like the embedded form.

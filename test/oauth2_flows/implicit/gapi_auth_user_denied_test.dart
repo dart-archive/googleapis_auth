@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+@TestOn('browser')
 import 'package:test/test.dart';
 import 'package:googleapis_auth/auth_browser.dart' as auth;
 import 'package:googleapis_auth/src/oauth2_flows/implicit.dart' as impl;
@@ -15,9 +16,10 @@ main() {
     var clientId = new auth.ClientId('foo_client', 'foo_secret');
     var scopes = ['scope1', 'scope2'];
 
-    auth.BrowserOAuth2Flow flow = await auth.createImplicitBrowserFlow(
-        clientId, scopes);
-    flow.obtainAccessCredentialsViaUserConsent()
+    auth.BrowserOAuth2Flow flow =
+        await auth.createImplicitBrowserFlow(clientId, scopes);
+    flow
+        .obtainAccessCredentialsViaUserConsent()
         .catchError(expectAsync((error, stack) {
       expect(error is auth.UserConsentException, isTrue);
     }));

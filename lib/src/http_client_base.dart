@@ -5,6 +5,7 @@
 library googleapis_auth.http_client_base;
 
 import 'dart:async';
+
 import 'package:http/http.dart';
 
 /// Base class for delegating HTTP clients.
@@ -30,7 +31,6 @@ abstract class DelegatingClient extends BaseClient {
     }
   }
 }
-
 
 /// A reference counted HTTP client.
 ///
@@ -86,13 +86,11 @@ class RefCountedClient extends DelegatingClient {
   }
 }
 
-
 // NOTE:
 // Calling close on the returned client once will not close the underlying
 // [baseClient].
-Client nonClosingClient(Client baseClient)
-    => new RefCountedClient(baseClient, initialRefCount: 2);
-
+Client nonClosingClient(Client baseClient) =>
+    new RefCountedClient(baseClient, initialRefCount: 2);
 
 class RequestImpl extends BaseRequest {
   final Stream<List<int>> _stream;

@@ -38,13 +38,12 @@ class RSAPrivateKey {
   /// The number of bits used for the modulus. Usually 1024, 2048 or 4096 bits.
   int get bitLength => n.bitLength;
 
-  RSAPrivateKey(this.n, this.e, this.d, this.p, this.q,
-                this.dmp1, this.dmq1, this.coeff);
+  RSAPrivateKey(
+      this.n, this.e, this.d, this.p, this.q, this.dmp1, this.dmq1, this.coeff);
 }
 
 /// Provides a [encrypt] method for encrypting messages with a [RSAPrivateKey].
 abstract class RSAAlgorithm {
-
   /// Performs the encryption of [bytes] with the private [key].
   /// Others who have access to the public key will be able to decrypt this
   /// the result.
@@ -55,7 +54,7 @@ abstract class RSAAlgorithm {
     var message = bytes2Integer(bytes);
     var encryptedMessage = _encryptInteger(key, message);
     return integer2Bytes(encryptedMessage, intendedLength);
-   }
+  }
 
   static int _encryptInteger(RSAPrivateKey key, int x) {
     // The following is equivalent to `_modPow(x, key.d, key.n) but is much
@@ -72,16 +71,16 @@ abstract class RSAAlgorithm {
     if (e < 1) {
       return 1;
     }
-    if (b < 0 || b >  m) {
+    if (b < 0 || b > m) {
       b = b % m;
     }
     int r = 1;
     while (e > 0) {
-     if ((e & 1) > 0) {
-       r = (r * b) % m;
-     }
-     e >>= 1;
-     b = (b * b) % m;
+      if ((e & 1) > 0) {
+        r = (r * b) % m;
+      }
+      e >>= 1;
+      b = (b * b) % m;
     }
     return r;
   }

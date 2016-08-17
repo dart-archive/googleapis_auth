@@ -8,8 +8,8 @@ import "dart:async";
 import 'dart:html' as html;
 import "dart:js" as js;
 
-import '../utils.dart';
 import '../../auth.dart';
+import '../utils.dart';
 
 // This will be overridden by tests.
 String GapiUrl = 'https://apis.google.com/js/client.js';
@@ -53,9 +53,11 @@ class ImplicitFlow {
       timeout.cancel();
       try {
         var gapi = js.context['gapi']['auth'];
-        gapi.callMethod('init', [() {
-          completer.complete();
-        }]);
+        gapi.callMethod('init', [
+          () {
+            completer.complete();
+          }
+        ]);
       } catch (error, stack) {
         completer.completeError(error, stack);
       }
@@ -89,49 +91,53 @@ class ImplicitFlow {
     var gapi = js.context['gapi']['auth'];
 
     var json = {
-        'client_id' : _clientId,
-        'immediate' : immediate,
-        'approval_prompt' : force ? 'force' : 'auto',
-        'response_type' : hybrid ? 'code token' : 'token',
-        'scope' : _scopes.join(' '),
-        'access_type': hybrid ? 'offline' : 'online',
+      'client_id': _clientId,
+      'immediate': immediate,
+      'approval_prompt': force ? 'force' : 'auto',
+      'response_type': hybrid ? 'code token' : 'token',
+      'scope': _scopes.join(' '),
+      'access_type': hybrid ? 'offline' : 'online',
     };
 
-    gapi.callMethod('authorize', [new js.JsObject.jsify(json), (jsTokenObject) {
-      var tokenType = jsTokenObject['token_type'];
-      var token = jsTokenObject['access_token'];
-      var expiresInRaw = jsTokenObject['expires_in'];
-      var code = jsTokenObject['code'];
-      var state = jsTokenObject['state'];
-      var error = jsTokenObject['error'];
+    gapi.callMethod('authorize', [
+      new js.JsObject.jsify(json),
+      (jsTokenObject) {
+        var tokenType = jsTokenObject['token_type'];
+        var token = jsTokenObject['access_token'];
+        var expiresInRaw = jsTokenObject['expires_in'];
+        var code = jsTokenObject['code'];
+        var error = jsTokenObject['error'];
 
-      var expiresIn;
-      if (expiresInRaw is String) {
-        expiresIn = int.parse(expiresInRaw);
-      }
+        var expiresIn;
+        if (expiresInRaw is String) {
+          expiresIn = int.parse(expiresInRaw);
+        }
 
-      if (error != null) {
-        completer.completeError(new UserConsentException(
-            'Failed to get user consent: $error.'));
-      } else if (token == null || expiresIn is! int || tokenType != 'Bearer') {
-        completer.completeError(new Exception(
-            'Failed to obtain user consent. Invalid server response.'));
-      } else {
-        var accessToken =
-            new AccessToken('Bearer', token, expiryDate(expiresIn));
-        var credentials = new AccessCredentials(accessToken, null, _scopes);
-
-        if (hybrid) {
-          if (code == null) {
-            completer.completeError(new Exception('Expected to get auth code '
-                'from server in hybrid flow, but did not.'));
-          }
-          completer.complete([credentials, code]);
+        if (error != null) {
+          completer.completeError(
+              new UserConsentException('Failed to get user consent: $error.'));
+        } else if (token == null ||
+            expiresIn is! int ||
+            tokenType != 'Bearer') {
+          completer.completeError(new Exception(
+              'Failed to obtain user consent. Invalid server response.'));
         } else {
-          completer.complete(credentials);
+          var accessToken =
+              new AccessToken('Bearer', token, expiryDate(expiresIn));
+          var credentials = new AccessCredentials(accessToken, null, _scopes);
+
+          if (hybrid) {
+            if (code == null) {
+              completer.completeError(new Exception('Expected to get auth code '
+                  'from server in hybrid flow, but did not.'));
+            }
+            completer.complete([credentials, code]);
+          } else {
+            completer.complete(credentials);
+          }
         }
       }
-    }]);
+    ]);
 
     return completer.future;
   }

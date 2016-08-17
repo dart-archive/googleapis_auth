@@ -11,7 +11,6 @@ import 'package:crypto/crypto.dart';
 import 'asn1.dart';
 import 'rsa.dart';
 
-
 /// Used for signing messages with a private RSA key.
 ///
 /// The implemented algorithm can be seen in
@@ -20,8 +19,19 @@ class RS256Signer {
   // NIST sha-256 OID (2 16 840 1 101 3 4 2 1)
   // See a reference for the encoding here:
   // http://msdn.microsoft.com/en-us/library/bb540809%28v=vs.85%29.aspx
-  static const _RSA_SHA256_ALGORITHM_IDENTIFIER =
-      const [0x06, 0x09, 0x60, 0x86, 0x48, 0x01, 0x65, 0x03, 0x04, 0x02, 0x01];
+  static const _RSA_SHA256_ALGORITHM_IDENTIFIER = const [
+    0x06,
+    0x09,
+    0x60,
+    0x86,
+    0x48,
+    0x01,
+    0x65,
+    0x03,
+    0x04,
+    0x02,
+    0x01
+  ];
 
   final RSAPrivateKey _rsaKey;
 

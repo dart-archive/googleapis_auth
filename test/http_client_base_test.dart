@@ -20,7 +20,6 @@ class DelegatingClientImpl extends DelegatingClient {
   Future<StreamedResponse> send(BaseRequest request) => throw 'unsupported';
 }
 
-
 main() {
   group('http-utils', () {
     group('delegating-client', () {
@@ -82,8 +81,8 @@ main() {
       var keyEncoded = 'key=${Uri.encodeQueryComponent(key)}';
 
       RequestImpl request(String url) => new RequestImpl('GET', Uri.parse(url));
-      Future<Response> responseF()
-          => new Future<Response>.value(new Response.bytes([], 200));
+      Future<Response> responseF() =>
+          new Future<Response>.value(new Response.bytes([], 200));
 
       test('no-query-string', () {
         var mock = mockClient((Request request) {
@@ -98,8 +97,8 @@ main() {
 
       test('with-query-string', () {
         var mock = mockClient((Request request) {
-          expect('${request.url}',
-                 equals('http://localhost/abc?x&$keyEncoded'));
+          expect(
+              '${request.url}', equals('http://localhost/abc?x&$keyEncoded'));
           return responseF();
         }, expectClose: true);
 
@@ -109,8 +108,8 @@ main() {
       });
 
       test('with-existing-key', () {
-        var mock = mockClient(
-            expectAsyncT((Request request) {}, count: 0), expectClose: true);
+        var mock = mockClient(expectAsyncT((Request request) {}, count: 0),
+            expectClose: true);
 
         var client = new ApiKeyClient(mock, key);
         expect(client.send(request('http://localhost/abc?key=a')), throws);

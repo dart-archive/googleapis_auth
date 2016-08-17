@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+@TestOn('browser')
 import 'dart:html';
 import 'dart:js' as js;
 
@@ -22,8 +23,7 @@ main() {
 
   test('gapi-load-failure', () {
     impl.GapiUrl = resource('non_existent.js');
-    expect(auth.createImplicitBrowserFlow(clientId, scopes),
-           throws);
+    expect(auth.createImplicitBrowserFlow(clientId, scopes), throws);
   }, timeout: timeout);
 
   test('gapi-load-failure--syntax-error', () {

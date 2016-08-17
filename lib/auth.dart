@@ -15,7 +15,6 @@ import 'src/crypto/rsa.dart';
 import 'src/http_client_base.dart';
 import 'src/utils.dart';
 
-
 /// An OAuth2 access token.
 class AccessToken {
   /// The token type, usually "Bearer"
@@ -45,7 +44,6 @@ class AccessToken {
   String toString() => "AccessToken(type=$type, data=$data, expiry=$expiry)";
 }
 
-
 /// OAuth2 Credentials.
 class AccessCredentials {
   /// An access token.
@@ -65,7 +63,6 @@ class AccessCredentials {
     }
   }
 }
-
 
 /// Represents the client application's credentials.
 class ClientId {
@@ -87,7 +84,6 @@ class ClientId {
     }
   }
 }
-
 
 /// Represents credentials for a service account.
 class ServiceAccountCredentials {
@@ -135,8 +131,8 @@ class ServiceAccountCredentials {
     }
 
     var clientId = new ClientId(identifier, null);
-    return new ServiceAccountCredentials(
-        email, clientId, privateKey, impersonatedUser: impersonatedUser);
+    return new ServiceAccountCredentials(email, clientId, privateKey,
+        impersonatedUser: impersonatedUser);
   }
 
   /// Creates a new [ServiceAccountCredentials].
@@ -151,8 +147,7 @@ class ServiceAccountCredentials {
   ///
   /// The optional named argument [impersonatedUser] is used to set the user
   /// to impersonate if impersonating a user is needed.
-  ServiceAccountCredentials(
-      this.email, this.clientId, String privateKey,
+  ServiceAccountCredentials(this.email, this.clientId, String privateKey,
       {String this.impersonatedUser})
       : privateKey = privateKey,
         privateRSAKey = keyFromString(privateKey) {
@@ -163,13 +158,11 @@ class ServiceAccountCredentials {
   }
 }
 
-
 /// A authenticated HTTP client.
 abstract class AuthClient implements Client {
   /// The credentials currently used for making HTTP requests.
   AccessCredentials get credentials;
 }
-
 
 /// A autorefreshing, authenticated HTTP client.
 abstract class AutoRefreshingAuthClient implements AuthClient {
@@ -179,14 +172,12 @@ abstract class AutoRefreshingAuthClient implements AuthClient {
   Stream<AccessCredentials> get credentialUpdates;
 }
 
-
 /// Thrown if an attempt to refresh a token failed.
 class RefreshFailedException implements Exception {
   final String message;
   RefreshFailedException(this.message);
   String toString() => message;
 }
-
 
 /// Thrown if an attempt to make an authorized request failed.
 class AccessDeniedException implements Exception {
@@ -195,14 +186,12 @@ class AccessDeniedException implements Exception {
   String toString() => message;
 }
 
-
 /// Thrown if user did not give his consent.
 class UserConsentException implements Exception {
   final String message;
   UserConsentException(this.message);
   String toString() => message;
 }
-
 
 /// Obtain an `http.Client` which automatically authenticates
 /// requests using [credentials].
@@ -212,14 +201,13 @@ class UserConsentException implements Exception {
 ///
 /// The user is responsible for closing the returned HTTP [Client].
 /// Closing the returned [Client] will not close [baseClient].
-AuthClient authenticatedClient(Client baseClient,
-                               AccessCredentials credentials) {
+AuthClient authenticatedClient(
+    Client baseClient, AccessCredentials credentials) {
   if (credentials.accessToken.type != 'Bearer') {
     throw new ArgumentError('Only Bearer access tokens are accepted.');
   }
   return new AuthenticatedClient(baseClient, credentials);
 }
-
 
 /// Obtain an `http.Client` which automatically refreshes [credentials]
 /// before they expire. Uses [baseClient] as a base for making authenticated
@@ -227,26 +215,23 @@ AuthClient authenticatedClient(Client baseClient,
 ///
 /// The user is responsible for closing the returned HTTP [Client].
 /// Closing the returned [Client] will not close [baseClient].
-AutoRefreshingAuthClient autoRefreshingClient(ClientId clientId,
-                                              AccessCredentials credentials,
-                                              Client baseClient) {
+AutoRefreshingAuthClient autoRefreshingClient(
+    ClientId clientId, AccessCredentials credentials, Client baseClient) {
   if (credentials.refreshToken == null) {
     throw new ArgumentError('Refresh token in AccessCredentials was `null`.');
   }
   return new AutoRefreshingClient(baseClient, clientId, credentials);
 }
 
-
 /// Tries to obtain refreshed [AccessCredentials] based on [credentials] using
 /// [client].
-Future<AccessCredentials> refreshCredentials(ClientId clientId,
-                                             AccessCredentials credentials,
-                                             Client client) async {
+Future<AccessCredentials> refreshCredentials(
+    ClientId clientId, AccessCredentials credentials, Client client) async {
   var formValues = [
-      'client_id=${Uri.encodeComponent(clientId.identifier)}',
-      'client_secret=${Uri.encodeComponent(clientId.secret)}',
-      'refresh_token=${Uri.encodeComponent(credentials.refreshToken)}',
-      'grant_type=refresh_token',
+    'client_id=${Uri.encodeComponent(clientId.identifier)}',
+    'client_secret=${Uri.encodeComponent(clientId.secret)}',
+    'refresh_token=${Uri.encodeComponent(credentials.refreshToken)}',
+    'grant_type=refresh_token',
   ];
 
   var body = new Stream<List<int>>.fromIterable(
@@ -259,8 +244,7 @@ Future<AccessCredentials> refreshCredentials(ClientId clientId,
   contentType = contentType == null ? null : contentType.toLowerCase();
 
   if (contentType == null ||
-      (!contentType.contains('json') &&
-       !contentType.contains('javascript'))) {
+      (!contentType.contains('json') && !contentType.contains('javascript'))) {
     await response.stream.drain().catchError((_) {});
     throw new Exception(
         'Server responded with invalid content type: $contentType. '
@@ -269,7 +253,9 @@ Future<AccessCredentials> refreshCredentials(ClientId clientId,
 
   return response.stream
       .transform(ASCII.decoder)
-      .transform(JSON.decoder).first.then((object) {
+      .transform(JSON.decoder)
+      .first
+      .then((object) {
     Map json = object as Map;
 
     var token = json['access_token'];
@@ -293,6 +279,5 @@ Future<AccessCredentials> refreshCredentials(ClientId clientId,
         credentials.scopes);
   });
 }
-
 
 final _GoogleTokenUri = Uri.parse('https://accounts.google.com/o/oauth2/token');

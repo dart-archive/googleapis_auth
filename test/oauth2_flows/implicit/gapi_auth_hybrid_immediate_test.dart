@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+@TestOn('browser')
 import 'package:test/test.dart';
 import 'package:googleapis_auth/auth_browser.dart' as auth;
 import 'package:googleapis_auth/src/oauth2_flows/implicit.dart' as impl;
@@ -16,14 +17,14 @@ main() {
     var clientId = new auth.ClientId('foo_client', 'foo_secret');
     var scopes = ['scope1', 'scope2'];
 
-    auth.BrowserOAuth2Flow flow = await auth.createImplicitBrowserFlow(
-        clientId, scopes);
-    auth.HybridFlowResult result = await flow.runHybridFlow(
-        force: false, immediate: true);
+    auth.BrowserOAuth2Flow flow =
+        await auth.createImplicitBrowserFlow(clientId, scopes);
+    auth.HybridFlowResult result =
+        await flow.runHybridFlow(force: false, immediate: true);
     var credentials = result.credentials;
 
-    var date = new DateTime.now().toUtc().add(const Duration(
-        seconds: 3210 - utils.MAX_EXPECTED_TIMEDIFF_IN_SECONDS));
+    var date = new DateTime.now().toUtc().add(
+        const Duration(seconds: 3210 - utils.MAX_EXPECTED_TIMEDIFF_IN_SECONDS));
     var difference = credentials.accessToken.expiry.difference(date);
     var seconds = difference.inSeconds;
 

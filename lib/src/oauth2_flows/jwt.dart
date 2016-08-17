@@ -8,11 +8,12 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
+
 import '../../auth.dart';
 import '../crypto/rsa.dart';
 import '../crypto/rsa_sign.dart';
-import '../utils.dart';
 import '../http_client_base.dart';
+import '../utils.dart';
 
 class JwtFlow {
   // All details are described at:
@@ -28,23 +29,23 @@ class JwtFlow {
   final String _user;
   final http.Client _client;
 
-  JwtFlow(this._clientEmail, RSAPrivateKey key, this._user,
-          this._scopes, this._client)
+  JwtFlow(this._clientEmail, RSAPrivateKey key, this._user, this._scopes,
+      this._client)
       : _signer = new RS256Signer(key);
 
   Future<AccessCredentials> run() async {
-    int timestamp = new DateTime.now().toUtc().millisecondsSinceEpoch ~/ 1000
-        - MAX_EXPECTED_TIMEDIFF_IN_SECONDS;
+    int timestamp = new DateTime.now().toUtc().millisecondsSinceEpoch ~/ 1000 -
+        MAX_EXPECTED_TIMEDIFF_IN_SECONDS;
 
     jwtHeader() => {"alg": "RS256", "typ": "JWT"};
 
     jwtClaimSet() {
       var claimSet = {
-        'iss' : _clientEmail,
-        'scope' :  _scopes.join(' '),
-        'aud' : GOOGLE_OAUTH2_TOKEN_URL,
-        'exp' : timestamp + 3600 ,
-        'iat' : timestamp,
+        'iss': _clientEmail,
+        'scope': _scopes.join(' '),
+        'aud': GOOGLE_OAUTH2_TOKEN_URL,
+        'exp': timestamp + 3600,
+        'iat': timestamp,
       };
       if (_user != null) claimSet['sub'] = _user;
       return claimSet;
@@ -60,12 +61,12 @@ class JwtFlow {
 
     var uri = 'urn:ietf:params:oauth:grant-type:jwt-bearer';
     var requestParameters = 'grant_type=${Uri.encodeComponent(uri)}&'
-                            'assertion=${Uri.encodeComponent(jwt)}';
+        'assertion=${Uri.encodeComponent(jwt)}';
 
     var body = new Stream<List<int>>.fromIterable(
         <List<int>>[UTF8.encode(requestParameters)]);
-    var request = new RequestImpl(
-        'POST', Uri.parse(GOOGLE_OAUTH2_TOKEN_URL), body);
+    var request =
+        new RequestImpl('POST', Uri.parse(GOOGLE_OAUTH2_TOKEN_URL), body);
     request.headers['content-type'] = CONTENT_TYPE_URLENCODED;
 
     var httpResponse = await _client.send(request);
@@ -87,8 +88,7 @@ class JwtFlow {
       throw new Exception(
           'Unable to obtain credentials. Invalid response from server.');
     }
-    var accessToken = new AccessToken(
-        tokenType, token, expiryDate(expiresIn));
+    var accessToken = new AccessToken(tokenType, token, expiryDate(expiresIn));
     return new AccessCredentials(accessToken, null, _scopes);
   }
 

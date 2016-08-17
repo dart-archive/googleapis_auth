@@ -5,13 +5,14 @@
 library googleapis_auth.auth_browser;
 
 import 'dart:async';
-import 'package:http/http.dart';
+
 import 'package:http/browser_client.dart';
+import 'package:http/http.dart';
 
 import 'auth.dart';
 import 'src/auth_http_utils.dart';
-import 'src/oauth2_flows/implicit.dart';
 import 'src/http_client_base.dart';
+import 'src/oauth2_flows/implicit.dart';
 
 export 'auth.dart';
 
@@ -52,7 +53,8 @@ Client clientViaApiKey(String apiKey, {Client baseClient}) {
 /// Closing the returned [BrowserOAuth2Flow] will not close [baseClient]
 /// if one was given.
 Future<BrowserOAuth2Flow> createImplicitBrowserFlow(
-    ClientId clientId, List<String> scopes, {Client baseClient}) {
+    ClientId clientId, List<String> scopes,
+    {Client baseClient}) {
   if (baseClient == null) {
     baseClient = new RefCountedClient(new BrowserClient(), initialRefCount: 1);
   } else {
@@ -160,9 +162,10 @@ class BrowserOAuth2Flow {
   Future<HybridFlowResult> runHybridFlow(
       {bool force: true, bool immediate: false}) {
     _ensureOpen();
-    return _flow.loginHybrid(force: force,
-                             immediate: immediate).then((List tuple) {
-      assert (tuple.length == 2);
+    return _flow
+        .loginHybrid(force: force, immediate: immediate)
+        .then((List tuple) {
+      assert(tuple.length == 2);
       return new HybridFlowResult(this, tuple[0], tuple[1]);
     });
   }
@@ -230,7 +233,6 @@ class HybridFlowResult {
     return _flow._clientFromCredentials(credentials);
   }
 }
-
 
 class _AutoRefreshingBrowserClient extends AutoRefreshDelegatingClient {
   AccessCredentials credentials;
