@@ -73,15 +73,13 @@ class MetadataServerAuthorizationFlow {
         scopes);
   }
 
-  Future<Map> _getToken() {
-    return _client.get(_tokenUrl, headers: _HEADERS).then((response) {
-      return JSON.decode(response.body);
-    });
+  Future<Map> _getToken() async {
+    var response = await _client.get(_tokenUrl, headers: _HEADERS);
+    return JSON.decode(response.body);
   }
 
-  Future<String> _getScopes() {
-    return _client.get(_scopesUrl, headers: _HEADERS).then((response) {
-      return response.body;
-    });
+  Future<String> _getScopes() async {
+    var response = await _client.get(_scopesUrl, headers: _HEADERS);
+    return response.body;
   }
 }

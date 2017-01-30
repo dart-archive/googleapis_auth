@@ -255,35 +255,34 @@ Future<AccessCredentials> refreshCredentials(
         'Expected json response.');
   }
 
-  return response.stream
+  var object = await response.stream
       .transform(ASCII.decoder)
       .transform(JSON.decoder)
-      .first
-      .then((object) {
-    Map json = object as Map;
+      .first;
 
-    var idToken = json['id_token'];
-    var token = json['access_token'];
-    var seconds = json['expires_in'];
-    var tokenType = json['token_type'];
-    var error = json['error'];
+  var json = object as Map;
 
-    if (response.statusCode != 200 && error != null) {
-      throw new RefreshFailedException('Refreshing attempt failed. '
-          'Response was ${response.statusCode}. Error message was $error.');
-    }
+  var idToken = json['id_token'];
+  var token = json['access_token'];
+  var seconds = json['expires_in'];
+  var tokenType = json['token_type'];
+  var error = json['error'];
 
-    if (token == null || seconds is! int || tokenType != 'Bearer') {
-      throw new Exception('Refresing attempt failed. '
-          'Invalid server response.');
-    }
+  if (response.statusCode != 200 && error != null) {
+    throw new RefreshFailedException('Refreshing attempt failed. '
+        'Response was ${response.statusCode}. Error message was $error.');
+  }
 
-    return new AccessCredentials(
-        new AccessToken(tokenType, token, expiryDate(seconds)),
-        credentials.refreshToken,
-        credentials.scopes,
-        idToken: idToken);
-  });
+  if (token == null || seconds is! int || tokenType != 'Bearer') {
+    throw new Exception('Refresing attempt failed. '
+        'Invalid server response.');
+  }
+
+  return new AccessCredentials(
+      new AccessToken(tokenType, token, expiryDate(seconds)),
+      credentials.refreshToken,
+      credentials.scopes,
+      idToken: idToken);
 }
 
 final _googleTokenUri = Uri.parse('https://accounts.google.com/o/oauth2/token');

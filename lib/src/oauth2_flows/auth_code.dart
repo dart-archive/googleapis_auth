@@ -30,18 +30,18 @@ import '../utils.dart';
 //
 // Scopes are separated by spaces.
 Future<List<String>> obtainScopesFromAccessToken(
-    String accessToken, http.Client client) {
+    String accessToken, http.Client client) async {
   var url = Uri.parse('https://www.googleapis.com/oauth2/v2/tokeninfo'
       '?access_token=${Uri.encodeQueryComponent(accessToken)}');
-  return client.post(url).then((http.Response response) {
-    if (response.statusCode == 200) {
-      Map json = JSON.decode(response.body);
-      return (json['scope'] as String).split(' ').toList();
-    } else {
-      throw new Exception('Unable to obtain list of scopes an access token '
-          'is valid for. Server responded with ${response.statusCode}.');
-    }
-  });
+
+  var response = await client.post(url);
+  if (response.statusCode == 200) {
+    Map json = JSON.decode(response.body);
+    return (json['scope'] as String).split(' ').toList();
+  } else {
+    throw new Exception('Unable to obtain list of scopes an access token '
+        'is valid for. Server responded with ${response.statusCode}.');
+  }
 }
 
 Future<AccessCredentials> obtainAccessCredentialsUsingCode(
