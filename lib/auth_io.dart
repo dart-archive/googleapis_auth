@@ -234,7 +234,7 @@ Future<AccessCredentials> obtainAccessCredentialsViaUserConsentManual(
 /// In case the service account has no access to the requested scopes or another
 /// error occurs the returned future will complete with an `Exception`.
 ///
-/// [client] will be used for obtaining `AccessCredentials`.
+/// [baseClient] will be used for obtaining `AccessCredentials`.
 ///
 /// The [ServiceAccountCredentials] can be obtained in the Google Cloud Console.
 Future<AccessCredentials> obtainAccessCredentialsViaServiceAccount(
@@ -251,7 +251,7 @@ Future<AccessCredentials> obtainAccessCredentialsViaServiceAccount(
 /// In case the VM was not configured with access to the requested scopes or an
 /// error occurs the returned future will complete with an `Exception`.
 ///
-/// [client] will be used for obtaining `AccessCredentials`.
+/// [baseClient] will be used for obtaining `AccessCredentials`.
 ///
 /// No credentials are needed. But this function is only intended to work on a
 /// Google Compute Engine VM with configured access to Google APIs.

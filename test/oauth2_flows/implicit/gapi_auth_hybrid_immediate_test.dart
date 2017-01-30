@@ -11,7 +11,7 @@ import 'package:googleapis_auth/src/utils.dart' as utils;
 import 'utils.dart';
 
 main() {
-  impl.GapiUrl = resource('gapi_auth_hybrid_immediate.js');
+  impl.gapiUrl = resource('gapi_auth_hybrid_immediate.js');
 
   test('gapi-auth-hybrid-immediate-test', () async {
     var clientId = new auth.ClientId('foo_client', 'foo_secret');

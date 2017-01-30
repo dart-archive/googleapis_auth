@@ -170,13 +170,13 @@ main() {
       });
 
       return new Future.value(
-          new Response(body, 200, headers: _JsonContentType));
+          new Response(body, 200, headers: _jsonContentType));
     }
 
     Future<Response> refreshErrorResponse(Request request) {
       var body = JSON.encode({'error': 'An error occured'});
       return new Future<Response>.value(
-          new Response(body, 400, headers: _JsonContentType));
+          new Response(body, 400, headers: _jsonContentType));
     }
 
     Future<Response> serverError(Request request) {
@@ -379,10 +379,10 @@ main() {
         // The `client.send()` will have trigged a credentials refresh.
         expect(executed, isTrue);
 
-        await client.close();
+        client.close();
       });
     });
   });
 }
 
-final _JsonContentType = const {'content-type': 'application/json'};
+final _jsonContentType = const {'content-type': 'application/json'};

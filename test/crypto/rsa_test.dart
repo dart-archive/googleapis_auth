@@ -47,7 +47,7 @@ main() {
       ];
       expect(
           RSAAlgorithm.encrypt(
-              TestPrivateKey, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], 256),
+              testPrivateKey, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], 256),
           equals(encryptedData));
     });
   });

@@ -49,7 +49,7 @@ main() {
     var scopes = ['s1', 's2'];
 
     test('successfull', () async {
-      var flow = new JwtFlow(clientEmail, TestPrivateKey, null, scopes,
+      var flow = new JwtFlow(clientEmail, testPrivateKey, null, scopes,
           mockClient(expectAsyncT(successfullSignRequest), expectClose: false));
 
       var credentials = await flow.run();
@@ -60,7 +60,7 @@ main() {
     });
 
     test('successfull-with-user', () async {
-      var flow = new JwtFlow(clientEmail, TestPrivateKey, 'x@y.com', scopes,
+      var flow = new JwtFlow(clientEmail, testPrivateKey, 'x@y.com', scopes,
           mockClient(expectAsyncT(successfullSignRequest), expectClose: false));
 
       var credentials = await flow.run();
@@ -71,7 +71,7 @@ main() {
     });
 
     test('invalid-server-response', () {
-      var flow = new JwtFlow(clientEmail, TestPrivateKey, null, scopes,
+      var flow = new JwtFlow(clientEmail, testPrivateKey, null, scopes,
           mockClient(expectAsyncT(invalidAccessToken), expectClose: false));
 
       expect(flow.run(), throwsA(isException));
@@ -79,7 +79,7 @@ main() {
 
     test('transport-failure', () {
       var flow = new JwtFlow(
-          clientEmail, TestPrivateKey, null, scopes, transportFailure);
+          clientEmail, testPrivateKey, null, scopes, transportFailure);
 
       expect(flow.run(), throwsA(isTransportException));
     });

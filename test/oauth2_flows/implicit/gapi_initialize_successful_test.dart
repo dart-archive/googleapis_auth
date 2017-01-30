@@ -10,7 +10,7 @@ import 'package:googleapis_auth/src/oauth2_flows/implicit.dart' as impl;
 import 'utils.dart';
 
 main() {
-  impl.GapiUrl = resource('gapi_initialize_successful.js');
+  impl.gapiUrl = resource('gapi_initialize_successful.js');
 
   test('gapi-initialize-successful', () {
     var clientId = new auth.ClientId('a', 'b');

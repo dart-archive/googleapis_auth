@@ -22,12 +22,12 @@ main() {
   var scopes = ['scope1', 'scope2'];
 
   test('gapi-load-failure', () {
-    impl.GapiUrl = resource('non_existent.js');
+    impl.gapiUrl = resource('non_existent.js');
     expect(auth.createImplicitBrowserFlow(clientId, scopes), throws);
   }, timeout: timeout);
 
   test('gapi-load-failure--syntax-error', () {
-    impl.GapiUrl = resource('gapi_load_failure.js');
+    impl.gapiUrl = resource('gapi_load_failure.js');
 
     // Reset test_controller.js's window.onerror registration.
     // This makes sure we can catch the onError callback when the syntax error
@@ -40,7 +40,7 @@ main() {
 
     var sw = new Stopwatch()..start();
     var flowFuture = auth.createImplicitBrowserFlow(clientId, scopes);
-    flowFuture.catchError(expectAsync((_, __) {
+    flowFuture.catchError(expectAsync2((_, __) {
       var elapsed = (sw.elapsed - impl.ImplicitFlow.CallbackTimeout).inSeconds;
       expect(-3 <= elapsed && elapsed <= 3, isTrue);
     }));

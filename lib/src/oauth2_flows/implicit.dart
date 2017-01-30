@@ -12,7 +12,7 @@ import '../../auth.dart';
 import '../utils.dart';
 
 // This will be overridden by tests.
-String GapiUrl = 'https://apis.google.com/js/client.js';
+String gapiUrl = 'https://apis.google.com/js/client.js';
 
 /// This class performs the implicit browser-based oauth2 flow.
 ///
@@ -64,7 +64,7 @@ class ImplicitFlow {
     };
 
     var script = new html.ScriptElement();
-    script.src = '${GapiUrl}?onload=dartGapiLoaded';
+    script.src = '${gapiUrl}?onload=dartGapiLoaded';
     script.onError.first.then((errorEvent) {
       timeout.cancel();
       completer.completeError(new Exception('Failed to load gapi library.'));
@@ -78,8 +78,9 @@ class ImplicitFlow {
     return _login(force, immediate, true);
   }
 
-  Future<AccessCredentials> login({bool force: false, bool immediate: false}) {
-    return _login(force, immediate, false);
+  Future<AccessCredentials> login(
+      {bool force: false, bool immediate: false}) async {
+    return (await _login(force, immediate, false)) as AccessCredentials;
   }
 
   // Completes with either credentials or a tuple of credentials and authCode.
