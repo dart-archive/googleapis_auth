@@ -85,7 +85,7 @@ oPfWmwKBgBfR6jv0gWWeWTfkNwj+cMLHQV1uvz6JyLH5K4iISEDFxYkd37jrHB8A
 QpYYDJZwkgZrVQoKMIdCs9xfyVhZERq945NYLekwE1t2W+tOVBgR
 -----END RSA PRIVATE KEY-----''';
 
-final TestPrivateKey = keyFromString(TestPrivateKeyString);
+final testPrivateKey = keyFromString(TestPrivateKeyString);
 
 expectExpiryOneHourFromNow(AccessToken accessToken) {
   var now = new DateTime.now().toUtc();
@@ -105,7 +105,7 @@ class ExpectCloseMockClient extends MockClient {
 
   ExpectCloseMockClient(Future<Response> requestHandler(Request _), int c)
       : super(requestHandler) {
-    _expectedToBeCalled = expectAsync(() {}, count: c);
+    _expectedToBeCalled = expectAsync0(() {}, count: c);
   }
 
   void close() {

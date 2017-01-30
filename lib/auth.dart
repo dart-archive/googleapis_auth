@@ -27,7 +27,7 @@ class AccessToken {
   final DateTime expiry;
 
   /// [expiry] must be a UTC `DateTime`.
-  AccessToken(String this.type, String this.data, DateTime this.expiry) {
+  AccessToken(this.type, this.data, this.expiry) {
     if (type == null || data == null || expiry == null) {
       throw new ArgumentError('Arguments type/data/expiry may not be null.');
     }
@@ -152,7 +152,7 @@ class ServiceAccountCredentials {
   /// The optional named argument [impersonatedUser] is used to set the user
   /// to impersonate if impersonating a user is needed.
   ServiceAccountCredentials(this.email, this.clientId, String privateKey,
-      {String this.impersonatedUser})
+      {this.impersonatedUser})
       : privateKey = privateKey,
         privateRSAKey = keyFromString(privateKey) {
     if (email == null || clientId == null || privateKey == null) {
@@ -240,7 +240,7 @@ Future<AccessCredentials> refreshCredentials(
 
   var body = new Stream<List<int>>.fromIterable(
       [(ASCII.encode(formValues.join('&')))]);
-  var request = new RequestImpl('POST', _GoogleTokenUri, body);
+  var request = new RequestImpl('POST', _googleTokenUri, body);
   request.headers['content-type'] = 'application/x-www-form-urlencoded';
 
   var response = await client.send(request);
@@ -286,4 +286,4 @@ Future<AccessCredentials> refreshCredentials(
   });
 }
 
-final _GoogleTokenUri = Uri.parse('https://accounts.google.com/o/oauth2/token');
+final _googleTokenUri = Uri.parse('https://accounts.google.com/o/oauth2/token');
