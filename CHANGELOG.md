@@ -1,3 +1,7 @@
+## 0.2.3+6
+
+- Fix async issue in oauth2 flow implementation
+
 ## 0.2.3+5
 
 - Support the latest version of `crypto` package.

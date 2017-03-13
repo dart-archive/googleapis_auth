@@ -42,11 +42,12 @@ class MetadataServerAuthorizationFlow {
       this._client, this.email, this._scopesUrl, this._tokenUrl);
 
   Future<AccessCredentials> run() async {
-    Future<Map> tokenFuture = _getToken();
-    Future<String> scopesFuture = _getScopes();
+    final results = await Future.wait([_getToken(), _getScopes()]);
+    final Map token = results.first;
+    final String scopesString = results.last;
 
-    var json = await tokenFuture;
-    var scopes = (await scopesFuture)
+    var json = token;
+    var scopes = scopesString
         .replaceAll('\n', ' ')
         .split(' ')
         .where((part) => part.length > 0)
