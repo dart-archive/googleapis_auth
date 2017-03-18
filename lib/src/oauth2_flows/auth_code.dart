@@ -67,6 +67,7 @@ Future<AccessCredentials> obtainAccessCredentialsUsingCode(
       .transform(JSON.decoder)
       .first;
 
+  var idToken = json['id_token'];
   var tokenType = json['token_type'];
   var accessToken = json['access_token'];
   var seconds = json['expires_in'];
@@ -91,14 +92,16 @@ Future<AccessCredentials> obtainAccessCredentialsUsingCode(
     return new AccessCredentials(
         new AccessToken('Bearer', accessToken, expiryDate(seconds)),
         refreshToken,
-        scopes);
+        scopes,
+        idToken: idToken);
   }
 
   scopes = await obtainScopesFromAccessToken(accessToken, client);
   return new AccessCredentials(
       new AccessToken('Bearer', accessToken, expiryDate(seconds)),
       refreshToken,
-      scopes);
+      scopes,
+      idToken: idToken);
 }
 
 /// Abstract class for obtaining access credentials via the authorization code
@@ -113,7 +116,8 @@ abstract class AuthorizationCodeGrantAbstractFlow {
   final List<String> scopes;
   final http.Client _client;
 
-  AuthorizationCodeGrantAbstractFlow(this.clientId, this.scopes, this._client);
+  AuthorizationCodeGrantAbstractFlow(
+      this.clientId, this.scopes, this._client);
 
   Future<AccessCredentials> run();
 
