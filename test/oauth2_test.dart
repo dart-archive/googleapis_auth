@@ -143,7 +143,7 @@ main() {
       expect(credentialsFromJson.privateKey, equals(TestPrivateKeyString));
       expect(credentialsFromJson.impersonatedUser, equals('x@y.com'));
     });
-  });
+  }, testOn: 'vm');
 
   group('client-wrappers', () {
     var clientId = new ClientId('id', 'secret');

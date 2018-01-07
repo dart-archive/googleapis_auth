@@ -222,7 +222,7 @@ main() {
             expectAsync1(userPromptInvalidAuthCodeCallback));
         expect(flow.run(), throwsA(isUserConsentException));
       });
-    });
+    }, testOn: '!browser');
   });
 
   group('scopes-from-tokeninfo-endpoint', () {

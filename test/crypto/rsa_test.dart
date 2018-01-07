@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+@TestOn('vm')
 library googleapis_auth.test.rsa_test;
 
 import 'package:googleapis_auth/src/crypto/rsa.dart';
@@ -18,7 +19,7 @@ main() {
       expect(RSAAlgorithm.integer2Bytes(2 << 64, 12),
           equals([0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0]));
       expect(() => RSAAlgorithm.integer2Bytes(0, 1), throwsA(isArgumentError));
-    });
+    }, testOn: 'vm');
 
     test('bytes-to-integer', () {
       expect(RSAAlgorithm.bytes2Integer([1]), equals(1));
