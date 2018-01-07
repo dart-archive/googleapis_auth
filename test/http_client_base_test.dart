@@ -108,7 +108,7 @@ main() {
       });
 
       test('with-existing-key', () {
-        var mock = mockClient(expectAsyncT((Request request) {}, count: 0),
+        var mock = mockClient(expectAsync1((Request request) {}, count: 0),
             expectClose: true);
 
         var client = new ApiKeyClient(mock, key);

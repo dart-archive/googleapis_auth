@@ -57,7 +57,7 @@ main() {
   group('metadata-server-authorization-flow', () {
     test('successfull', () async {
       var flow = new MetadataServerAuthorizationFlow(mockClient(
-          expectAsyncT((request) {
+          expectAsync1((request) {
             var url = request.url.toString();
             if (url == tokenUrl) {
               return successfullAccessToken(request);
@@ -79,7 +79,7 @@ main() {
     test('invalid-server-reponse', () {
       int requestNr = 0;
       var flow = new MetadataServerAuthorizationFlow(mockClient(
-          expectAsyncT((request) {
+          expectAsync1((request) {
             if (requestNr++ == 0)
               return invalidAccessToken(request);
             else
@@ -92,7 +92,7 @@ main() {
     test('token-transport-error', () {
       int requestNr = 0;
       var flow = new MetadataServerAuthorizationFlow(mockClient(
-          expectAsyncT((request) {
+          expectAsync1((request) {
             if (requestNr++ == 0)
               return transportFailure.get('http://failure');
             else
@@ -105,7 +105,7 @@ main() {
     test('scopes-transport-error', () {
       int requestNr = 0;
       var flow = new MetadataServerAuthorizationFlow(mockClient(
-          expectAsyncT((request) {
+          expectAsync1((request) {
             if (requestNr++ == 0)
               return successfullAccessToken(request);
             else

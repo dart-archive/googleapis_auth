@@ -48,13 +48,9 @@ class _TransportException extends TypeMatcher {
 class TransportException implements Exception {}
 
 Client get transportFailure {
-  return new MockClient(expectAsyncT((Request _) {
+  return new MockClient(expectAsync1((Request _) {
     return new Future<Response>.error(new TransportException());
   }));
-}
-
-Function/*=T*/ expectAsyncT/*<T>*/(Function/*=T*/ handler, {int count: 1}) {
-  return expectAsync(handler as Function, count: count) as Function/*=T*/;
 }
 
 const TestPrivateKeyString = '''-----BEGIN RSA PRIVATE KEY-----
