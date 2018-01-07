@@ -55,22 +55,25 @@ RSAPrivateKey _extractRSAKeyFromDERBytes(Uint8List bytes) {
   //                     octet-string/PrivateKey]
   //
 
-  RSAPrivateKey privateKeyFromSequence(asnSequence) {
+  RSAPrivateKey privateKeyFromSequence(ASN1Sequence asnSequence) {
     var objects = asnSequence.objects;
-    var version = objects[0];
+
+    var asnIntegers = objects.take(9).map((o) => o as ASN1Integer).toList();
+
+    var version = asnIntegers.first;
     if (version.integer != 0) {
       throw new ArgumentError('Expected version 0, got: ${version.integer}.');
     }
 
     var key = new RSAPrivateKey(
-        objects[1].integer,
-        objects[2].integer,
-        objects[3].integer,
-        objects[4].integer,
-        objects[5].integer,
-        objects[6].integer,
-        objects[7].integer,
-        objects[8].integer);
+        asnIntegers[1].integer,
+        asnIntegers[2].integer,
+        asnIntegers[3].integer,
+        asnIntegers[4].integer,
+        asnIntegers[5].integer,
+        asnIntegers[6].integer,
+        asnIntegers[7].integer,
+        asnIntegers[8].integer);
 
     var bitLength = key.bitLength;
     if (bitLength != 1024 && bitLength != 2048 && bitLength != 4096) {
