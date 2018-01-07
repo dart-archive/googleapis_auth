@@ -250,7 +250,7 @@ main() {
         expect(request.url.toString(), expectedUri);
         return new Response(successfulResponseJson, 201);
       }), expectClose: false);
-      expect(obtainScopesFromAccessToken('my_token', http), throws);
+      expect(obtainScopesFromAccessToken('my_token', http), throwsException);
     });
 
     test('no-scope', () {
@@ -258,7 +258,7 @@ main() {
         expect(request.url.toString(), expectedUri);
         return new Response(JSON.encode({}), 200);
       }), expectClose: false);
-      expect(obtainScopesFromAccessToken('my_token', http), throws);
+      expect(obtainScopesFromAccessToken('my_token', http), throwsException);
     });
   });
 }

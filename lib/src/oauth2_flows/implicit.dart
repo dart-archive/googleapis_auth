@@ -53,11 +53,15 @@ class ImplicitFlow {
       timeout.cancel();
       try {
         var gapi = js.context['gapi']['auth'];
-        gapi.callMethod('init', [
-          () {
-            completer.complete();
-          }
-        ]);
+        try {
+          gapi.callMethod('init', [
+            () {
+              completer.complete();
+            }
+          ]);
+        } on NoSuchMethodError {
+          throw new StateError('gapi.auth not loaded.');
+        }
       } catch (error, stack) {
         completer.completeError(error, stack);
       }

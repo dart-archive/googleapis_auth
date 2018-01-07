@@ -112,7 +112,8 @@ main() {
             expectClose: true);
 
         var client = new ApiKeyClient(mock, key);
-        expect(client.send(request('http://localhost/abc?key=a')), throws);
+        expect(client.send(request('http://localhost/abc?key=a')),
+            throwsException);
         client.close();
       });
     });

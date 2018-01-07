@@ -37,7 +37,12 @@ Future<List<String>> obtainScopesFromAccessToken(
   var response = await client.post(url);
   if (response.statusCode == 200) {
     Map json = JSON.decode(response.body);
-    return (json['scope'] as String).split(' ').toList();
+    var scope = json['scope'];
+    if (scope is! String) {
+      throw new Exception(
+          'The response did not include a `scope` value of type `String`.');
+    }
+    return scope.split(' ').toList();
   } else {
     throw new Exception('Unable to obtain list of scopes an access token '
         'is valid for. Server responded with ${response.statusCode}.');

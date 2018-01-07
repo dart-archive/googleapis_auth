@@ -16,6 +16,6 @@ main() {
     var clientId = new auth.ClientId('a', 'b');
     var scopes = ['scope1', 'scope2'];
 
-    expect(auth.createImplicitBrowserFlow(clientId, scopes), throws);
+    expect(auth.createImplicitBrowserFlow(clientId, scopes), throwsStateError);
   });
 }
