@@ -22,7 +22,7 @@ main() {
 
   test('gapi-load-failure', () {
     impl.gapiUrl = resource('non_existent.js');
-    expect(auth.createImplicitBrowserFlow(clientId, scopes), throws);
+    expect(auth.createImplicitBrowserFlow(clientId, scopes), throwsException);
   }, timeout: timeout);
 
   test('gapi-load-failure--syntax-error', () {
