@@ -74,20 +74,19 @@ class ImplicitFlow {
     return completer.future;
   }
 
-  Future loginHybrid({bool force: false, bool immediate: false}) {
-    return _login(force, immediate, true);
-  }
+  Future<LoginResult> loginHybrid({bool force: false, bool immediate: false}) =>
+      _login(force, immediate, true);
 
   Future<AccessCredentials> login(
       {bool force: false, bool immediate: false}) async {
-    return (await _login(force, immediate, false)) as AccessCredentials;
+    return (await _login(force, immediate, false)).credential;
   }
 
   // Completes with either credentials or a tuple of credentials and authCode.
   //  hybrid  =>  [AccessCredentials credentials, String authCode]
   // !hybrid  =>  AccessCredentials
-  Future _login(bool force, bool immediate, bool hybrid) {
-    var completer = new Completer();
+  Future<LoginResult> _login(bool force, bool immediate, bool hybrid) {
+    var completer = new Completer<LoginResult>();
 
     var gapi = js.context['gapi']['auth'];
 
@@ -132,9 +131,9 @@ class ImplicitFlow {
               completer.completeError(new Exception('Expected to get auth code '
                   'from server in hybrid flow, but did not.'));
             }
-            completer.complete([credentials, code]);
+            completer.complete(new LoginResult(credentials, code: code));
           } else {
-            completer.complete(credentials);
+            completer.complete(new LoginResult(credentials));
           }
         }
       }
@@ -142,4 +141,11 @@ class ImplicitFlow {
 
     return completer.future;
   }
+}
+
+class LoginResult {
+  final AccessCredentials credential;
+  final String code;
+
+  LoginResult(this.credential, {this.code});
 }

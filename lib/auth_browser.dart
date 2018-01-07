@@ -160,14 +160,10 @@ class BrowserOAuth2Flow {
   /// is either not logged in or has not already granted the application access,
   /// a `UserConsentException` will be thrown.
   Future<HybridFlowResult> runHybridFlow(
-      {bool force: true, bool immediate: false}) {
+      {bool force: true, bool immediate: false}) async {
     _ensureOpen();
-    return _flow
-        .loginHybrid(force: force, immediate: immediate)
-        .then((List tuple) {
-      assert(tuple.length == 2);
-      return new HybridFlowResult(this, tuple[0], tuple[1]);
-    });
+    var result = await _flow.loginHybrid(force: force, immediate: immediate);
+    return new HybridFlowResult(this, result.credential, result.code);
   }
 
   /// Will close this [BrowserOAuth2Flow] object and the HTTP [Client] it is
