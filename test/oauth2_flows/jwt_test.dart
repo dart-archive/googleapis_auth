@@ -50,7 +50,7 @@ main() {
 
     test('successfull', () async {
       var flow = new JwtFlow(clientEmail, testPrivateKey, null, scopes,
-          mockClient(expectAsyncT(successfullSignRequest), expectClose: false));
+          mockClient(expectAsync1(successfullSignRequest), expectClose: false));
 
       var credentials = await flow.run();
       expect(credentials.accessToken.data, equals('atok'));
@@ -61,7 +61,7 @@ main() {
 
     test('successfull-with-user', () async {
       var flow = new JwtFlow(clientEmail, testPrivateKey, 'x@y.com', scopes,
-          mockClient(expectAsyncT(successfullSignRequest), expectClose: false));
+          mockClient(expectAsync1(successfullSignRequest), expectClose: false));
 
       var credentials = await flow.run();
       expect(credentials.accessToken.data, equals('atok'));
@@ -72,7 +72,7 @@ main() {
 
     test('invalid-server-response', () {
       var flow = new JwtFlow(clientEmail, testPrivateKey, null, scopes,
-          mockClient(expectAsyncT(invalidAccessToken), expectClose: false));
+          mockClient(expectAsync1(invalidAccessToken), expectClose: false));
 
       expect(flow.run(), throwsA(isException));
     });

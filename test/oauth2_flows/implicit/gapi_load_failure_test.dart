@@ -11,7 +11,6 @@ import 'package:googleapis_auth/auth_browser.dart' as auth;
 import 'package:googleapis_auth/src/oauth2_flows/implicit.dart' as impl;
 
 import 'utils.dart';
-import '../../test_utils.dart';
 
 main() {
   // The default timeout is too small for us to detect the timeout of loading
@@ -34,7 +33,7 @@ main() {
     // is produced.
     js.context['onerror'] = null;
 
-    window.onError.listen(expectAsyncT((error) {
+    window.onError.listen(expectAsync1((error) {
       error.preventDefault();
     }));
 

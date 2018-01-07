@@ -186,7 +186,7 @@ main() {
 
     test('refreshCredentials-successfull', () async {
       var newCredentials = await refreshCredentials(clientId, credentials,
-          mockClient(expectAsyncT(successfulRefresh), expectClose: false));
+          mockClient(expectAsync1(successfulRefresh), expectClose: false));
       var expectedResultUtc = new DateTime.now().toUtc().add(
           const Duration(seconds: 3600 - MAX_EXPECTED_TIMEDIFF_IN_SECONDS));
 
@@ -203,7 +203,7 @@ main() {
     test('refreshCredentials-http-error', () {
       refreshCredentials(clientId, credentials,
               mockClient(serverError, expectClose: false))
-          .catchError(expectAsyncT((error) {
+          .catchError(expectAsync1((error) {
         expect(
             error.toString(), equals('Exception: transport layer exception'));
       }));
@@ -212,7 +212,7 @@ main() {
     test('refreshCredentials-error-response', () {
       refreshCredentials(clientId, credentials,
               mockClient(refreshErrorResponse, expectClose: false))
-          .catchError(expectAsyncT((error) {
+          .catchError(expectAsync1((error) {
         expect(error is RefreshFailedException, isTrue);
       }));
     });
@@ -222,7 +222,7 @@ main() {
 
       test('successfull', () async {
         var client = authenticatedClient(
-            mockClient(expectAsyncT((request) {
+            mockClient(expectAsync1((request) {
               expect(request.method, equals('POST'));
               expect(request.url, equals(url));
               expect(request.headers.length, equals(1));
@@ -239,7 +239,7 @@ main() {
 
       test('access-denied', () {
         var client = authenticatedClient(
-            mockClient(expectAsyncT((request) {
+            mockClient(expectAsync1((request) {
               expect(request.method, equals('POST'));
               expect(request.url, equals(url));
               expect(request.headers.length, equals(1));
@@ -276,7 +276,7 @@ main() {
         var client = autoRefreshingClient(
             clientId,
             credentials,
-            mockClient(expectAsyncT((request) {
+            mockClient(expectAsync1((request) {
               return new Future.value(new Response('', 200));
             }), expectClose: false));
         expect(client.credentials, equals(credentials));
@@ -304,7 +304,7 @@ main() {
         var client = autoRefreshingClient(
             clientId,
             credentials,
-            mockClient(expectAsyncT((request) {
+            mockClient(expectAsync1((request) {
               // This should be a refresh request.
               expect(request.headers['foo'], isNull);
               return refreshErrorResponse(request);
@@ -325,7 +325,7 @@ main() {
         var client = autoRefreshingClient(
             clientId,
             credentials,
-            mockClient(expectAsyncT((request) {
+            mockClient(expectAsync1((request) {
               // This should be a refresh request.
               expect(request.headers['foo'], isNull);
               var headers = {'content-type': 'image/png'};
@@ -349,7 +349,7 @@ main() {
             clientId,
             credentials,
             mockClient(
-                expectAsyncT((request) {
+                expectAsync1((request) {
                   if (serverInvocation++ == 0) {
                     // This should be a refresh request.
                     expect(request.headers['foo'], isNull);
@@ -364,11 +364,11 @@ main() {
         expect(client.credentials, equals(credentials));
 
         bool executed = false;
-        client.credentialUpdates.listen(expectAsyncT((newCredentials) {
+        client.credentialUpdates.listen(expectAsync1((newCredentials) {
           expect(newCredentials.accessToken.type, equals('Bearer'));
           expect(newCredentials.accessToken.data, equals('atoken'));
           executed = true;
-        }), onDone: expectAsyncT(() {}));
+        }), onDone: expectAsync0(() {}));
 
         var request = new RequestImpl('POST', url);
         request.headers.addAll({'foo': 'bar'});

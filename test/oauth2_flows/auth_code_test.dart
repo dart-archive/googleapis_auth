@@ -157,7 +157,7 @@ main() {
             .getUrl(authCodeCall)
             .then((request) => request.close())
             .then((response) => response.drain())
-            .whenComplete(expectAsyncT(() {
+            .whenComplete(expectAsync0(() {
           ioClient.close();
         }));
       }
@@ -195,13 +195,13 @@ main() {
             clientId,
             scopes,
             mockClient(successFullResponse(manual: false), expectClose: false),
-            expectAsyncT(userPrompt));
+            expectAsync1(userPrompt));
         validateAccessCredentials(await flow.run());
       });
 
       test('transport-exception', () {
         var flow = new AuthorizationCodeGrantServerFlow(
-            clientId, scopes, transportFailure, expectAsyncT(userPrompt));
+            clientId, scopes, transportFailure, expectAsync1(userPrompt));
         expect(flow.run(), throwsA(isTransportException));
       });
 
@@ -210,7 +210,7 @@ main() {
             clientId,
             scopes,
             mockClient(invalidResponse, expectClose: false),
-            expectAsyncT(userPrompt));
+            expectAsync1(userPrompt));
         expect(flow.run(), throwsA(isException));
       });
 
@@ -219,7 +219,7 @@ main() {
             clientId,
             scopes,
             mockClient(successFullResponse(manual: false), expectClose: false),
-            expectAsyncT(userPromptInvalidAuthCodeCallback));
+            expectAsync1(userPromptInvalidAuthCodeCallback));
         expect(flow.run(), throwsA(isUserConsentException));
       });
     });
@@ -237,7 +237,7 @@ main() {
         'https://www.googleapis.com/oauth2/v2/tokeninfo?access_token=my_token';
 
     test('successfull', () async {
-      var http = mockClient(expectAsyncT((BaseRequest request) async {
+      var http = mockClient(expectAsync1((BaseRequest request) async {
         expect(request.url.toString(), expectedUri);
         return new Response(successfulResponseJson, 200);
       }), expectClose: false);
@@ -246,7 +246,7 @@ main() {
     });
 
     test('non-200-status-code', () {
-      var http = mockClient(expectAsyncT((BaseRequest request) async {
+      var http = mockClient(expectAsync1((BaseRequest request) async {
         expect(request.url.toString(), expectedUri);
         return new Response(successfulResponseJson, 201);
       }), expectClose: false);
@@ -254,7 +254,7 @@ main() {
     });
 
     test('no-scope', () {
-      var http = mockClient(expectAsyncT((BaseRequest request) async {
+      var http = mockClient(expectAsync1((BaseRequest request) async {
         expect(request.url.toString(), expectedUri);
         return new Response(JSON.encode({}), 200);
       }), expectClose: false);
