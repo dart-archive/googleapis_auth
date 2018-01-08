@@ -56,6 +56,7 @@ main() {
         'access_token': 'tokendata',
         'expires_in': 3600,
         'refresh_token': 'my-refresh-token',
+        'id_token': 'my-id-token',
       };
       return new Response(JSON.encode(result), 200);
     };
@@ -67,6 +68,7 @@ main() {
       'token_type': 'Bearer',
       'access_token': 'tokendata',
       'refresh_token': 'my-refresh-token',
+      'id_token': 'my-id-token',
     };
     return new Future.value(new Response(JSON.encode(result), 200));
   }
@@ -78,6 +80,7 @@ main() {
     expect(credentials.accessToken.type, equals('Bearer'));
     expect(credentials.scopes, equals(['s1', 's2']));
     expect(credentials.refreshToken, equals('my-refresh-token'));
+    expect(credentials.idToken, equals('my-id-token'));
     expectExpiryOneHourFromNow(credentials.accessToken);
   }
 

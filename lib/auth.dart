@@ -54,10 +54,14 @@ class AccessCredentials {
   /// This field may be null.
   final String refreshToken;
 
+  /// A JWT used in calls to Google APIs that accept an id_token param.
+  final String idToken;
+
   /// Scopes these credentials are valid for.
   final List<String> scopes;
 
-  AccessCredentials(this.accessToken, this.refreshToken, this.scopes) {
+  AccessCredentials(this.accessToken, this.refreshToken, this.scopes,
+      {this.idToken}) {
     if (accessToken == null || scopes == null) {
       throw new ArgumentError('Arguments accessToken/scopes must not be null.');
     }
@@ -258,6 +262,7 @@ Future<AccessCredentials> refreshCredentials(
       .then((object) {
     Map json = object as Map;
 
+    var idToken = json['id_token'];
     var token = json['access_token'];
     var seconds = json['expires_in'];
     var tokenType = json['token_type'];
@@ -276,7 +281,8 @@ Future<AccessCredentials> refreshCredentials(
     return new AccessCredentials(
         new AccessToken(tokenType, token, expiryDate(seconds)),
         credentials.refreshToken,
-        credentials.scopes);
+        credentials.scopes,
+        idToken: idToken);
   });
 }
 
