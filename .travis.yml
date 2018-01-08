@@ -1,0 +1,27 @@
+language: dart
+sudo: false
+dart:
+  - dev
+  - stable
+
+dart_task:
+  - dartanalyzer
+  - test: --platform vm
+  - test: --platform firefox -j 1
+  - test: --platform chrome -j 1
+  - test: --platform dartium
+    install_dartium: true
+
+matrix:
+  include:
+    # Only validate formatting using the dev release
+    - dart: dev
+      dart_task: dartfmt
+
+# Only building master means that we don't run two builds for each pull request.
+branches:
+  only: [master]
+
+cache:
+ directories:
+   - $HOME/.pub-cache
