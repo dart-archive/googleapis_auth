@@ -71,7 +71,7 @@ var scopes = [...];
 // Initialize the browser oauth2 flow functionality.
 createImplicitBrowserFlow(id, scopes).then((BrowserOAuth2Flow flow) {
   flow.clientViaUserConsent().then((AuthClient client) {
-    // Authenticated and auto refreshing client is avaliable in [client].
+    // Authenticated and auto refreshing client is available in [client].
     ...
     client.close();
     flow.close();
@@ -81,7 +81,7 @@ createImplicitBrowserFlow(id, scopes).then((BrowserOAuth2Flow flow) {
 
 To prevent popup blockers from blocking the user authorization dialog, the
 methods `obtainAccessCredentialsViaUserConsent` and `clientViaUserConsent`
-should preferrably only be called inside an event handler, since most browsers
+should preferably only be called inside an event handler, since most browsers
 do not block popup windows created in response to a user interaction.
 
 The authenticated HTTP client can now access data on behalf a user for the
@@ -133,7 +133,7 @@ var id = new ClientId("....apps.googleusercontent.com", "...");
 var scopes = [...];
 
 clientViaUserConsent(id, scopes, prompt).then((AuthClient client) {
-  // Authenticated and auto refreshing client is avaliable in [client].
+  // Authenticated and auto refreshing client is available in [client].
   // ...
   client.close();
 });

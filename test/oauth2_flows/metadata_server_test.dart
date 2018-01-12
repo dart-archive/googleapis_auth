@@ -20,7 +20,7 @@ main() {
   var tokenUrl = '$apiUrl/instance/service-accounts/default/token';
   var scopesUrl = '$apiUrl/instance/service-accounts/default/scopes';
 
-  Future<Response> successfullAccessToken(Request request) {
+  Future<Response> successfulAccessToken(Request request) {
     expect(request.method, equals('GET'));
     expect(request.url.toString(), equals(tokenUrl));
     expect(request.headers[apiHeaderKey], equals(apiHeaderValue));
@@ -46,7 +46,7 @@ main() {
     return new Future.value(new Response(body, 200));
   }
 
-  Future<Response> successfullScopes(Request request) {
+  Future<Response> successfulScopes(Request request) {
     expect(request.method, equals('GET'));
     expect(request.url.toString(), equals(scopesUrl));
     expect(request.headers[apiHeaderKey], equals(apiHeaderValue));
@@ -60,9 +60,9 @@ main() {
           expectAsync1((request) {
             var url = request.url.toString();
             if (url == tokenUrl) {
-              return successfullAccessToken(request);
+              return successfulAccessToken(request);
             } else if (url == scopesUrl) {
-              return successfullScopes(request);
+              return successfulScopes(request);
             } else {
               fail("Invalid URL $url (expected: $tokenUrl or $scopesUrl).");
             }
@@ -83,7 +83,7 @@ main() {
             if (requestNr++ == 0)
               return invalidAccessToken(request);
             else
-              return successfullScopes(request);
+              return successfulScopes(request);
           }, count: 2),
           expectClose: false));
       expect(flow.run(), throwsA(isException));
@@ -96,7 +96,7 @@ main() {
             if (requestNr++ == 0)
               return transportFailure.get('http://failure');
             else
-              return successfullScopes(request);
+              return successfulScopes(request);
           }, count: 2),
           expectClose: false));
       expect(flow.run(), throwsA(isTransportException));
@@ -107,7 +107,7 @@ main() {
       var flow = new MetadataServerAuthorizationFlow(mockClient(
           expectAsync1((request) {
             if (requestNr++ == 0)
-              return successfullAccessToken(request);
+              return successfulAccessToken(request);
             else
               return transportFailure.get('http://failure');
           }, count: 2),

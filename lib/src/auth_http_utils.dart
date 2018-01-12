@@ -39,7 +39,7 @@ class AuthenticatedClient extends DelegatingClient implements AuthClient {
 /// Adds 'key' query parameter when making HTTP requests.
 ///
 /// If 'key' is already present on the URI, it will complete with an exception.
-/// This will prevent accedential overrides of a query parameter with the API
+/// This will prevent accidental overrides of a query parameter with the API
 /// key.
 class ApiKeyClient extends DelegatingClient {
   final String _encodedApiKey;

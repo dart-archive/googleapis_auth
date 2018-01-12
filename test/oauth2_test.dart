@@ -376,7 +376,7 @@ main() {
         var response = await client.send(request);
         expect(response.statusCode, equals(200));
 
-        // The `client.send()` will have trigged a credentials refresh.
+        // The `client.send()` will have triggered a credentials refresh.
         expect(executed, isTrue);
 
         client.close();
