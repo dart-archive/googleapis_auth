@@ -1,3 +1,7 @@
+## 0.2.4
+
+* Added `id_token` to `AccessCredentials`
+
 ## 0.2.3+6
 
 - Fix async issue in oauth2 flow implementation
