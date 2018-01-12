@@ -12,28 +12,28 @@ import 'dart:typed_data';
 /// Represents integers obtained while creating a Public/Private key pair.
 class RSAPrivateKey {
   /// First prime number.
-  final int p;
+  final BigInt p;
 
   /// Second prime number.
-  final int q;
+  final BigInt q;
 
   /// Modulus for public and private keys. Satisfies `n=p*q`.
-  final int n;
+  final BigInt n;
 
   /// Public key exponent. Satisfies `d*e=1 mod phi(n)`.
-  final int e;
+  final BigInt e;
 
   /// Private key exponent. Satisfies `d*e=1 mod phi(n)`.
-  final int d;
+  final BigInt d;
 
   /// Different form of [p]. Satisfies `dmp1=d mod (p-1)`.
-  final int dmp1;
+  final BigInt dmp1;
 
   /// Different form of [p]. Satisfies `dmq1=d mod (q-1)`.
-  final int dmq1;
+  final BigInt dmq1;
 
   /// A coefificient which satisfies `coeff=q^-1 mod p`.
-  final int coeff;
+  final BigInt coeff;
 
   /// The number of bits used for the modulus. Usually 1024, 2048 or 4096 bits.
   int get bitLength => n.bitLength;
@@ -50,13 +50,14 @@ abstract class RSAAlgorithm {
   ///
   /// The [intendedLength] argument specifies the number of bytes in which the
   /// result should be encoded. Zero bytes will be used for padding.
-  static List<int> encrypt(RSAPrivateKey key, List<int> bytes, intendedLength) {
-    var message = bytes2Integer(bytes);
+  static List<int> encrypt(
+      RSAPrivateKey key, List<int> bytes, int intendedLength) {
+    var message = bytes2BigInt(bytes);
     var encryptedMessage = _encryptInteger(key, message);
     return integer2Bytes(encryptedMessage, intendedLength);
   }
 
-  static int _encryptInteger(RSAPrivateKey key, int x) {
+  static BigInt _encryptInteger(RSAPrivateKey key, BigInt x) {
     // The following is equivalent to `_modPow(x, key.d, key.n) but is much
     // more efficient. It exploits the fact that we have dmp1/dmq1.
     var xp = _modPow(x % key.p, key.dmp1, key.p);
@@ -67,16 +68,17 @@ abstract class RSAAlgorithm {
     return ((((xp - xq) * key.coeff) % key.p) * key.q) + xq;
   }
 
-  static int _modPow(int b, int e, int m) {
-    if (e < 1) {
-      return 1;
+  // TODO(kevmoo): see if this can be done more efficiently with BigInt
+  static BigInt _modPow(BigInt b, BigInt e, BigInt m) {
+    if (e < BigInt.one) {
+      return BigInt.one;
     }
-    if (b < 0 || b > m) {
+    if (b < BigInt.zero || b > m) {
       b = b % m;
     }
-    int r = 1;
-    while (e > 0) {
-      if ((e & 1) > 0) {
+    var r = BigInt.one;
+    while (e > BigInt.zero) {
+      if ((e & BigInt.one) > BigInt.zero) {
         r = (r * b) % m;
       }
       e >>= 1;
@@ -85,23 +87,25 @@ abstract class RSAAlgorithm {
     return r;
   }
 
-  static int bytes2Integer(List<int> bytes) {
-    var number = 0;
+  static BigInt bytes2BigInt(List<int> bytes) {
+    var number = BigInt.zero;
     for (var i = 0; i < bytes.length; i++) {
-      number = (number << 8) | bytes[i];
+      number = (number << 8) | new BigInt.from(bytes[i]);
     }
     return number;
   }
 
-  static List<int> integer2Bytes(int integer, int intendedLength) {
-    if (integer < 1) {
+  static List<int> integer2Bytes(BigInt integer, int intendedLength) {
+    if (integer < BigInt.one) {
       throw new ArgumentError('Only positive integers are supported.');
     }
     var bytes = new Uint8List(intendedLength);
     for (int i = bytes.length - 1; i >= 0; i--) {
-      bytes[i] = integer & 0xff;
+      bytes[i] = (integer & _bigIntFF).toInt();
       integer >>= 8;
     }
     return bytes;
   }
 }
+
+final _bigIntFF = new BigInt.from(0xff);

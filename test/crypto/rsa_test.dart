@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@TestOn('vm')
 library googleapis_auth.test.rsa_test;
 
 import 'package:googleapis_auth/src/crypto/rsa.dart';
@@ -10,20 +9,25 @@ import 'package:test/test.dart';
 
 import '../test_utils.dart';
 
+/// 2 << 64
+final _bigNumber = BigInt.parse('20000000000000000', radix: 16);
+
 main() {
   group('rsa-algorithm', () {
     test('integer-to-bytes', () {
-      expect(RSAAlgorithm.integer2Bytes(1, 1), equals([1]));
-      expect(RSAAlgorithm.integer2Bytes(2 << 64, 9),
+      expect(RSAAlgorithm.integer2Bytes(BigInt.one, 1), equals([1]));
+      expect(RSAAlgorithm.integer2Bytes(_bigNumber, 9),
           equals([2, 0, 0, 0, 0, 0, 0, 0, 0]));
-      expect(RSAAlgorithm.integer2Bytes(2 << 64, 12),
+      expect(RSAAlgorithm.integer2Bytes(_bigNumber, 12),
           equals([0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0]));
-      expect(() => RSAAlgorithm.integer2Bytes(0, 1), throwsA(isArgumentError));
-    }, testOn: 'vm');
+      expect(() => RSAAlgorithm.integer2Bytes(BigInt.zero, 1),
+          throwsA(isArgumentError));
+    });
 
     test('bytes-to-integer', () {
-      expect(RSAAlgorithm.bytes2Integer([1]), equals(1));
-      expect(RSAAlgorithm.bytes2Integer([2, 0, 0, 0, 0, 0, 0, 0, 0]), 2 << 64);
+      expect(RSAAlgorithm.bytes2BigInt([1]), equals(BigInt.one));
+      expect(
+          RSAAlgorithm.bytes2BigInt([2, 0, 0, 0, 0, 0, 0, 0, 0]), _bigNumber);
     });
 
     test('encrypt', () {

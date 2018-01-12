@@ -61,7 +61,7 @@ RSAPrivateKey _extractRSAKeyFromDERBytes(Uint8List bytes) {
     var asnIntegers = objects.take(9).map((o) => o as ASN1Integer).toList();
 
     var version = asnIntegers.first;
-    if (version.integer != 0) {
+    if (version.integer != BigInt.zero) {
       throw new ArgumentError('Expected version 0, got: ${version.integer}.');
     }
 
