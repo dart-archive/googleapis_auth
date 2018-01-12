@@ -68,9 +68,9 @@ main() {
       test('small', () {
         for (int i = 0; i < 256; i++) {
           var integerBytes = [ASN1Parser.INTEGER_TAG, 1, i];
-          var integer = ASN1Parser.parse(new Uint8List.fromList(integerBytes));
-          expect(integer is ASN1Integer, isTrue);
-          expect((integer as ASN1Integer).integer, equals(i));
+          var integer = ASN1Parser.parse(new Uint8List.fromList(integerBytes))
+              as ASN1Integer;
+          expect(integer.integer, new BigInt.from(i));
         }
       });
 
@@ -78,7 +78,7 @@ main() {
         var integerBytes = [ASN1Parser.INTEGER_TAG, 3, 1, 2, 3];
         var integer = ASN1Parser.parse(new Uint8List.fromList(integerBytes));
         expect(integer is ASN1Integer, isTrue);
-        expect((integer as ASN1Integer).integer, equals(0x010203));
+        expect((integer as ASN1Integer).integer, new BigInt.from(0x010203));
       });
 
       invalidLenTest(ASN1Parser.INTEGER_TAG);

@@ -76,7 +76,7 @@ class ASN1Parser {
       switch (tag) {
         case INTEGER_TAG:
           int size = readEncodedLength();
-          return new ASN1Integer(RSAAlgorithm.bytes2Integer(readBytes(size)));
+          return new ASN1Integer(RSAAlgorithm.bytes2BigInt(readBytes(size)));
         case OCTET_STRING_TAG:
           var size = readEncodedLength();
           return new ASN1OctetString(readBytes(size));
@@ -122,7 +122,7 @@ class ASN1Sequence extends ASN1Object {
 }
 
 class ASN1Integer extends ASN1Object {
-  final int integer;
+  final BigInt integer;
   ASN1Integer(this.integer);
 }
 
