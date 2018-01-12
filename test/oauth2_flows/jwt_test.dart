@@ -16,12 +16,12 @@ import '../test_utils.dart';
 main() {
   var tokenUrl = 'https://accounts.google.com/o/oauth2/token';
 
-  Future<Response> successfullSignRequest(Request request) {
+  Future<Response> successfulSignRequest(Request request) {
     expect(request.method, equals('POST'));
     expect(request.url.toString(), equals(tokenUrl));
 
     // We are not asserting what comes after '&assertion=' because this is
-    // time dependend.
+    // time dependent.
     expect(
         request.body,
         startsWith(
@@ -50,7 +50,7 @@ main() {
 
     test('successfull', () async {
       var flow = new JwtFlow(clientEmail, testPrivateKey, null, scopes,
-          mockClient(expectAsync1(successfullSignRequest), expectClose: false));
+          mockClient(expectAsync1(successfulSignRequest), expectClose: false));
 
       var credentials = await flow.run();
       expect(credentials.accessToken.data, equals('atok'));
@@ -61,7 +61,7 @@ main() {
 
     test('successfull-with-user', () async {
       var flow = new JwtFlow(clientEmail, testPrivateKey, 'x@y.com', scopes,
-          mockClient(expectAsync1(successfullSignRequest), expectClose: false));
+          mockClient(expectAsync1(successfulSignRequest), expectClose: false));
 
       var credentials = await flow.run();
       expect(credentials.accessToken.data, equals('atok'));

@@ -32,7 +32,7 @@ class RSAPrivateKey {
   /// Different form of [p]. Satisfies `dmq1=d mod (q-1)`.
   final BigInt dmq1;
 
-  /// A coefificient which satisfies `coeff=q^-1 mod p`.
+  /// A coefficient which satisfies `coeff=q^-1 mod p`.
   final BigInt coeff;
 
   /// The number of bits used for the modulus. Usually 1024, 2048 or 4096 bits.

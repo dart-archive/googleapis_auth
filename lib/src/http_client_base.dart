@@ -36,7 +36,7 @@ abstract class DelegatingClient extends BaseClient {
 ///
 /// It uses a base [Client] which will be closed once the reference count
 /// reaches zero. The initial reference count is one, since the caller has a
-/// reference to the construted instance.
+/// reference to the constructed instance.
 class RefCountedClient extends DelegatingClient {
   int _refCount;
 
