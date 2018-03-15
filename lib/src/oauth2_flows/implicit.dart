@@ -78,18 +78,20 @@ class ImplicitFlow {
     return completer.future;
   }
 
-  Future<LoginResult> loginHybrid({bool force: false, bool immediate: false}) =>
-      _login(force, immediate, true);
+  Future<LoginResult> loginHybrid(
+          {bool force: false, bool immediate: false, String loginHint}) =>
+      _login(force, immediate, true, loginHint);
 
   Future<AccessCredentials> login(
-      {bool force: false, bool immediate: false}) async {
-    return (await _login(force, immediate, false)).credential;
+      {bool force: false, bool immediate: false, String loginHint}) async {
+    return (await _login(force, immediate, false, loginHint)).credential;
   }
 
   // Completes with either credentials or a tuple of credentials and authCode.
   //  hybrid  =>  [AccessCredentials credentials, String authCode]
   // !hybrid  =>  AccessCredentials
-  Future<LoginResult> _login(bool force, bool immediate, bool hybrid) {
+  Future<LoginResult> _login(
+      bool force, bool immediate, bool hybrid, String loginHint) {
     var completer = new Completer<LoginResult>();
 
     var gapi = js.context['gapi']['auth'];
@@ -102,6 +104,10 @@ class ImplicitFlow {
       'scope': _scopes.join(' '),
       'access_type': hybrid ? 'offline' : 'online',
     };
+
+    if (loginHint != null) {
+      json['login_hint'] = loginHint;
+    }
 
     gapi.callMethod('authorize', [
       new js.JsObject.jsify(json),

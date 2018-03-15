@@ -100,6 +100,10 @@ class BrowserOAuth2Flow {
   /// already logged in) and might get asked to grant the application access
   /// (if the application hasn't been granted access before).
   ///
+  /// If [loginHint] is not `null`, it will be passed to the server as a hint
+  /// to which user is being signed-in.  This can e.g. be an email or a User ID
+  /// which might be used as pre-selection in the sign-in flow.
+  ///
   /// The returned future will complete with `AccessCredentials` if the user
   /// has given the application access to it's data. Otherwise the future will
   /// complete with a `UserConsentException`.
@@ -107,9 +111,10 @@ class BrowserOAuth2Flow {
   /// In case another error occurs the returned future will complete with an
   /// `Exception`.
   Future<AccessCredentials> obtainAccessCredentialsViaUserConsent(
-      {bool immediate: false}) {
+      {bool immediate: false, String loginHint}) {
     _ensureOpen();
-    return _flow.login(force: false, immediate: immediate);
+    return _flow.login(
+        force: false, immediate: immediate, loginHint: loginHint);
   }
 
   /// Obtains [AccessCredentials] and returns an authenticated HTTP client.
@@ -131,8 +136,9 @@ class BrowserOAuth2Flow {
   ///
   /// The user is responsible for closing the returned HTTP client.
   Future<AutoRefreshingAuthClient> clientViaUserConsent(
-      {bool immediate: false}) {
-    return obtainAccessCredentialsViaUserConsent(immediate: immediate)
+      {bool immediate: false, String loginHint}) {
+    return obtainAccessCredentialsViaUserConsent(
+            immediate: immediate, loginHint: loginHint)
         .then(_clientFromCredentials);
   }
 
@@ -156,13 +162,18 @@ class BrowserOAuth2Flow {
   /// had to grant access via the popup window. Otherwise the code exchange
   /// will only give an access token.
   ///
+  /// If [loginHint] is not `null`, it will be passed to the server as a hint
+  /// to which user is being signed-in.  This can e.g. be an email or a User ID
+  /// which might be used as pre-selection in the sign-in flow.
+  ///
   /// If [immediate] is `true` there will be no user involvement. If the user
   /// is either not logged in or has not already granted the application access,
   /// a `UserConsentException` will be thrown.
   Future<HybridFlowResult> runHybridFlow(
-      {bool force: true, bool immediate: false}) async {
+      {bool force: true, bool immediate: false, String loginHint}) async {
     _ensureOpen();
-    var result = await _flow.loginHybrid(force: force, immediate: immediate);
+    var result = await _flow.loginHybrid(
+        force: force, immediate: immediate, loginHint: loginHint);
     return new HybridFlowResult(this, result.credential, result.code);
   }
 
