@@ -1,4 +1,4 @@
-## 0.2.4+1
+## 0.2.5
 
 * Add an optional `loginHint` parameter to browser oauth2 flow APIs which can be
   used to specify a hint as to which user is being logged in.
