@@ -1,3 +1,8 @@
+## 0.2.4+1
+
+* Add an optional `loginHint` parameter to browser oauth2 flow APIs which can be
+  used to specify a hint as to which user is being logged in.
+
 ## 0.2.4
 
 * Added `id_token` to `AccessCredentials`
