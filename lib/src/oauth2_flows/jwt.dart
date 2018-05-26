@@ -93,6 +93,6 @@ class JwtFlow {
   }
 
   String _base64url(List<int> bytes) {
-    return BASE64URL.encode(bytes).replaceAll('=', '');
+    return base64Url.encode(bytes).replaceAll('=', '');
   }
 }
