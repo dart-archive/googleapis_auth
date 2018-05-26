@@ -68,7 +68,7 @@ Future<AccessCredentials> obtainAccessCredentialsUsingCode(
 
   var response = await client.send(request);
   Map json = await response.stream
-      .transform(UTF8.decoder)
+      .transform(utf8.decoder)
       .transform(JSON.decoder)
       .first;
 
