@@ -51,8 +51,8 @@ class JwtFlow {
       return claimSet;
     }
 
-    var jwtHeaderBase64 = _base64url(ASCII.encode(JSON.encode(jwtHeader())));
-    var jwtClaimSetBase64 = _base64url(UTF8.encode(JSON.encode(jwtClaimSet())));
+    var jwtHeaderBase64 = _base64url(ASCII.encode(json.encode(jwtHeader())));
+    var jwtClaimSetBase64 = _base64url(UTF8.encode(json.encode(jwtClaimSet())));
     var jwtSignatureInput = '$jwtHeaderBase64.$jwtClaimSetBase64';
     var jwtSignatureInputInBytes = ASCII.encode(jwtSignatureInput);
 
@@ -72,7 +72,7 @@ class JwtFlow {
     var httpResponse = await _client.send(request);
     var object = await httpResponse.stream
         .transform(UTF8.decoder)
-        .transform(JSON.decoder)
+        .transform(json.decoder)
         .first;
     Map response = object as Map;
     var tokenType = response['token_type'];

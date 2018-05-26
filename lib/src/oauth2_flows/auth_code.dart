@@ -36,8 +36,8 @@ Future<List<String>> obtainScopesFromAccessToken(
 
   var response = await client.post(url);
   if (response.statusCode == 200) {
-    Map json = JSON.decode(response.body);
-    var scope = json['scope'];
+    Map jsonMap = json.decode(response.body);
+    var scope = jsonMap['scope'];
     if (scope is! String) {
       throw new Exception(
           'The response did not include a `scope` value of type `String`.');
@@ -67,17 +67,17 @@ Future<AccessCredentials> obtainAccessCredentialsUsingCode(
   request.headers['content-type'] = CONTENT_TYPE_URLENCODED;
 
   var response = await client.send(request);
-  Map json = await response.stream
+  Map jsonMap = await response.stream
       .transform(UTF8.decoder)
-      .transform(JSON.decoder)
+      .transform(json.decoder)
       .first;
 
-  var idToken = json['id_token'];
-  var tokenType = json['token_type'];
-  var accessToken = json['access_token'];
-  var seconds = json['expires_in'];
-  var refreshToken = json['refresh_token'];
-  var error = json['error'];
+  var idToken = jsonMap['id_token'];
+  var tokenType = jsonMap['token_type'];
+  var accessToken = jsonMap['access_token'];
+  var seconds = jsonMap['expires_in'];
+  var refreshToken = jsonMap['refresh_token'];
+  var error = jsonMap['error'];
 
   if (response.statusCode != 200 && error != null) {
     throw new Exception('Failed to exchange authorization code. '
