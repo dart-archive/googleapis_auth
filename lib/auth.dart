@@ -239,7 +239,7 @@ Future<AccessCredentials> refreshCredentials(
   ];
 
   var body = new Stream<List<int>>.fromIterable(
-      [(ASCII.encode(formValues.join('&')))]);
+      [(ascii.encode(formValues.join('&')))]);
   var request = new RequestImpl('POST', _googleTokenUri, body);
   request.headers['content-type'] = 'application/x-www-form-urlencoded';
 
@@ -256,7 +256,7 @@ Future<AccessCredentials> refreshCredentials(
   }
 
   var object = await response.stream
-      .transform(ASCII.decoder)
+      .transform(ascii.decoder)
       .transform(JSON.decoder)
       .first;
 
