@@ -62,7 +62,7 @@ Future<AccessCredentials> obtainAccessCredentialsUsingCode(
   ];
 
   var body = new Stream<List<int>>.fromIterable(
-      <List<int>>[ASCII.encode(formValues.join('&'))]);
+      <List<int>>[ascii.encode(formValues.join('&'))]);
   var request = new RequestImpl('POST', uri, body);
   request.headers['content-type'] = CONTENT_TYPE_URLENCODED;
 
