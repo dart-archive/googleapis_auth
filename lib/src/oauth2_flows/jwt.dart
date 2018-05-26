@@ -52,7 +52,7 @@ class JwtFlow {
     }
 
     var jwtHeaderBase64 = _base64url(ASCII.encode(JSON.encode(jwtHeader())));
-    var jwtClaimSetBase64 = _base64url(UTF8.encode(JSON.encode(jwtClaimSet())));
+    var jwtClaimSetBase64 = _base64url(utf8.encode(JSON.encode(jwtClaimSet())));
     var jwtSignatureInput = '$jwtHeaderBase64.$jwtClaimSetBase64';
     var jwtSignatureInputInBytes = ASCII.encode(jwtSignatureInput);
 
@@ -64,14 +64,14 @@ class JwtFlow {
         'assertion=${Uri.encodeComponent(jwt)}';
 
     var body = new Stream<List<int>>.fromIterable(
-        <List<int>>[UTF8.encode(requestParameters)]);
+        <List<int>>[utf8.encode(requestParameters)]);
     var request =
         new RequestImpl('POST', Uri.parse(GOOGLE_OAUTH2_TOKEN_URL), body);
     request.headers['content-type'] = CONTENT_TYPE_URLENCODED;
 
     var httpResponse = await _client.send(request);
     var object = await httpResponse.stream
-        .transform(UTF8.decoder)
+        .transform(utf8.decoder)
         .transform(JSON.decoder)
         .first;
     Map response = object as Map;
