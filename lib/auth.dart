@@ -108,21 +108,21 @@ class ServiceAccountCredentials {
 
   /// Creates a new [ServiceAccountCredentials] from JSON.
   ///
-  /// [json] can be either a [Map] or a JSON map encoded as a [String].
+  /// [jsonInput] can be either a [Map] or a JSON map encoded as a [String].
   ///
   /// The optional named argument [impersonatedUser] is used to set the user
   /// to impersonate if impersonating a user.
-  factory ServiceAccountCredentials.fromJson(json, {String impersonatedUser}) {
-    if (json is String) {
-      json = JSON.decode(json);
+  factory ServiceAccountCredentials.fromJson(jsonInput, {String impersonatedUser}) {
+    if (jsonInput is String) {
+      jsonInput = json.decode(jsonInput);
     }
-    if (json is! Map) {
+    if (jsonInput is! Map) {
       throw new ArgumentError('json must be a Map or a String encoding a Map.');
     }
-    var identifier = json['client_id'];
-    var privateKey = json['private_key'];
-    var email = json['client_email'];
-    var type = json['type'];
+    var identifier = jsonInput['client_id'];
+    var privateKey = jsonInput['private_key'];
+    var email = jsonInput['client_email'];
+    var type = jsonInput['type'];
 
     if (type != 'service_account') {
       throw new ArgumentError('The given credentials are not of type '
@@ -239,7 +239,7 @@ Future<AccessCredentials> refreshCredentials(
   ];
 
   var body = new Stream<List<int>>.fromIterable(
-      [(ASCII.encode(formValues.join('&')))]);
+      [(ascii.encode(formValues.join('&')))]);
   var request = new RequestImpl('POST', _googleTokenUri, body);
   request.headers['content-type'] = 'application/x-www-form-urlencoded';
 
@@ -256,17 +256,17 @@ Future<AccessCredentials> refreshCredentials(
   }
 
   var object = await response.stream
-      .transform(ASCII.decoder)
-      .transform(JSON.decoder)
+      .transform(ascii.decoder)
+      .transform(json.decoder)
       .first;
 
-  var json = object as Map;
+  var jsonMap = object as Map;
 
-  var idToken = json['id_token'];
-  var token = json['access_token'];
-  var seconds = json['expires_in'];
-  var tokenType = json['token_type'];
-  var error = json['error'];
+  var idToken = jsonMap['id_token'];
+  var token = jsonMap['access_token'];
+  var seconds = jsonMap['expires_in'];
+  var tokenType = jsonMap['token_type'];
+  var error = jsonMap['error'];
 
   if (response.statusCode != 200 && error != null) {
     throw new RefreshFailedException('Refreshing attempt failed. '
