@@ -51,10 +51,10 @@ class JwtFlow {
       return claimSet;
     }
 
-    var jwtHeaderBase64 = _base64url(ASCII.encode(JSON.encode(jwtHeader())));
-    var jwtClaimSetBase64 = _base64url(UTF8.encode(JSON.encode(jwtClaimSet())));
+    var jwtHeaderBase64 = _base64url(ascii.encode(json.encode(jwtHeader())));
+    var jwtClaimSetBase64 = _base64url(utf8.encode(json.encode(jwtClaimSet())));
     var jwtSignatureInput = '$jwtHeaderBase64.$jwtClaimSetBase64';
-    var jwtSignatureInputInBytes = ASCII.encode(jwtSignatureInput);
+    var jwtSignatureInputInBytes = ascii.encode(jwtSignatureInput);
 
     var signature = _signer.sign(jwtSignatureInputInBytes);
     var jwt = "$jwtSignatureInput.${_base64url(signature)}";
@@ -64,15 +64,15 @@ class JwtFlow {
         'assertion=${Uri.encodeComponent(jwt)}';
 
     var body = new Stream<List<int>>.fromIterable(
-        <List<int>>[UTF8.encode(requestParameters)]);
+        <List<int>>[utf8.encode(requestParameters)]);
     var request =
         new RequestImpl('POST', Uri.parse(GOOGLE_OAUTH2_TOKEN_URL), body);
     request.headers['content-type'] = CONTENT_TYPE_URLENCODED;
 
     var httpResponse = await _client.send(request);
     var object = await httpResponse.stream
-        .transform(UTF8.decoder)
-        .transform(JSON.decoder)
+        .transform(utf8.decoder)
+        .transform(json.decoder)
         .first;
     Map response = object as Map;
     var tokenType = response['token_type'];
@@ -93,6 +93,6 @@ class JwtFlow {
   }
 
   String _base64url(List<int> bytes) {
-    return BASE64URL.encode(bytes).replaceAll('=', '');
+    return base64Url.encode(bytes).replaceAll('=', '');
   }
 }

@@ -37,8 +37,8 @@ Uint8List _getBytesFromPEMString(String pemString) {
     throw new ArgumentError('The given string does not have the correct '
         'begin/end markers expected in a PEM file.');
   }
-  var base64 = lines.sublist(1, lines.length - 1).join('');
-  return new Uint8List.fromList(BASE64.decode(base64));
+  var base64String = lines.sublist(1, lines.length - 1).join('');
+  return new Uint8List.fromList(base64.decode(base64String));
 }
 
 /// Helper to decode the ASN.1/DER bytes in [bytes] into an [RSAPrivateKey].
