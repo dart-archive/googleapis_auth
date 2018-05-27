@@ -112,7 +112,8 @@ class ServiceAccountCredentials {
   ///
   /// The optional named argument [impersonatedUser] is used to set the user
   /// to impersonate if impersonating a user.
-  factory ServiceAccountCredentials.fromJson(jsonInput, {String impersonatedUser}) {
+  factory ServiceAccountCredentials.fromJson(jsonInput,
+      {String impersonatedUser}) {
     if (jsonInput is String) {
       jsonInput = json.decode(jsonInput);
     }
@@ -260,7 +261,8 @@ Future<AccessCredentials> refreshCredentials(
       .transform(json.decoder)
       .first;
 
-  var jsonMap = object as Map;
+  var jsonMap;
+  jsonMap = object as Map;
 
   var idToken = jsonMap['id_token'];
   var token = jsonMap['access_token'];
