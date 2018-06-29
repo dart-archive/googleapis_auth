@@ -142,8 +142,7 @@ abstract class AuthorizationCodeGrantAbstractFlow {
     if (state != null) {
       queryValues.add('state=${Uri.encodeQueryComponent(state)}');
     }
-    return Uri
-        .parse('https://accounts.google.com/o/oauth2/auth'
+    return Uri.parse('https://accounts.google.com/o/oauth2/auth'
             '?${queryValues.join('&')}')
         .toString();
   }
