@@ -100,7 +100,7 @@ class ASN1Parser {
           return new ASN1Sequence(objects);
         default:
           invalidFormat(
-              'Unexpected tag $tag at offset ${offset-1} (end: $end).');
+              'Unexpected tag $tag at offset ${offset - 1} (end: $end).');
       }
       // Unreachable.
       return null;
