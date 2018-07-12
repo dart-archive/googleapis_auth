@@ -25,8 +25,7 @@ RSAPrivateKey keyFromString(String pemFileString) {
 
 /// Helper function for decoding the base64 in [pemString].
 Uint8List _getBytesFromPEMString(String pemString) {
-  var lines = LineSplitter
-      .split(pemString)
+  var lines = LineSplitter.split(pemString)
       .map((line) => line.trim())
       .where((line) => line.isNotEmpty)
       .toList();
