@@ -25,7 +25,7 @@ main() {
     expect(request.url.toString(), equals(tokenUrl));
     expect(request.headers[apiHeaderKey], equals(apiHeaderValue));
 
-    var body = JSON.encode({
+    var body = jsonEncode({
       'access_token': 'atok',
       'expires_in': 3600,
       'token_type': 'Bearer',
@@ -38,7 +38,7 @@ main() {
     expect(request.url.toString(), equals(tokenUrl));
     expect(request.headers[apiHeaderKey], equals(apiHeaderValue));
 
-    var body = JSON.encode({
+    var body = jsonEncode({
       // Missing 'expires_in' entry
       'access_token': 'atok',
       'token_type': 'Bearer',

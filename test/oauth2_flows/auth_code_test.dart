@@ -58,7 +58,7 @@ main() {
         'refresh_token': 'my-refresh-token',
         'id_token': 'my-id-token',
       };
-      return new Response(JSON.encode(result), 200);
+      return new Response(jsonEncode(result), 200);
     };
   }
 
@@ -70,7 +70,7 @@ main() {
       'refresh_token': 'my-refresh-token',
       'id_token': 'my-id-token',
     };
-    return new Future.value(new Response(JSON.encode(result), 200));
+    return new Future.value(new Response(jsonEncode(result), 200));
   }
 
   // Validation functions for user prompt and access credentials.
@@ -226,7 +226,7 @@ main() {
   });
 
   group('scopes-from-tokeninfo-endpoint', () {
-    var successfulResponseJson = JSON.encode({
+    var successfulResponseJson = jsonEncode({
       "issued_to": "XYZ.apps.googleusercontent.com",
       "audience": "XYZ.apps.googleusercontent.com",
       "scope": "scopeA scopeB",
@@ -256,7 +256,7 @@ main() {
     test('no-scope', () {
       var http = mockClient(expectAsync1((BaseRequest request) async {
         expect(request.url.toString(), expectedUri);
-        return new Response(JSON.encode({}), 200);
+        return new Response(jsonEncode({}), 200);
       }), expectClose: false);
       expect(obtainScopesFromAccessToken('my_token', http), throwsException);
     });

@@ -38,7 +38,7 @@ void main() {
     // 000000f0  95 37 2f 86 14 da 6c 04  a1 fd 45 fa 95 e0 04 bf
     test('encrypt-hello-world', () {
       expect(
-          signer.sign(ASCII.encode('hello world')),
+          signer.sign(ascii.encode('hello world')),
           equals([
             89, 157, 111, 129, 193, 15, 214, 241, 88, 70, 45, 77, 201, 184, //!!
             105, 29, 177, 224, 224, 38, 164, 222, 73, 216, 79, 90, 172, 219,

@@ -114,7 +114,7 @@ class ServiceAccountCredentials {
   /// to impersonate if impersonating a user.
   factory ServiceAccountCredentials.fromJson(json, {String impersonatedUser}) {
     if (json is String) {
-      json = JSON.decode(json);
+      json = jsonDecode(json);
     }
     if (json is! Map) {
       throw new ArgumentError('json must be a Map or a String encoding a Map.');
@@ -239,7 +239,7 @@ Future<AccessCredentials> refreshCredentials(
   ];
 
   var body = new Stream<List<int>>.fromIterable(
-      [(ASCII.encode(formValues.join('&')))]);
+      [(ascii.encode(formValues.join('&')))]);
   var request = new RequestImpl('POST', _googleTokenUri, body);
   request.headers['content-type'] = 'application/x-www-form-urlencoded';
 
@@ -256,17 +256,17 @@ Future<AccessCredentials> refreshCredentials(
   }
 
   var object = await response.stream
-      .transform(ASCII.decoder)
-      .transform(JSON.decoder)
+      .transform(ascii.decoder)
+      .transform(json.decoder)
       .first;
 
-  var json = object as Map;
+  var jsonMap = object as Map;
 
-  var idToken = json['id_token'];
-  var token = json['access_token'];
-  var seconds = json['expires_in'];
-  var tokenType = json['token_type'];
-  var error = json['error'];
+  var idToken = jsonMap['id_token'];
+  var token = jsonMap['access_token'];
+  var seconds = jsonMap['expires_in'];
+  var tokenType = jsonMap['token_type'];
+  var error = jsonMap['error'];
 
   if (response.statusCode != 200 && error != null) {
     throw new RefreshFailedException('Refreshing attempt failed. '

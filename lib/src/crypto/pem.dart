@@ -25,7 +25,8 @@ RSAPrivateKey keyFromString(String pemFileString) {
 
 /// Helper function for decoding the base64 in [pemString].
 Uint8List _getBytesFromPEMString(String pemString) {
-  var lines = LineSplitter.split(pemString)
+  var lines = LineSplitter
+      .split(pemString)
       .map((line) => line.trim())
       .where((line) => line.isNotEmpty)
       .toList();
@@ -37,7 +38,7 @@ Uint8List _getBytesFromPEMString(String pemString) {
         'begin/end markers expected in a PEM file.');
   }
   var base64 = lines.sublist(1, lines.length - 1).join('');
-  return new Uint8List.fromList(BASE64.decode(base64));
+  return new Uint8List.fromList(base64Decode(base64));
 }
 
 /// Helper to decode the ASN.1/DER bytes in [bytes] into an [RSAPrivateKey].
