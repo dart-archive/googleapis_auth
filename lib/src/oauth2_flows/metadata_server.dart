@@ -75,7 +75,7 @@ class MetadataServerAuthorizationFlow {
 
   Future<Map> _getToken() async {
     var response = await _client.get(_tokenUrl, headers: _HEADERS);
-    return JSON.decode(response.body);
+    return jsonDecode(response.body);
   }
 
   Future<String> _getScopes() async {

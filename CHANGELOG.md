@@ -1,3 +1,8 @@
+
+## 0.2.5+1
+
+* Switch all uppercase constants from `dart:convert` to lowercase.
+
 ## 0.2.5
 
 * Add an optional `loginHint` parameter to browser oauth2 flow APIs which can be

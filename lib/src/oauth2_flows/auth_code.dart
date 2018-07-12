@@ -36,7 +36,7 @@ Future<List<String>> obtainScopesFromAccessToken(
 
   var response = await client.post(url);
   if (response.statusCode == 200) {
-    Map json = JSON.decode(response.body);
+    Map json = jsonDecode(response.body);
     var scope = json['scope'];
     if (scope is! String) {
       throw new Exception(
@@ -62,22 +62,22 @@ Future<AccessCredentials> obtainAccessCredentialsUsingCode(
   ];
 
   var body = new Stream<List<int>>.fromIterable(
-      <List<int>>[ASCII.encode(formValues.join('&'))]);
+      <List<int>>[ascii.encode(formValues.join('&'))]);
   var request = new RequestImpl('POST', uri, body);
   request.headers['content-type'] = CONTENT_TYPE_URLENCODED;
 
   var response = await client.send(request);
-  Map json = await response.stream
-      .transform(UTF8.decoder)
-      .transform(JSON.decoder)
+  Map jsonMap = await response.stream
+      .transform(utf8.decoder)
+      .transform(json.decoder)
       .first;
 
-  var idToken = json['id_token'];
-  var tokenType = json['token_type'];
-  var accessToken = json['access_token'];
-  var seconds = json['expires_in'];
-  var refreshToken = json['refresh_token'];
-  var error = json['error'];
+  var idToken = jsonMap['id_token'];
+  var tokenType = jsonMap['token_type'];
+  var accessToken = jsonMap['access_token'];
+  var seconds = jsonMap['expires_in'];
+  var refreshToken = jsonMap['refresh_token'];
+  var error = jsonMap['error'];
 
   if (response.statusCode != 200 && error != null) {
     throw new Exception('Failed to exchange authorization code. '

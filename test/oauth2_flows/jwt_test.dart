@@ -27,7 +27,7 @@ main() {
         startsWith(
             'grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer'
             '&assertion='));
-    var body = JSON.encode({
+    var body = jsonEncode({
       'access_token': 'atok',
       'expires_in': 3600,
       'token_type': 'Bearer',
@@ -36,7 +36,7 @@ main() {
   }
 
   Future<Response> invalidAccessToken(Request request) {
-    var body = JSON.encode({
+    var body = jsonEncode({
       // Missing 'expires_in' entry
       'access_token': 'atok',
       'token_type': 'Bearer',

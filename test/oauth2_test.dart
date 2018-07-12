@@ -104,7 +104,7 @@ main() {
 
     test('from-json-string', () {
       var credentialsFromJson =
-          new ServiceAccountCredentials.fromJson(JSON.encode(credentials));
+          new ServiceAccountCredentials.fromJson(jsonEncode(credentials));
       expect(credentialsFromJson.email, equals('a@b.com'));
       expect(credentialsFromJson.clientId.identifier, equals('myid'));
       expect(credentialsFromJson.clientId.secret, isNull);
@@ -114,7 +114,7 @@ main() {
 
     test('from-json-string-with-user', () {
       var credentialsFromJson = new ServiceAccountCredentials.fromJson(
-          JSON.encode(credentials),
+          jsonEncode(credentials),
           impersonatedUser: 'x@y.com');
       expect(credentialsFromJson.email, equals('a@b.com'));
       expect(credentialsFromJson.clientId.identifier, equals('myid'));
@@ -163,7 +163,7 @@ main() {
               'client_secret=secret&'
               'refresh_token=refresh&'
               'grant_type=refresh_token'));
-      var body = JSON.encode({
+      var body = jsonEncode({
         'token_type': 'Bearer',
         'access_token': 'atoken',
         'expires_in': 3600,
@@ -174,7 +174,7 @@ main() {
     }
 
     Future<Response> refreshErrorResponse(Request request) {
-      var body = JSON.encode({'error': 'An error occured'});
+      var body = jsonEncode({'error': 'An error occured'});
       return new Future<Response>.value(
           new Response(body, 400, headers: _jsonContentType));
     }
