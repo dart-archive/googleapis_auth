@@ -13,37 +13,16 @@ import 'package:http/http.dart';
 import 'package:http/testing.dart';
 import 'package:test/test.dart';
 
-const Matcher isUserConsentException = const _UserConsentException();
+const Matcher isUserConsentException =
+    const TypeMatcher<UserConsentException>();
 
-class _UserConsentException extends TypeMatcher {
-  const _UserConsentException() : super("UserConsentException");
+const Matcher isRefreshFailedException =
+    const TypeMatcher<RefreshFailedException>();
 
-  bool matches(item, Map matchState) => item is UserConsentException;
-}
+const Matcher isAccessDeniedException =
+    const TypeMatcher<AccessDeniedException>();
 
-const Matcher isRefreshFailedException = const _RefreshFailedException();
-
-class _RefreshFailedException extends TypeMatcher {
-  const _RefreshFailedException() : super("RefreshFailedException");
-
-  bool matches(item, Map matchState) => item is RefreshFailedException;
-}
-
-const Matcher isAccessDeniedException = const _AccessDeniedException();
-
-class _AccessDeniedException extends TypeMatcher {
-  const _AccessDeniedException() : super("AccessDeniedException");
-
-  bool matches(item, Map matchState) => item is AccessDeniedException;
-}
-
-const Matcher isTransportException = const _TransportException();
-
-class _TransportException extends TypeMatcher {
-  const _TransportException() : super("TransportException");
-
-  bool matches(item, Map matchState) => item is TransportException;
-}
+const Matcher isTransportException = const TypeMatcher<TransportException>();
 
 class TransportException implements Exception {}
 
