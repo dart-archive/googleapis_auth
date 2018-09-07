@@ -37,6 +37,50 @@ class AccessToken {
     }
   }
 
+  /// Loads a token from a JSON-serialized form.
+  ///
+  /// Throws a [FormatException] if the JSON is incorrectly formatted.
+  factory AccessToken.fromJson(String json) {
+    validate(condition, message) {
+      if (condition) return;
+      throw new FormatException(
+          "Failed to load credentials: $message.\n\n$json");
+    }
+
+    var parsed;
+    try {
+      parsed = jsonDecode(json);
+    } on FormatException {
+      validate(false, 'invalid JSON');
+    }
+
+    validate(parsed is Map, 'was not a JSON map');
+
+    for (var stringField in ['type', 'data', 'expiry']) {
+      validate(parsed.containsKey(stringField),
+          'did not contain required field "$stringField"');
+      validate(
+          parsed[stringField] is String,
+          'required field "$stringField" was not a string, was '
+              '${parsed[stringField]}');
+    }
+
+    return new AccessToken(parsed['type'],
+        parsed['data'],
+        DateTime.parse(parsed['expiry']));
+  }
+
+  /// Serializes a token to JSON.
+  ///
+  /// Nothing is guaranteed about the output except that it's valid JSON and
+  /// compatible with [AccessToken.toJson].
+  String toJson() =>
+      jsonEncode({
+        'accessToken': type,
+        'refreshToken': data,
+        'expiry': expiry.toString(),
+      });
+
   bool get hasExpired {
     return new DateTime.now().toUtc().isAfter(expiry);
   }
@@ -66,6 +110,65 @@ class AccessCredentials {
       throw new ArgumentError('Arguments accessToken/scopes must not be null.');
     }
   }
+
+  /// Loads a set of credentials from a JSON-serialized form.
+  ///
+  /// Throws a [FormatException] if the JSON is incorrectly formatted.
+  factory AccessCredentials.fromJson(String json) {
+    validate(condition, message) {
+      if (condition) return;
+      throw new FormatException(
+          "Failed to load credentials: $message.\n\n$json");
+    }
+
+    var parsed;
+    try {
+      parsed = jsonDecode(json);
+    } on FormatException {
+      validate(false, 'invalid JSON');
+    }
+
+    validate(parsed is Map, 'was not a JSON map');
+    validate(parsed.containsKey('accessToken'),
+        'did not contain required field "accessToken"');
+    validate(
+        parsed['accessToken'] is String,
+        'required field "accessToken" was not a string, was '
+            '${parsed["accessToken"]}');
+
+    validate(parsed.containsKey('refreshToken'),
+        'did not contain required field "refreshToken"');
+    validate(
+        parsed['refreshToken'] is String,
+        'required field "refreshToken was not a string, was '
+            '${parsed["refreshToken"]}');
+
+    validate(parsed.containsKey('scopes'),
+        'did not contain required field "scopes"');
+    validate(parsed['scopes'] is List,
+        'field "scopes" was not a list, was "${parsed["scopes"]}');
+
+    var idToken = parsed['idToken'];
+    validate(idToken == null || idToken is String,
+        'field "idToken" was not a string, was "$idToken"');
+
+    return new AccessCredentials(AccessToken.fromJson(parsed['accessToken']),
+        parsed['refreshToken'],
+        List<String>.from(parsed['scopes']),
+        idToken: parsed['idToken']);
+  }
+
+  /// Serializes a set of credentials to JSON.
+  ///
+  /// Nothing is guaranteed about the output except that it's valid JSON and
+  /// compatible with [AccessCredentials.toJson].
+  String toJson() =>
+      jsonEncode({
+        'accessToken': accessToken,
+        'refreshToken': refreshToken,
+        'idToken': idToken,
+        'scopes': scopes,
+      });
 }
 
 /// Represents the client application's credentials.
