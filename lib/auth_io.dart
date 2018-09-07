@@ -104,6 +104,31 @@ Future<AutoRefreshingAuthClient> clientViaUserConsentManual(ClientId clientId,
 
 /// Obtains oauth2 credentials and returns an authenticated HTTP client.
 ///
+/// Returns an auto-refreshing HTTP client from previously acquired
+/// AccessCredentials. Once the `AccessCredentials` expire it will use its
+/// refresh token (if available) to obtain new credentials.
+/// See [autoRefreshingClient] for more information.
+///
+/// If [baseClient] is not given, one will be automatically created. It will be
+/// used for making authenticated HTTP requests.
+///
+/// The user is responsible for closing the returned HTTP [Client].
+/// Closing the returned [Client] will not close [baseClient].
+AutoRefreshingAuthClient clientViaStoredCredentials(
+    ClientId clientId, AccessCredentials credentials,
+    {Client baseClient}) {
+  bool closeUnderlyingClient = false;
+  if (baseClient == null) {
+    baseClient = new Client();
+    closeUnderlyingClient = true;
+  }
+
+  return new AutoRefreshingClient(baseClient, clientId, credentials,
+      closeUnderlyingClient: closeUnderlyingClient);
+}
+
+/// Obtains oauth2 credentials and returns an authenticated HTTP client.
+///
 /// See [obtainAccessCredentialsViaServiceAccount] for specifics about the
 /// arguments used for obtaining access credentials.
 ///
