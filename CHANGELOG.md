@@ -1,6 +1,6 @@
-## 0.2.5+2
+## 0.2.5+3
 
-* Include http 0.12.0 in allowed dependency range.
+- Support `package:http` `>=0.11.3+17 <0.13.0`.
 
 ## 0.2.5+2
 
