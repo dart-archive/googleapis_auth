@@ -1,5 +1,9 @@
 ## 0.2.5+2
 
+* Include http 0.12.0 in allowed dependency range.
+
+## 0.2.5+2
+
 * Support Dart 2.
 
 ## 0.2.5+1
