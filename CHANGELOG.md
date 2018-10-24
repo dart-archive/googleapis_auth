@@ -1,3 +1,7 @@
+## 0.2.5+3
+
+- Support `package:http` `>=0.11.3+17 <0.13.0`.
+
 ## 0.2.5+2
 
 * Support Dart 2.
