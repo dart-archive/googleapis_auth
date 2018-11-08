@@ -71,7 +71,10 @@ class ImplicitFlow {
     script.src = '${gapiUrl}?onload=dartGapiLoaded';
     script.onError.first.then((errorEvent) {
       timeout.cancel();
-      completer.completeError(new Exception('Failed to load gapi library.'));
+      if (!completer.isCompleted) {
+        // script loading errors can still happen after timeouts
+        completer.completeError(new Exception('Failed to load gapi library.'));
+      }
     });
     html.document.body.append(script);
 
