@@ -83,18 +83,27 @@ class ImplicitFlow {
 
   Future<LoginResult> loginHybrid(
           {bool force: false, bool immediate: false, String loginHint}) =>
-      _login(force, immediate, true, loginHint);
+      _login(force, immediate, true, loginHint, null);
 
   Future<AccessCredentials> login(
-      {bool force: false, bool immediate: false, String loginHint}) async {
-    return (await _login(force, immediate, false, loginHint)).credential;
+      {bool force: false,
+      bool immediate: false,
+      String loginHint,
+      List<ResponseType> responseTypes}) async {
+    return (await _login(force, immediate, false, loginHint, responseTypes))
+        .credential;
   }
 
   // Completes with either credentials or a tuple of credentials and authCode.
   //  hybrid  =>  [AccessCredentials credentials, String authCode]
   // !hybrid  =>  AccessCredentials
-  Future<LoginResult> _login(
-      bool force, bool immediate, bool hybrid, String loginHint) {
+  //
+  // Alternatively, the response types can be set directly if `hybrid` is not
+  // set to `true`.
+  Future<LoginResult> _login(bool force, bool immediate, bool hybrid,
+      String loginHint, List<ResponseType> responseTypes) {
+    assert(hybrid != true || responseTypes?.isNotEmpty != true);
+
     var completer = new Completer<LoginResult>();
 
     var gapi = js.context['gapi']['auth'];
@@ -103,7 +112,9 @@ class ImplicitFlow {
       'client_id': _clientId,
       'immediate': immediate,
       'approval_prompt': force ? 'force' : 'auto',
-      'response_type': hybrid ? 'code token' : 'token',
+      'response_type': responseTypes?.isNotEmpty == true
+          ? responseTypes.map((code) => code.value).join(' ')
+          : hybrid ? 'code token' : 'token',
       'scope': _scopes.join(' '),
       'access_type': hybrid ? 'offline' : 'online',
     };
@@ -120,6 +131,7 @@ class ImplicitFlow {
         var expiresInRaw = jsTokenObject['expires_in'];
         var code = jsTokenObject['code'];
         var error = jsTokenObject['error'];
+        var idToken = jsTokenObject['id_token'];
 
         var expiresIn;
         if (expiresInRaw is String) {
@@ -134,10 +146,15 @@ class ImplicitFlow {
             tokenType != 'Bearer') {
           completer.completeError(new Exception(
               'Failed to obtain user consent. Invalid server response.'));
+        } else if (responseTypes?.contains(ResponseType.idToken()) == true &&
+            idToken?.isNotEmpty != true) {
+          completer.completeError(
+              new Exception('Expected to get id_token, but did not.'));
         } else {
           var accessToken =
               new AccessToken('Bearer', token, expiryDate(expiresIn));
-          var credentials = new AccessCredentials(accessToken, null, _scopes);
+          var credentials = new AccessCredentials(accessToken, null, _scopes,
+              idToken: idToken);
 
           if (hybrid) {
             if (code == null) {

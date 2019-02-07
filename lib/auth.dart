@@ -285,4 +285,34 @@ Future<AccessCredentials> refreshCredentials(
       idToken: idToken);
 }
 
+/// Available response types that can be requested when using the implicit
+/// browser login flow.
+class ResponseType {
+  final String value;
+
+  /// To retrieve an Authoriztion Code
+  factory ResponseType.code() => ResponseType._internal('code');
+
+  /// to retrieve an ID Token
+  factory ResponseType.idToken() => ResponseType._internal('id_token');
+
+  /// To retrieve an Access Token
+  factory ResponseType.permission() => ResponseType._internal('permission');
+
+  /// Synonym for [ResponseType.permission]
+  factory ResponseType.token() => ResponseType._internal('token');
+
+  ResponseType._internal(this.value);
+
+  @override
+  bool operator ==(other) {
+    return (other is ResponseType) && other.value == value;
+  }
+
+  @override
+  int get hashCode {
+    return ('ResponseType.' + value).hashCode;
+  }
+}
+
 final _googleTokenUri = Uri.parse('https://accounts.google.com/o/oauth2/token');

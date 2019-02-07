@@ -104,6 +104,9 @@ class BrowserOAuth2Flow {
   /// to which user is being signed-in.  This can e.g. be an email or a User ID
   /// which might be used as pre-selection in the sign-in flow.
   ///
+  /// If [responseTypes] is not `null` or empty, it will be sent to the server
+  /// to inform the server of the type of responses to reply with.
+  ///
   /// The returned future will complete with `AccessCredentials` if the user
   /// has given the application access to it's data. Otherwise the future will
   /// complete with a `UserConsentException`.
@@ -111,10 +114,15 @@ class BrowserOAuth2Flow {
   /// In case another error occurs the returned future will complete with an
   /// `Exception`.
   Future<AccessCredentials> obtainAccessCredentialsViaUserConsent(
-      {bool immediate: false, String loginHint}) {
+      {bool immediate: false,
+      String loginHint,
+      List<ResponseType> responseTypes}) {
     _ensureOpen();
     return _flow.login(
-        force: false, immediate: immediate, loginHint: loginHint);
+        force: false,
+        immediate: immediate,
+        loginHint: loginHint,
+        responseTypes: responseTypes);
   }
 
   /// Obtains [AccessCredentials] and returns an authenticated HTTP client.
