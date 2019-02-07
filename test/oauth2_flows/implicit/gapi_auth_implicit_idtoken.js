@@ -45,6 +45,7 @@
           'token_type',
           'access_token',
           'expires_in',
+          'id_token',
           'code',
           'state',
           'error',
