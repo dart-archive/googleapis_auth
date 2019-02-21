@@ -113,7 +113,9 @@ class ImplicitFlow {
       'immediate': immediate,
       'approval_prompt': force ? 'force' : 'auto',
       'response_type': responseTypes?.isNotEmpty == true
-          ? responseTypes.map((code) => code.value).join(' ')
+          ? responseTypes
+              .map((responseType) => _responseTypeToString(responseType))
+              .join(' ')
           : hybrid ? 'code token' : 'token',
       'scope': _scopes.join(' '),
       'access_type': hybrid ? 'offline' : 'online',
@@ -137,7 +139,6 @@ class ImplicitFlow {
         if (expiresInRaw is String) {
           expiresIn = int.parse(expiresInRaw);
         }
-
         if (error != null) {
           completer.completeError(
               new UserConsentException('Failed to get user consent: $error.'));
@@ -146,7 +147,7 @@ class ImplicitFlow {
             tokenType != 'Bearer') {
           completer.completeError(new Exception(
               'Failed to obtain user consent. Invalid server response.'));
-        } else if (responseTypes?.contains(ResponseType.idToken()) == true &&
+        } else if (responseTypes?.contains(ResponseType.idToken) == true &&
             idToken?.isNotEmpty != true) {
           completer.completeError(
               new Exception('Expected to get id_token, but did not.'));
@@ -178,4 +179,31 @@ class LoginResult {
   final String code;
 
   LoginResult(this.credential, {this.code});
+}
+
+String _responseTypeToString(ResponseType responseType) {
+  String result;
+
+  switch (responseType) {
+    case ResponseType.code:
+      result = 'code';
+      break;
+
+    case ResponseType.idToken:
+      result = 'id_token';
+      break;
+
+    case ResponseType.permission:
+      result = 'permission';
+      break;
+
+    case ResponseType.token:
+      result = 'token';
+      break;
+
+    default:
+      throw ArgumentError('Unknown response type: $responseType');
+  }
+
+  return result;
 }

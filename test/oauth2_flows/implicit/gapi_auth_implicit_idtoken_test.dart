@@ -11,7 +11,7 @@ import 'package:googleapis_auth/src/utils.dart' as utils;
 import 'utils.dart';
 
 main() {
-  impl.gapiUrl = resource('gapi_auth_nonforce.js');
+  impl.gapiUrl = resource('gapi_auth_implicit_idtoken.js');
 
   test('gapi-auth-implicit-idtoken', () async {
     var clientId = new auth.ClientId('foo_client', 'foo_secret');
@@ -21,8 +21,8 @@ main() {
         await auth.createImplicitBrowserFlow(clientId, scopes);
     auth.AccessCredentials credentials = await flow
         .obtainAccessCredentialsViaUserConsent(responseTypes: [
-      auth.ResponseType.idToken(),
-      auth.ResponseType.token()
+      auth.ResponseType.idToken,
+      auth.ResponseType.token
     ]);
 
     var date = new DateTime.now().toUtc().add(
