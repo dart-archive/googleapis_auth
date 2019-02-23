@@ -181,6 +181,7 @@ class LoginResult {
   LoginResult(this.credential, {this.code});
 }
 
+/// Convert [responseType] to string value expected by `gapi.auth.authorize`.
 String _responseTypeToString(ResponseType responseType) {
   String result;
 
