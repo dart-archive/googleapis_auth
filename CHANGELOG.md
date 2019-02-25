@@ -1,3 +1,8 @@
+## 0.2.7
+
+ - Support for specifying desired `ResponseType`, allowing applications to
+   obtain an `id_token` using `ImplicitBrowserFlow`.
+
 ## 0.2.6
 
 - Ignore script loading error after timeout for in-browser implicit login-flow.
