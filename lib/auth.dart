@@ -285,4 +285,24 @@ Future<AccessCredentials> refreshCredentials(
       idToken: idToken);
 }
 
+/// Available response types that can be requested when using the implicit
+/// browser login flow.
+///
+/// More information about these values can be found here:
+/// https://developers.google.com/identity/protocols/OpenIDConnect#response-type
+enum ResponseType {
+  /// Requests an access code.  This triggers the basic rather than the implicit
+  /// flow.
+  code,
+
+  /// Requests the user's identity token when running the implicit flow.
+  idToken,
+
+  /// Requests the user's current permissions.
+  permission,
+
+  /// Requests the user's access token when running the implicit flow.
+  token,
+}
+
 final _googleTokenUri = Uri.parse('https://accounts.google.com/o/oauth2/token');
