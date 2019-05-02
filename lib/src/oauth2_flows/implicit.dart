@@ -14,6 +14,10 @@ import '../utils.dart';
 // This will be overridden by tests.
 String gapiUrl = 'https://apis.google.com/js/client.js';
 
+// According to the CSP3 spec a nonce must be a valid base64 string.
+// https://w3c.github.io/webappsec-csp/#grammardef-base64-value
+final _noncePattern = new RegExp('^[\\w+\/_-]+[=]{0,2}\$');
+
 /// This class performs the implicit browser-based oauth2 flow.
 ///
 /// It has to be used in two steps:
@@ -67,7 +71,7 @@ class ImplicitFlow {
       }
     };
 
-    var script = new html.ScriptElement();
+    var script = _createScript();
     script.src = '${gapiUrl}?onload=dartGapiLoaded';
     script.onError.first.then((errorEvent) {
       timeout.cancel();
@@ -207,4 +211,30 @@ String _responseTypeToString(ResponseType responseType) {
   }
 
   return result;
+}
+
+/// Creates a script that will run properly when strict CSP is enforced.
+///
+/// More specifically, the script has the correct `nonce` value set.
+final _ScriptFactory _createScript = (() {
+  final nonce = _getNonce();
+  if (nonce == null) return () => new html.ScriptElement();
+
+  return () => new html.ScriptElement()..nonce = nonce;
+})();
+
+typedef html.ScriptElement _ScriptFactory();
+
+/// Returns CSP nonce, if set for any script tag.
+String _getNonce({html.Window window}) {
+  final currentWindow = window ?? html.window;
+  final elements = currentWindow.document.querySelectorAll('script');
+  for (final element in elements) {
+    final nonceValue =
+        (element as html.HtmlElement).nonce ?? element.attributes['nonce'];
+    if (nonceValue != null && _noncePattern.hasMatch(nonceValue)) {
+      return nonceValue;
+    }
+  }
+  return null;
 }
