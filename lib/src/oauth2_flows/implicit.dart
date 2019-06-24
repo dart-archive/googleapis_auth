@@ -43,12 +43,28 @@ class ImplicitFlow {
   final String _clientId;
   final List<String> _scopes;
 
+  /// The pending result of an earlier call to [initialize], if any.
+  ///
+  /// There can be multiple [ImplicitFlow] objects in an application,
+  /// but the gapi JS library should only ever be loaded once. If
+  /// it's called again while a previous initialization is still pending,
+  /// this will be returned.
+  static Future<void> _pendingInitialization;
+
   ImplicitFlow(this._clientId, this._scopes);
 
-  Future initialize() {
+  /// Readies the flow for calls to [login] by loading the 'gapi'
+  /// JavaScript library, or returning the [Future] of a pending
+  /// initialization if any object has called this method already.
+  Future<void> initialize() {
+    if (_pendingInitialization != null) {
+      return _pendingInitialization;
+    }
+
     var completer = new Completer();
 
     var timeout = new Timer(CallbackTimeout, () {
+      _pendingInitialization = null;
       completer.completeError(new Exception(
           'Timed out while waiting for the gapi.auth library to load.'));
     });
@@ -67,6 +83,7 @@ class ImplicitFlow {
           throw new StateError('gapi.auth not loaded.');
         }
       } catch (error, stack) {
+        _pendingInitialization = null;
         completer.completeError(error, stack);
       }
     };
@@ -75,6 +92,7 @@ class ImplicitFlow {
     script.src = '${gapiUrl}?onload=dartGapiLoaded';
     script.onError.first.then((errorEvent) {
       timeout.cancel();
+      _pendingInitialization = null;
       if (!completer.isCompleted) {
         // script loading errors can still happen after timeouts
         completer.completeError(new Exception('Failed to load gapi library.'));
@@ -82,6 +100,7 @@ class ImplicitFlow {
     });
     html.document.body.append(script);
 
+    _pendingInitialization = completer.future;
     return completer.future;
   }
 

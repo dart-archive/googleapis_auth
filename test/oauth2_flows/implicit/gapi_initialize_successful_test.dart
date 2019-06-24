@@ -14,8 +14,10 @@ main() {
 
   test('gapi-initialize-successful', () {
     var clientId = new auth.ClientId('a', 'b');
+    var clientId2 = new auth.ClientId('c', 'd');
     var scopes = ['scope1', 'scope2'];
 
     expect(auth.createImplicitBrowserFlow(clientId, scopes), completes);
+    expect(auth.createImplicitBrowserFlow(clientId2, scopes), completes);
   });
 }

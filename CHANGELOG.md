@@ -1,3 +1,9 @@
+## 0.2.8
+
+* Initialize implicit browser flows statically, allowing multiple ImplicitFlow
+  objects to initialize without trying to load the gapi JavaScript library
+  multiple times.
+
 ## 0.2.7
 
  - Support for specifying desired `ResponseType`, allowing applications to
