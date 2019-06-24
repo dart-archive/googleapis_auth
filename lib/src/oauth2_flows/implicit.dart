@@ -83,9 +83,8 @@ class ImplicitFlow {
           throw new StateError('gapi.auth not loaded.');
         }
       } catch (error, stack) {
-        completer.completeError(error, stack);
-      } finally {
         _pendingInitialization = null;
+        completer.completeError(error, stack);
       }
     };
 
