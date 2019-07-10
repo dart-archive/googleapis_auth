@@ -1,3 +1,6 @@
+## 0.2.9
+ * Prepare for [Uint8List SDK breaking change](Prepare for Uint8List SDK breaking change).
+
 ## 0.2.8
 
 * Initialize implicit browser flows statically, allowing multiple ImplicitFlow
