@@ -1,3 +1,6 @@
+## 0.2.10
+ * Look for GCE metadata host in environment under `$GCE_METADATA_HOST`.
+
 ## 0.2.9
  * Prepare for [Uint8List SDK breaking change](Prepare for Uint8List SDK breaking change).
 
