@@ -100,6 +100,10 @@ class BrowserOAuth2Flow {
   /// already logged in) and might get asked to grant the application access
   /// (if the application hasn't been granted access before).
   ///
+  /// If [force] is `true` the user will be forced to login and asked to grant
+  /// the application access. This could be useful if the user explicitly choose
+  /// to log out first and then log in again.
+  ///
   /// If [loginHint] is not `null`, it will be passed to the server as a hint
   /// to which user is being signed-in.  This can e.g. be an email or a User ID
   /// which might be used as pre-selection in the sign-in flow.
@@ -115,11 +119,12 @@ class BrowserOAuth2Flow {
   /// `Exception`.
   Future<AccessCredentials> obtainAccessCredentialsViaUserConsent(
       {bool immediate: false,
+      bool force: false,
       String loginHint,
       List<ResponseType> responseTypes}) {
     _ensureOpen();
     return _flow.login(
-        force: false,
+        force: force,
         immediate: immediate,
         loginHint: loginHint,
         responseTypes: responseTypes);
