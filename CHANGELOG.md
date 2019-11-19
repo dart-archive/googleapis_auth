@@ -1,5 +1,5 @@
 ## 0.2.11
- * Add the "force" parameter to the obtainAccessCredentialsViaUserConsent API.
+ * Add the `force` parameter to the `obtainAccessCredentialsViaUserConsent` API.
 
 ## 0.2.10
  * Look for GCE metadata host in environment under `$GCE_METADATA_HOST`.
