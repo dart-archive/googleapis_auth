@@ -84,7 +84,9 @@ class ImplicitFlow {
         }
       } catch (error, stack) {
         _pendingInitialization = null;
-        completer.completeError(error, stack);
+        if (!completer.isCompleted) {
+          completer.completeError(error, stack);
+        }
       }
     };
 
@@ -184,6 +186,7 @@ class ImplicitFlow {
             if (code == null) {
               completer.completeError(new Exception('Expected to get auth code '
                   'from server in hybrid flow, but did not.'));
+              return;
             }
             completer.complete(new LoginResult(credentials, code: code));
           } else {
