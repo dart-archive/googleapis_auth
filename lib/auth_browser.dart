@@ -100,6 +100,13 @@ class BrowserOAuth2Flow {
   /// already logged in) and might get asked to grant the application access
   /// (if the application hasn't been granted access before).
   ///
+  /// If [force] is `true` this will create a popup window and ask the user to
+  /// grant the application offline access. In case the user is not already
+  /// logged in, he will be presented with an login dialog first.
+  ///
+  /// If [force] is `false` this will only create a popup window if the user
+  /// has not already granted the application access.
+  ///
   /// If [loginHint] is not `null`, it will be passed to the server as a hint
   /// to which user is being signed-in.  This can e.g. be an email or a User ID
   /// which might be used as pre-selection in the sign-in flow.
@@ -115,11 +122,12 @@ class BrowserOAuth2Flow {
   /// `Exception`.
   Future<AccessCredentials> obtainAccessCredentialsViaUserConsent(
       {bool immediate: false,
+      bool force: false,
       String loginHint,
       List<ResponseType> responseTypes}) {
     _ensureOpen();
     return _flow.login(
-        force: false,
+        force: force,
         immediate: immediate,
         loginHint: loginHint,
         responseTypes: responseTypes);
