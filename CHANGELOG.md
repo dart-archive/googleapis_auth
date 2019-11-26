@@ -1,3 +1,6 @@
+## 0.2.11+1
+ * Fix 'multiple completer completion' bug in `ImplicitFlow`.
+
 ## 0.2.11
  * Add the `force` parameter to the `obtainAccessCredentialsViaUserConsent` API.
 
