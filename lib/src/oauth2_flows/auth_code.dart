@@ -162,7 +162,8 @@ class AuthorizationCodeGrantServerFlow
   final int redirectionPort;
 
   AuthorizationCodeGrantServerFlow(ClientId clientId, List<String> scopes,
-      http.Client client, this.userPrompt, [this.redirectionPort = 0])
+      http.Client client, this.userPrompt,
+      [this.redirectionPort = 0])
       : super(clientId, scopes, client);
 
   Future<AccessCredentials> run() async {
