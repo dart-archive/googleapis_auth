@@ -159,13 +159,14 @@ abstract class AuthorizationCodeGrantAbstractFlow {
 class AuthorizationCodeGrantServerFlow
     extends AuthorizationCodeGrantAbstractFlow {
   final PromptUserForConsent userPrompt;
+  final int redirectionPort;
 
   AuthorizationCodeGrantServerFlow(ClientId clientId, List<String> scopes,
-      http.Client client, this.userPrompt)
+      http.Client client, this.userPrompt, [this.redirectionPort = 0])
       : super(clientId, scopes, client);
 
   Future<AccessCredentials> run() async {
-    HttpServer server = await HttpServer.bind('localhost', 0);
+    HttpServer server = await HttpServer.bind('localhost', redirectionPort);
 
     try {
       var port = server.port;

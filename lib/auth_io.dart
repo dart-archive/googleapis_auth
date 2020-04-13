@@ -36,7 +36,7 @@ export 'src/typedefs.dart';
 /// Closing the returned [Client] will not close [baseClient].
 Future<AutoRefreshingAuthClient> clientViaUserConsent(
     ClientId clientId, List<String> scopes, PromptUserForConsent userPrompt,
-    {Client baseClient}) async {
+    {Client baseClient, int redirectionPort}) async {
   bool closeUnderlyingClient = false;
   if (baseClient == null) {
     baseClient = new Client();
@@ -44,7 +44,7 @@ Future<AutoRefreshingAuthClient> clientViaUserConsent(
   }
 
   var flow = new AuthorizationCodeGrantServerFlow(
-      clientId, scopes, baseClient, userPrompt);
+      clientId, scopes, baseClient, userPrompt, redirectionPort);
 
   AccessCredentials credentials;
 
@@ -217,9 +217,10 @@ Future<AccessCredentials> obtainAccessCredentialsViaUserConsent(
     ClientId clientId,
     List<String> scopes,
     Client client,
-    PromptUserForConsent userPrompt) {
+    PromptUserForConsent userPrompt,
+    {int redirectionPort}) {
   return new AuthorizationCodeGrantServerFlow(
-          clientId, scopes, client, userPrompt)
+          clientId, scopes, client, userPrompt, redirectionPort)
       .run();
 }
 
