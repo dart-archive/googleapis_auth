@@ -1,3 +1,7 @@
+## 0.2.12
+ * Add `clientViaApplicationDefaultCredentials` for obtaining credentials using
+   [ADC](https://cloud.google.com/docs/authentication/production).
+
 ## 0.2.11+1
  * Fix 'multiple completer completion' bug in `ImplicitFlow`.
 

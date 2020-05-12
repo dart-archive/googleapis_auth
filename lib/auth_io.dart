@@ -4,7 +4,9 @@
 
 library googleapis_auth.auth_io;
 
+import 'dart:io';
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:http/http.dart';
 
@@ -15,9 +17,85 @@ import 'src/oauth2_flows/auth_code.dart';
 import 'src/oauth2_flows/jwt.dart';
 import 'src/oauth2_flows/metadata_server.dart';
 import 'src/typedefs.dart';
+import 'package:path/path.dart' as p;
 
 export 'auth.dart';
 export 'src/typedefs.dart';
+
+/// Create a client using [Application Default Credentials][ADC].
+///
+/// Looks for credentials in the following order of preference:
+///  1. A JSON file whose path is specified by `GOOGLE_APPLICATION_CREDENTIALS`,
+///     this file typically contains [exported service account keys][svc-keys].
+///  2. A JSON file created by [`gcloud auth application-default login`][gcloud-login]
+///     in a well-known location (`%APPDATA%/gcloud/application_default_credentials.json`
+///     on Windows and `$HOME/.gcloud/application_default_credentials.json` on Linux/Mac).
+///  3. On Google Compute Engine and App Engine Flex we fetch credentials from
+///     [GCE metadata service][metadata].
+///
+/// [metadata]: https://cloud.google.com/compute/docs/storing-retrieving-metadata
+/// [svc-keys]: https://cloud.google.com/docs/authentication/getting-started
+/// [gcloud-login]: https://cloud.google.com/sdk/gcloud/reference/auth/application-default/login
+/// [ADC]: https://cloud.google.com/docs/authentication/production
+Future<AutoRefreshingAuthClient> clientViaApplicationDefaultCredentials({
+  List<String> scopes,
+  Client baseClient,
+}) async {
+  if (baseClient == null) {
+    baseClient = new Client();
+  } else {
+    baseClient = nonClosingClient(baseClient);
+  }
+
+  // If env var specifies a file to load credentials from we'll do that.
+  var credFile = Platform.environment['GOOGLE_APPLICATION_CREDENTIALS'];
+  if (credFile == null) {
+    // If no credentials are specified by env var, we'll attempt to use file
+    // created by `gcloud auth application-default login`
+    if (Platform.isWindows) {
+      credFile = p.join(Platform.environment['APPDATA'],
+          'gcloud/application_default_credentials.json');
+    } else {
+      credFile = p.join(Platform.environment['HOME'],
+          '.config/gcloud/application_default_credentials.json');
+    }
+    // Don't try to load from credFile if it doesn't exist.
+    if (!await File(credFile).exists()) {
+      credFile = null;
+    }
+  }
+
+  if (credFile != null) {
+    final creds = json.decode(await File(credFile).readAsString());
+    if (creds is Map && creds['type'] == 'authorized_user') {
+      // TODO: Support: "quota_project_id": "..." as created by
+      // `gcloud auth application-default set-quota-project`
+      final clientId = ClientId(creds['client_id'], creds['client_secret']);
+      return AutoRefreshingClient(
+        baseClient,
+        clientId,
+        await refreshCredentials(
+          clientId,
+          AccessCredentials(
+            // Hack: Create empty credentials that have expired.
+            AccessToken('Bearer', '', DateTime(0).toUtc()),
+            creds['refresh_token'] as String,
+            scopes,
+          ),
+          baseClient,
+        ),
+      );
+    } else {
+      return await clientViaServiceAccount(
+        ServiceAccountCredentials.fromJson(creds),
+        scopes,
+        baseClient: baseClient,
+      );
+    }
+  }
+
+  return await clientViaMetadataServer(baseClient: baseClient);
+}
 
 /// Obtains oauth2 credentials and returns an authenticated HTTP client.
 ///
