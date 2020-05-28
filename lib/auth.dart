@@ -221,6 +221,9 @@ AuthClient authenticatedClient(
 /// Closing the returned [Client] will not close [baseClient].
 AutoRefreshingAuthClient autoRefreshingClient(
     ClientId clientId, AccessCredentials credentials, Client baseClient) {
+  if (credentials.accessToken.type != 'Bearer') {
+    throw new ArgumentError('Only Bearer access tokens are accepted.');
+  }
   if (credentials.refreshToken == null) {
     throw new ArgumentError('Refresh token in AccessCredentials was `null`.');
   }

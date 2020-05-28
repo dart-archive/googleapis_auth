@@ -14,8 +14,9 @@ import 'http_client_base.dart';
 /// Will close the underlying `http.Client` depending on a constructor argument.
 class AuthenticatedClient extends DelegatingClient implements AuthClient {
   final AccessCredentials credentials;
+  final String quotaProject;
 
-  AuthenticatedClient(Client client, this.credentials)
+  AuthenticatedClient(Client client, this.credentials, {this.quotaProject})
       : super(client, closeUnderlyingClient: false);
 
   Future<StreamedResponse> send(BaseRequest request) async {
@@ -25,6 +26,9 @@ class AuthenticatedClient extends DelegatingClient implements AuthClient {
     modifiedRequest.headers.addAll(request.headers);
     modifiedRequest.headers['Authorization'] =
         'Bearer ${credentials.accessToken.data}';
+    if (quotaProject != null) {
+      modifiedRequest.headers['X-Goog-User-Project'] = quotaProject;
+    }
     var response = await baseClient.send(modifiedRequest);
     var wwwAuthenticate = response.headers['www-authenticate'];
     if (wwwAuthenticate != null) {
@@ -72,14 +76,20 @@ class ApiKeyClient extends DelegatingClient {
 /// Will close the underlying `http.Client` depending on a constructor argument.
 class AutoRefreshingClient extends AutoRefreshDelegatingClient {
   final ClientId clientId;
+  final String quotaProject;
   AccessCredentials credentials;
   Client authClient;
 
   AutoRefreshingClient(Client client, this.clientId, this.credentials,
-      {bool closeUnderlyingClient: false})
+      {bool closeUnderlyingClient: false, this.quotaProject})
       : super(client, closeUnderlyingClient: closeUnderlyingClient) {
+    assert(credentials.accessToken.type == 'Bearer');
     assert(credentials.refreshToken != null);
-    authClient = authenticatedClient(baseClient, credentials);
+    authClient = AuthenticatedClient(
+      baseClient,
+      credentials,
+      quotaProject: quotaProject,
+    );
   }
 
   Future<StreamedResponse> send(BaseRequest request) async {
@@ -91,7 +101,11 @@ class AutoRefreshingClient extends AutoRefreshDelegatingClient {
       var cred = await refreshCredentials(clientId, credentials, baseClient);
       notifyAboutNewCredentials(cred);
       credentials = cred;
-      authClient = authenticatedClient(baseClient, cred);
+      authClient = AuthenticatedClient(
+        baseClient,
+        cred,
+        quotaProject: quotaProject,
+      );
       return authClient.send(request);
     }
   }
