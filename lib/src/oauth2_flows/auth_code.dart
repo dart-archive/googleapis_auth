@@ -136,6 +136,8 @@ abstract class AuthorizationCodeGrantAbstractFlow {
       'client_id=${Uri.encodeQueryComponent(clientId.identifier)}',
       'redirect_uri=${Uri.encodeQueryComponent(redirectUri)}',
       'scope=${Uri.encodeQueryComponent(scopes.join(' '))}',
+      'prompt=consent',
+      'access_type=offline',
     ];
     if (state != null) {
       queryValues.add('state=${Uri.encodeQueryComponent(state)}');
