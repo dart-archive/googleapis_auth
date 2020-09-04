@@ -75,10 +75,19 @@ class JwtFlow {
         .transform(json.decoder)
         .first;
     Map response = object as Map;
-    var tokenType = response['token_type'];
-    var token = response['access_token'];
-    var expiresIn = response['expires_in'];
+    String tokenType = response['token_type'];
+    String token = response['access_token'];
+    int expiresIn = response['expires_in'];
     var error = response['error'];
+
+    if (response['id_token'] != null) {
+      tokenType = 'Bearer';
+      token = response['id_token'];
+      final payloadB64 = token.split('.')[1];
+      final decoded =
+          jsonDecode(ascii.decode(base64Decode(base64.normalize(payloadB64))));
+      expiresIn = decoded['exp'] * 1000;
+    }
 
     if (httpResponse.statusCode != 200 && error != null) {
       throw new Exception('Unable to obtain credentials. Error: $error.');
