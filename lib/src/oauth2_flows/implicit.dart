@@ -141,7 +141,9 @@ class ImplicitFlow {
           ? responseTypes
               .map((responseType) => _responseTypeToString(responseType))
               .join(' ')
-          : hybrid ? 'code token' : 'token',
+          : hybrid
+              ? 'code token'
+              : 'token',
       'scope': _scopes.join(' '),
       'access_type': hybrid ? 'offline' : 'online',
     };
