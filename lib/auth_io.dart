@@ -5,7 +5,6 @@
 library googleapis_auth.auth_io;
 
 import 'dart:io';
-import 'dart:async';
 
 import 'package:http/http.dart';
 
