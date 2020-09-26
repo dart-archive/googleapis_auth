@@ -4,8 +4,6 @@
 
 library googleapis_auth.typedefs;
 
-import 'dart:async';
-
 /// Function for directing the user or it's user-agent to [uri].
 ///
 /// The user is required to go to [uri] and either approve or decline the
