@@ -53,7 +53,8 @@ main() {
       );
       expect(c.credentials.accessToken.data, equals('atoken'));
 
-      final r = await c.get('https://storage.googleapis.com/b/bucket/o/obj');
+      final r =
+          await c.get(Uri.https('storage.googleapis.com', '/b/bucket/o/obj'));
       expect(r.statusCode, equals(200));
       expect(r.body, equals('hello world'));
 
@@ -106,7 +107,8 @@ main() {
       );
       expect(c.credentials.accessToken.data, equals('atoken'));
 
-      final r = await c.get('https://storage.googleapis.com/b/bucket/o/obj');
+      final r =
+          await c.get(Uri.https('storage.googleapis.com', '/b/bucket/o/obj'));
       expect(r.statusCode, equals(200));
       expect(r.body, equals('hello world'));
 
