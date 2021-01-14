@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
 library googleapis_auth.pem;
 
 import 'dart:convert';
@@ -91,7 +90,8 @@ RSAPrivateKey _extractRSAKeyFromDERBytes(Uint8List bytes) {
         ASN1OctetString string = objects[2] as ASN1OctetString;
         // Seems like the embedded form.
         // TODO: Validate that rsa identifier matches!
-        return privateKeyFromSequence(ASN1Parser.parse(string.bytes as Uint8List) as ASN1Sequence);
+        return privateKeyFromSequence(
+            ASN1Parser.parse(string.bytes as Uint8List) as ASN1Sequence);
       }
     }
     return privateKeyFromSequence(asn as ASN1Sequence);
