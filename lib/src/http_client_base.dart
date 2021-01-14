@@ -1,7 +1,6 @@
 // Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// @dart=2.11
 
 library googleapis_auth.http_client_base;
 
@@ -96,15 +95,12 @@ Client nonClosingClient(Client baseClient) =>
 class RequestImpl extends BaseRequest {
   final Stream<List<int>> _stream;
 
-  RequestImpl(String method, Uri url, [Stream<List<int>> stream])
+  RequestImpl(String method, Uri url, [Stream<List<int>>? stream])
       : _stream = stream == null ? new Stream.fromIterable([]) : stream,
         super(method, url);
 
   ByteStream finalize() {
     super.finalize();
-    if (_stream == null) {
-      return null;
-    }
     return new ByteStream(_stream);
   }
 }
