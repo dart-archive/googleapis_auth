@@ -1,7 +1,7 @@
 // Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// @dart=2.11
+
 
 library googleapis_auth.auth_code_test;
 
@@ -24,13 +24,13 @@ main() {
 
   // Validation + Responses from the authorization server.
 
-  RequestHandler successFullResponse({bool manual}) {
+  RequestHandler successFullResponse({bool? manual}) {
     return (Request request) async {
       expect(request.method, equals('POST'));
       expect('${request.url}',
           equals('https://accounts.google.com/o/oauth2/token'));
       expect(
-          request.headers['content-type']
+          request.headers['content-type']!
               .startsWith('application/x-www-form-urlencoded'),
           isTrue);
 
@@ -40,7 +40,7 @@ main() {
       expect(pairs[1], equals('code=mycode'));
       expect(pairs[3], equals('client_id=id'));
       expect(pairs[4], equals('client_secret=secret'));
-      if (manual) {
+      if (manual!) {
         expect(pairs[2],
             equals('redirect_uri=urn%3Aietf%3Awg%3Aoauth%3A2.0%3Aoob'));
       } else {
@@ -95,7 +95,7 @@ main() {
     expect(uri.queryParameters['scope'], equals('s1 s2'));
     expect(uri.queryParameters['redirect_uri'], isNotNull);
 
-    var redirectUri = Uri.parse(uri.queryParameters['redirect_uri']);
+    var redirectUri = Uri.parse(uri.queryParameters['redirect_uri']!);
 
     if (manual) {
       expect('$redirectUri', equals('urn:ietf:wg:oauth:2.0:oob'));

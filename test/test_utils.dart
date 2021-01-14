@@ -1,7 +1,7 @@
 // Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// @dart=2.11
+
 
 library googleapis_auth.test_utils;
 
@@ -77,7 +77,7 @@ Client mockClient(Future<Response> requestHandler(Request _),
 
 /// A client which will keep the VM alive until `close()` was called.
 class ExpectCloseMockClient extends MockClient {
-  Function _expectedToBeCalled;
+  late Function _expectedToBeCalled;
 
   ExpectCloseMockClient(Future<Response> requestHandler(Request _), int c)
       : super(requestHandler) {

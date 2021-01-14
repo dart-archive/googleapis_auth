@@ -1,7 +1,7 @@
 // Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// @dart=2.11
+
 library googleapis_auth.oauth2_test;
 
 import 'dart:async';
@@ -15,14 +15,14 @@ import 'package:http/http.dart';
 
 import 'test_utils.dart';
 
+final _defaultResponse = Response('', 500);
+final _defaultResponseHandler = (Request _) async => _defaultResponse;
+
 main() {
   test('access-token', () {
     var expiry = new DateTime.now().subtract(const Duration(seconds: 1));
     var expiryUtc = expiry.toUtc();
 
-    expect(() => new AccessToken(null, 'bar', expiryUtc), throwsArgumentError);
-    expect(() => new AccessToken('foo', null, expiryUtc), throwsArgumentError);
-    expect(() => new AccessToken('foo', 'bar', null), throwsArgumentError);
     expect(() => new AccessToken('foo', 'bar', expiry), throwsArgumentError);
 
     var token = new AccessToken('foo', 'bar', expiryUtc);
@@ -40,11 +40,6 @@ main() {
     var expiry = new DateTime.now().add(const Duration(days: 1)).toUtc();
     var aToken = new AccessToken('foo', 'bar', expiry);
 
-    expect(() => new AccessCredentials(null, 'refresh', ['scope']),
-        throwsArgumentError);
-    expect(() => new AccessCredentials(aToken, 'refresh', null),
-        throwsArgumentError);
-
     var credentials = new AccessCredentials(aToken, 'refresh', ['scope']);
     expect(credentials.accessToken, equals(aToken));
     expect(credentials.refreshToken, equals('refresh'));
@@ -52,9 +47,6 @@ main() {
   });
 
   test('client-id', () {
-    expect(() => new ClientId(null, 'secret'), throwsArgumentError);
-    expect(() => new ClientId.serviceAccount(null), throwsArgumentError);
-
     var clientId = new ClientId('id', 'secret');
     expect(clientId.identifier, equals('id'));
     expect(clientId.secret, equals('secret'));
@@ -70,19 +62,6 @@ main() {
       "client_id": "myid",
       "type": "service_account"
     };
-
-    test('from-invalid-individual-params', () {
-      expect(
-          () => new ServiceAccountCredentials(
-              null, clientId, TestPrivateKeyString),
-          throwsArgumentError);
-      expect(
-          () => new ServiceAccountCredentials(
-              'email', null, TestPrivateKeyString),
-          throwsArgumentError);
-      expect(() => new ServiceAccountCredentials('email', clientId, null),
-          throwsArgumentError);
-    });
 
     test('from-valid-individual-params', () {
       var credentials = new ServiceAccountCredentials(
@@ -201,21 +180,25 @@ main() {
       expect(newCredentials.scopes, equals(['s1', 's2']));
     });
 
-    test('refreshCredentials-http-error', () {
-      refreshCredentials(clientId, credentials,
-              mockClient(serverError, expectClose: false))
-          .catchError(expectAsync1((error) {
+    test('refreshCredentials-http-error', () async {
+      try {
+        await refreshCredentials(
+            clientId, credentials, mockClient(serverError, expectClose: false));
+        fail('expected error');
+      } catch (error) {
         expect(
             error.toString(), equals('Exception: transport layer exception'));
-      }));
+      }
     });
 
-    test('refreshCredentials-error-response', () {
-      refreshCredentials(clientId, credentials,
-              mockClient(refreshErrorResponse, expectClose: false))
-          .catchError(expectAsync1((error) {
+    test('refreshCredentials-error-response', () async {
+      try {
+        await refreshCredentials(clientId, credentials,
+            mockClient(refreshErrorResponse, expectClose: false));
+        fail('expected error');
+      } catch (error) {
         expect(error is RefreshFailedException, isTrue);
-      }));
+      }
     });
 
     group('authenticatedClient', () {
@@ -265,7 +248,8 @@ main() {
 
         expect(
             () => authenticatedClient(
-                mockClient((_) {}, expectClose: false), nonBearerCredentials),
+                mockClient(_defaultResponseHandler, expectClose: false),
+                nonBearerCredentials),
             throwsA(isArgumentError));
       });
     });
@@ -291,8 +275,8 @@ main() {
             new AccessToken('Bearer', 'bar', yesterday), null, ['s1', 's2']);
 
         expect(
-            () => autoRefreshingClient(
-                clientId, credentials, mockClient((_) {}, expectClose: false)),
+            () => autoRefreshingClient(clientId, credentials,
+                mockClient(_defaultResponseHandler, expectClose: false)),
             throwsA(isArgumentError));
       });
 

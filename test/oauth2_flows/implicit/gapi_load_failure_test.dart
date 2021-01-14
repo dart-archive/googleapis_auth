@@ -1,7 +1,7 @@
 // Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// @dart=2.11
+
 
 @TestOn('browser')
 import 'dart:html';
@@ -40,7 +40,7 @@ main() {
 
     var sw = new Stopwatch()..start();
     var flowFuture = auth.createImplicitBrowserFlow(clientId, scopes);
-    flowFuture.catchError(expectAsync2((_, __) {
+    flowFuture.catchError(expectAsync2((dynamic _, dynamic __) {
       var elapsed = (sw.elapsed - impl.ImplicitFlow.CallbackTimeout).inSeconds;
       expect(-3 <= elapsed && elapsed <= 3, isTrue);
     }));

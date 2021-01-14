@@ -1,7 +1,7 @@
 // Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// @dart=2.11
+
 
 library googleapis_auth.test.asn1_test;
 
@@ -45,7 +45,7 @@ main() {
         var sequence = ASN1Parser.parse(new Uint8List.fromList(sequenceBytes));
         expect(sequence is ASN1Sequence, isTrue);
         expect((sequence as ASN1Sequence).objects, hasLength(1));
-        expect((sequence as ASN1Sequence).objects[0] is ASN1Null, isTrue);
+        expect(sequence.objects[0] is ASN1Null, isTrue);
       });
 
       test('many-elements', () {
@@ -58,7 +58,7 @@ main() {
         expect(sequence is ASN1Sequence, isTrue);
         expect((sequence as ASN1Sequence).objects.length, equals(128));
         for (int i = 0; i < 128; i++) {
-          expect((sequence as ASN1Sequence).objects[i] is ASN1Null, isTrue);
+          expect(sequence.objects[i] is ASN1Null, isTrue);
         }
       });
 
