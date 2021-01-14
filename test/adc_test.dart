@@ -1,3 +1,4 @@
+// @dart=2.11
 @TestOn("vm")
 library googleapis_auth.adc_test;
 
