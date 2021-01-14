@@ -1,7 +1,7 @@
 // Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// @dart=2.11
+
 
 library googleapis_auth.pem;
 
@@ -88,13 +88,13 @@ RSAPrivateKey _extractRSAKeyFromDERBytes(Uint8List bytes) {
     if (asn is ASN1Sequence) {
       var objects = asn.objects;
       if (objects.length == 3 && objects[2] is ASN1OctetString) {
-        ASN1OctetString string = objects[2];
+        ASN1OctetString string = objects[2] as ASN1OctetString;
         // Seems like the embedded form.
         // TODO: Validate that rsa identifier matches!
-        return privateKeyFromSequence(ASN1Parser.parse(string.bytes));
+        return privateKeyFromSequence(ASN1Parser.parse(string.bytes as Uint8List) as ASN1Sequence);
       }
     }
-    return privateKeyFromSequence(asn);
+    return privateKeyFromSequence(asn as ASN1Sequence);
   } catch (error) {
     throw new ArgumentError(
         'Error while extracting private key from DER bytes: $error');
