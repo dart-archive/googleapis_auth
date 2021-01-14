@@ -1,7 +1,6 @@
 // Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// @dart=2.11
 
 library jwt_token_generator;
 
@@ -27,7 +26,7 @@ class JwtFlow {
   final String _clientEmail;
   final RS256Signer _signer;
   final List<String> _scopes;
-  final String _user;
+  final String? _user;
   final http.Client _client;
 
   JwtFlow(this._clientEmail, RSAPrivateKey key, this._user, this._scopes,
@@ -48,7 +47,7 @@ class JwtFlow {
         'exp': timestamp + 3600,
         'iat': timestamp,
       };
-      if (_user != null) claimSet['sub'] = _user;
+      if (_user != null) claimSet['sub'] = _user!;
       return claimSet;
     }
 
@@ -71,10 +70,10 @@ class JwtFlow {
     request.headers['content-type'] = CONTENT_TYPE_URLENCODED;
 
     var httpResponse = await _client.send(request);
-    var object = await httpResponse.stream
+    var object = (await httpResponse.stream
         .transform(utf8.decoder)
         .transform(json.decoder)
-        .first;
+        .first)!;
     Map response = object as Map;
     var tokenType = response['token_type'];
     var token = response['access_token'];

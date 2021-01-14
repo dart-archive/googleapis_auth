@@ -1,7 +1,7 @@
 // Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// @dart=2.11
+
 
 library googleapis_auth.implicit_gapi_flow;
 
@@ -50,7 +50,7 @@ class ImplicitFlow {
   /// but the gapi JS library should only ever be loaded once. If
   /// it's called again while a previous initialization is still pending,
   /// this will be returned.
-  static Future<void> _pendingInitialization;
+  static Future<void>? _pendingInitialization;
 
   ImplicitFlow(this._clientId, this._scopes);
 
@@ -59,7 +59,7 @@ class ImplicitFlow {
   /// initialization if any object has called this method already.
   Future<void> initialize() {
     if (_pendingInitialization != null) {
-      return _pendingInitialization;
+      return _pendingInitialization!;
     }
 
     var completer = new Completer();
@@ -101,21 +101,21 @@ class ImplicitFlow {
         completer.completeError(new Exception('Failed to load gapi library.'));
       }
     });
-    html.document.body.append(script);
+    html.document.body!.append(script);
 
     _pendingInitialization = completer.future;
     return completer.future;
   }
 
   Future<LoginResult> loginHybrid(
-          {bool force: false, bool immediate: false, String loginHint}) =>
+          {bool force: false, bool immediate: false, String? loginHint}) =>
       _login(force, immediate, true, loginHint, null);
 
   Future<AccessCredentials> login(
       {bool force: false,
       bool immediate: false,
-      String loginHint,
-      List<ResponseType> responseTypes}) async {
+      String? loginHint,
+      List<ResponseType>? responseTypes}) async {
     return (await _login(force, immediate, false, loginHint, responseTypes))
         .credential;
   }
@@ -127,7 +127,7 @@ class ImplicitFlow {
   // Alternatively, the response types can be set directly if `hybrid` is not
   // set to `true`.
   Future<LoginResult> _login(bool force, bool immediate, bool hybrid,
-      String loginHint, List<ResponseType> responseTypes) {
+      String? loginHint, List<ResponseType>? responseTypes) {
     assert(hybrid != true || responseTypes?.isNotEmpty != true);
 
     var completer = new Completer<LoginResult>();
@@ -139,7 +139,7 @@ class ImplicitFlow {
       'immediate': immediate,
       'approval_prompt': force ? 'force' : 'auto',
       'response_type': responseTypes?.isNotEmpty == true
-          ? responseTypes
+          ? responseTypes!
               .map((responseType) => _responseTypeToString(responseType))
               .join(' ')
           : hybrid
@@ -205,7 +205,7 @@ class ImplicitFlow {
 
 class LoginResult {
   final AccessCredentials credential;
-  final String code;
+  final String? code;
 
   LoginResult(this.credential, {this.code});
 }
@@ -251,7 +251,7 @@ final _ScriptFactory _createScript = (() {
 typedef html.ScriptElement _ScriptFactory();
 
 /// Returns CSP nonce, if set for any script tag.
-String _getNonce({html.Window window}) {
+String? _getNonce({html.Window? window}) {
   final currentWindow = window ?? html.window;
   final elements = currentWindow.document.querySelectorAll('script');
   for (final element in elements) {

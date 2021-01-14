@@ -1,7 +1,7 @@
 // Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// @dart=2.11
+
 
 library googleapis_auth.auth_browser;
 
@@ -25,7 +25,7 @@ export 'auth.dart';
 ///
 /// The user is responsible for closing the returned HTTP [Client].
 /// Closing the returned [Client] will not close [baseClient].
-Client clientViaApiKey(String apiKey, {Client baseClient}) {
+Client clientViaApiKey(String apiKey, {Client? baseClient}) {
   if (baseClient == null) {
     baseClient = new BrowserClient();
   } else {
@@ -55,7 +55,7 @@ Client clientViaApiKey(String apiKey, {Client baseClient}) {
 /// if one was given.
 Future<BrowserOAuth2Flow> createImplicitBrowserFlow(
     ClientId clientId, List<String> scopes,
-    {Client baseClient}) {
+    {Client? baseClient}) {
   if (baseClient == null) {
     baseClient = new RefCountedClient(new BrowserClient(), initialRefCount: 1);
   } else {
@@ -64,9 +64,9 @@ Future<BrowserOAuth2Flow> createImplicitBrowserFlow(
 
   var flow = new ImplicitFlow(clientId.identifier, scopes);
   return flow.initialize().catchError((error, stack) {
-    baseClient.close();
+    baseClient!.close();
     return new Future.error(error, stack);
-  }).then((_) => new BrowserOAuth2Flow._(flow, baseClient));
+  }).then((_) => new BrowserOAuth2Flow._(flow, baseClient as RefCountedClient));
 }
 
 /// Used for obtaining oauth2 access credentials.
@@ -124,8 +124,8 @@ class BrowserOAuth2Flow {
   Future<AccessCredentials> obtainAccessCredentialsViaUserConsent(
       {bool immediate: false,
       bool force: false,
-      String loginHint,
-      List<ResponseType> responseTypes}) {
+      String? loginHint,
+      List<ResponseType>? responseTypes}) {
     _ensureOpen();
     return _flow.login(
         force: force,
@@ -153,7 +153,7 @@ class BrowserOAuth2Flow {
   ///
   /// The user is responsible for closing the returned HTTP client.
   Future<AutoRefreshingAuthClient> clientViaUserConsent(
-      {bool immediate: false, String loginHint}) {
+      {bool immediate: false, String? loginHint}) {
     return obtainAccessCredentialsViaUserConsent(
             immediate: immediate, loginHint: loginHint)
         .then(_clientFromCredentials);
@@ -187,7 +187,7 @@ class BrowserOAuth2Flow {
   /// is either not logged in or has not already granted the application access,
   /// a `UserConsentException` will be thrown.
   Future<HybridFlowResult> runHybridFlow(
-      {bool force: true, bool immediate: false, String loginHint}) async {
+      {bool force: true, bool immediate: false, String? loginHint}) async {
     _ensureOpen();
     var result = await _flow.loginHybrid(
         force: force, immediate: immediate, loginHint: loginHint);
@@ -248,7 +248,7 @@ class HybridFlowResult {
   ///
   /// The auth code can be used to receive permanent access credentials.
   /// This requires a confidential client which can keep a secret.
-  final String authorizationCode;
+  final String? authorizationCode;
 
   HybridFlowResult(this._flow, this.credentials, this.authorizationCode);
 
@@ -261,7 +261,7 @@ class HybridFlowResult {
 class _AutoRefreshingBrowserClient extends AutoRefreshDelegatingClient {
   AccessCredentials credentials;
   ImplicitFlow _flow;
-  Client _authClient;
+  late Client _authClient;
 
   _AutoRefreshingBrowserClient(Client client, this.credentials, this._flow)
       : super(client) {

@@ -1,7 +1,7 @@
 // Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// @dart=2.11
+
 
 library googleapis_auth.auth;
 
@@ -53,10 +53,10 @@ class AccessCredentials {
   /// A refresh token, which can be used to refresh the access credentials.
   ///
   /// This field may be null.
-  final String refreshToken;
+  final String? refreshToken;
 
   /// A JWT used in calls to Google APIs that accept an id_token param.
-  final String idToken;
+  final String? idToken;
 
   /// Scopes these credentials are valid for.
   final List<String> scopes;
@@ -75,7 +75,7 @@ class ClientId {
   final String identifier;
 
   /// The client secret used to identify this application to the server.
-  final String secret;
+  final String? secret;
 
   ClientId(this.identifier, this.secret) {
     if (identifier == null) {
@@ -102,7 +102,7 @@ class ServiceAccountCredentials {
   final String privateKey;
 
   /// Impersonated user, if any. If not impersonating any user this is `null`.
-  final String impersonatedUser;
+  final String? impersonatedUser;
 
   /// Private key as an [RSAPrivateKey].
   final RSAPrivateKey privateRSAKey;
@@ -113,7 +113,7 @@ class ServiceAccountCredentials {
   ///
   /// The optional named argument [impersonatedUser] is used to set the user
   /// to impersonate if impersonating a user.
-  factory ServiceAccountCredentials.fromJson(json, {String impersonatedUser}) {
+  factory ServiceAccountCredentials.fromJson(json, {String? impersonatedUser}) {
     if (json is String) {
       json = jsonDecode(json);
     }
@@ -237,8 +237,8 @@ Future<AccessCredentials> refreshCredentials(
     ClientId clientId, AccessCredentials credentials, Client client) async {
   var formValues = [
     'client_id=${Uri.encodeComponent(clientId.identifier)}',
-    'client_secret=${Uri.encodeComponent(clientId.secret)}',
-    'refresh_token=${Uri.encodeComponent(credentials.refreshToken)}',
+    'client_secret=${Uri.encodeComponent(clientId.secret!)}',
+    'refresh_token=${Uri.encodeComponent(credentials.refreshToken!)}',
     'grant_type=refresh_token',
   ];
 
@@ -259,10 +259,10 @@ Future<AccessCredentials> refreshCredentials(
         'Expected json response.');
   }
 
-  var object = await response.stream
+  var object = (await response.stream
       .transform(ascii.decoder)
       .transform(json.decoder)
-      .first;
+      .first)!;
 
   var jsonMap = object as Map;
 

@@ -1,7 +1,7 @@
 // Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// @dart=2.11
+
 
 library googleapis_auth.auth_io;
 
@@ -37,8 +37,8 @@ export 'src/typedefs.dart';
 /// [gcloud-login]: https://cloud.google.com/sdk/gcloud/reference/auth/application-default/login
 /// [ADC]: https://cloud.google.com/docs/authentication/production
 Future<AutoRefreshingAuthClient> clientViaApplicationDefaultCredentials({
-  List<String> scopes,
-  Client baseClient,
+  required List<String> scopes,
+  Client? baseClient,
 }) async {
   if (baseClient == null) {
     baseClient = new Client();
@@ -62,10 +62,10 @@ Future<AutoRefreshingAuthClient> clientViaApplicationDefaultCredentials({
   // Attempt to use file created by `gcloud auth application-default login`
   File credFile;
   if (Platform.isWindows) {
-    credFile = File.fromUri(Uri.directory(Platform.environment['APPDATA'])
+    credFile = File.fromUri(Uri.directory(Platform.environment['APPDATA']!)
         .resolve('gcloud/application_default_credentials.json'));
   } else {
-    credFile = File.fromUri(Uri.directory(Platform.environment['HOME'])
+    credFile = File.fromUri(Uri.directory(Platform.environment['HOME']!)
         .resolve('.config/gcloud/application_default_credentials.json'));
   }
   // Only try to load from credFile if it exists.
@@ -98,7 +98,7 @@ Future<AutoRefreshingAuthClient> clientViaApplicationDefaultCredentials({
 /// Closing the returned [Client] will not close [baseClient].
 Future<AutoRefreshingAuthClient> clientViaUserConsent(
     ClientId clientId, List<String> scopes, PromptUserForConsent userPrompt,
-    {Client baseClient}) async {
+    {Client? baseClient}) async {
   bool closeUnderlyingClient = false;
   if (baseClient == null) {
     baseClient = new Client();
@@ -139,7 +139,7 @@ Future<AutoRefreshingAuthClient> clientViaUserConsent(
 /// Closing the returned [Client] will not close [baseClient].
 Future<AutoRefreshingAuthClient> clientViaUserConsentManual(ClientId clientId,
     List<String> scopes, PromptUserForConsentManual userPrompt,
-    {Client baseClient}) async {
+    {Client? baseClient}) async {
   bool closeUnderlyingClient = false;
   if (baseClient == null) {
     baseClient = new Client();
@@ -181,7 +181,7 @@ Future<AutoRefreshingAuthClient> clientViaUserConsentManual(ClientId clientId,
 /// Closing the returned [Client] will not close [baseClient].
 Future<AutoRefreshingAuthClient> clientViaServiceAccount(
     ServiceAccountCredentials clientCredentials, List<String> scopes,
-    {Client baseClient}) async {
+    {Client? baseClient}) async {
   if (baseClient == null) {
     baseClient = new Client();
   } else {
@@ -222,7 +222,7 @@ Future<AutoRefreshingAuthClient> clientViaServiceAccount(
 /// The user is responsible for closing the returned HTTP [Client].
 /// Closing the returned [Client] will not close [baseClient].
 Future<AutoRefreshingAuthClient> clientViaMetadataServer(
-    {Client baseClient}) async {
+    {Client? baseClient}) async {
   if (baseClient == null) {
     baseClient = new Client();
   } else {
@@ -250,7 +250,7 @@ Future<AutoRefreshingAuthClient> clientViaMetadataServer(
 ///
 /// The user is responsible for closing the returned HTTP [Client].
 /// Closing the returned [Client] will not close [baseClient].
-Client clientViaApiKey(String apiKey, {Client baseClient}) {
+Client clientViaApiKey(String apiKey, {Client? baseClient}) {
   if (baseClient == null) {
     baseClient = new Client();
   } else {
@@ -375,7 +375,7 @@ Future<AccessCredentials> obtainAccessCredentialsViaCodeExchange(
 class _ServiceAccountClient extends AutoRefreshDelegatingClient {
   final JwtFlow flow;
   AccessCredentials credentials;
-  Client authClient;
+  late Client authClient;
 
   _ServiceAccountClient(Client client, this.credentials, this.flow)
       : super(client) {
@@ -399,7 +399,7 @@ class _ServiceAccountClient extends AutoRefreshDelegatingClient {
 class _MetadataServerClient extends AutoRefreshDelegatingClient {
   final MetadataServerAuthorizationFlow flow;
   AccessCredentials credentials;
-  Client authClient;
+  late Client authClient;
 
   _MetadataServerClient(Client client, this.credentials, this.flow)
       : super(client) {
