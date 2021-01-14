@@ -25,7 +25,7 @@ main() {
     expect(auth.createImplicitBrowserFlow(clientId, scopes), throwsException);
   }, timeout: timeout);
 
-  test('gapi-load-failure--syntax-error', () {
+  test('gapi-load-failure--syntax-error', () async {
     impl.gapiUrl = resource('gapi_load_failure.js');
 
     // Reset test_controller.js's window.onerror registration.
@@ -38,10 +38,12 @@ main() {
     }));
 
     var sw = new Stopwatch()..start();
-    var flowFuture = auth.createImplicitBrowserFlow(clientId, scopes);
-    flowFuture.catchError(expectAsync2((dynamic _, dynamic __) {
+    try {
+      await auth.createImplicitBrowserFlow(clientId, scopes);
+      fail('expected error');
+    } catch (error) {
       var elapsed = (sw.elapsed - impl.ImplicitFlow.CallbackTimeout).inSeconds;
       expect(-3 <= elapsed && elapsed <= 3, isTrue);
-    }));
+    }
   }, timeout: timeout);
 }

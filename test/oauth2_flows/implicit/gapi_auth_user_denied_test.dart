@@ -18,10 +18,11 @@ main() {
 
     auth.BrowserOAuth2Flow flow =
         await auth.createImplicitBrowserFlow(clientId, scopes);
-    flow
-        .obtainAccessCredentialsViaUserConsent()
-        .catchError(expectAsync2((dynamic error, dynamic stack) {
+    try {
+      await flow.obtainAccessCredentialsViaUserConsent();
+      fail('expected error');
+    } catch (error) {
       expect(error is auth.UserConsentException, isTrue);
-    }));
+    }
   });
 }
