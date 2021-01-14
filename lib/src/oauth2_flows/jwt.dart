@@ -31,15 +31,15 @@ class JwtFlow {
 
   JwtFlow(this._clientEmail, RSAPrivateKey key, this._user, this._scopes,
       this._client)
-      : _signer = new RS256Signer(key);
+      : _signer = RS256Signer(key);
 
   Future<AccessCredentials> run() async {
-    int timestamp = new DateTime.now().toUtc().millisecondsSinceEpoch ~/ 1000 -
+    var timestamp = DateTime.now().toUtc().millisecondsSinceEpoch ~/ 1000 -
         MAX_EXPECTED_TIMEDIFF_IN_SECONDS;
 
-    jwtHeader() => {"alg": "RS256", "typ": "JWT"};
+    Map<String, String> jwtHeader() => {'alg': 'RS256', 'typ': 'JWT'};
 
-    jwtClaimSet() {
+    Map<String, Object> jwtClaimSet() {
       var claimSet = {
         'iss': _clientEmail,
         'scope': _scopes.join(' '),
@@ -57,16 +57,15 @@ class JwtFlow {
     var jwtSignatureInputInBytes = ascii.encode(jwtSignatureInput);
 
     var signature = _signer.sign(jwtSignatureInputInBytes);
-    var jwt = "$jwtSignatureInput.${_base64url(signature)}";
+    var jwt = '$jwtSignatureInput.${_base64url(signature)}';
 
     var uri = 'urn:ietf:params:oauth:grant-type:jwt-bearer';
     var requestParameters = 'grant_type=${Uri.encodeComponent(uri)}&'
         'assertion=${Uri.encodeComponent(jwt)}';
 
-    var body = new Stream<List<int>>.fromIterable(
+    var body = Stream<List<int>>.fromIterable(
         <List<int>>[utf8.encode(requestParameters)]);
-    var request =
-        new RequestImpl('POST', Uri.parse(GOOGLE_OAUTH2_TOKEN_URL), body);
+    var request = RequestImpl('POST', Uri.parse(GOOGLE_OAUTH2_TOKEN_URL), body);
     request.headers['content-type'] = CONTENT_TYPE_URLENCODED;
 
     var httpResponse = await _client.send(request);
@@ -80,15 +79,15 @@ class JwtFlow {
     var error = response['error'];
 
     if (httpResponse.statusCode != 200 && error != null) {
-      throw new Exception('Unable to obtain credentials. Error: $error.');
+      throw Exception('Unable to obtain credentials. Error: $error.');
     }
 
     if (tokenType != 'Bearer' || token == null || expiresIn is! int) {
-      throw new Exception(
+      throw Exception(
           'Unable to obtain credentials. Invalid response from server.');
     }
-    var accessToken = new AccessToken(tokenType, token, expiryDate(expiresIn));
-    return new AccessCredentials(accessToken, null, _scopes);
+    var accessToken = AccessToken(tokenType, token, expiryDate(expiresIn));
+    return AccessCredentials(accessToken, null, _scopes);
   }
 
   String _base64url(List<int> bytes) {

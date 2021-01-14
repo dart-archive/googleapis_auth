@@ -16,9 +16,6 @@ import 'rsa.dart';
 /// $ openssl pkcs12 -nocerts -nodes -passin pass:notasecret \
 ///       -in *-privatekey.p12 -out *-privatekey.pem
 RSAPrivateKey keyFromString(String pemFileString) {
-  if (pemFileString == null) {
-    throw new ArgumentError('Argument must not be null.');
-  }
   var bytes = _getBytesFromPEMString(pemFileString);
   return _extractRSAKeyFromDERBytes(bytes);
 }
@@ -33,11 +30,11 @@ Uint8List _getBytesFromPEMString(String pemString) {
   if (lines.length < 2 ||
       !lines.first.startsWith('-----BEGIN') ||
       !lines.last.startsWith('-----END')) {
-    throw new ArgumentError('The given string does not have the correct '
+    throw ArgumentError('The given string does not have the correct '
         'begin/end markers expected in a PEM file.');
   }
   var base64 = lines.sublist(1, lines.length - 1).join('');
-  return new Uint8List.fromList(base64Decode(base64));
+  return Uint8List.fromList(base64Decode(base64));
 }
 
 /// Helper to decode the ASN.1/DER bytes in [bytes] into an [RSAPrivateKey].
@@ -61,10 +58,10 @@ RSAPrivateKey _extractRSAKeyFromDERBytes(Uint8List bytes) {
 
     var version = asnIntegers.first;
     if (version.integer != BigInt.zero) {
-      throw new ArgumentError('Expected version 0, got: ${version.integer}.');
+      throw ArgumentError('Expected version 0, got: ${version.integer}.');
     }
 
-    var key = new RSAPrivateKey(
+    var key = RSAPrivateKey(
         asnIntegers[1].integer,
         asnIntegers[2].integer,
         asnIntegers[3].integer,
@@ -76,7 +73,7 @@ RSAPrivateKey _extractRSAKeyFromDERBytes(Uint8List bytes) {
 
     var bitLength = key.bitLength;
     if (bitLength != 1024 && bitLength != 2048 && bitLength != 4096) {
-      throw new ArgumentError('The RSA modulus has a bit length of $bitLength. '
+      throw ArgumentError('The RSA modulus has a bit length of $bitLength. '
           'Only 1024, 2048 and 4096 are supported.');
     }
     return key;
@@ -96,7 +93,7 @@ RSAPrivateKey _extractRSAKeyFromDERBytes(Uint8List bytes) {
     }
     return privateKeyFromSequence(asn as ASN1Sequence);
   } catch (error) {
-    throw new ArgumentError(
+    throw ArgumentError(
         'Error while extracting private key from DER bytes: $error');
   }
 }

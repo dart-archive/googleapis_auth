@@ -17,29 +17,29 @@ class DelegatingClientImpl extends DelegatingClient {
   DelegatingClientImpl(Client base, {required bool closeUnderlyingClient})
       : super(base, closeUnderlyingClient: closeUnderlyingClient);
 
+  @override
   Future<StreamedResponse> send(BaseRequest request) => throw 'unsupported';
 }
 
 final _defaultResponse = Response('', 500);
 final _defaultResponseHandler = (Request _) async => _defaultResponse;
 
-main() {
+void main() {
   group('http-utils', () {
     group('delegating-client', () {
       test('not-close-underlying-client', () {
         var mock = mockClient(_defaultResponseHandler, expectClose: false);
-        new DelegatingClientImpl(mock, closeUnderlyingClient: false).close();
+        DelegatingClientImpl(mock, closeUnderlyingClient: false).close();
       });
 
       test('close-underlying-client', () {
         var mock = mockClient(_defaultResponseHandler, expectClose: true);
-        new DelegatingClientImpl(mock, closeUnderlyingClient: true).close();
+        DelegatingClientImpl(mock, closeUnderlyingClient: true).close();
       });
 
       test('close-several-times', () {
         var mock = mockClient(_defaultResponseHandler, expectClose: true);
-        var delegate =
-            new DelegatingClientImpl(mock, closeUnderlyingClient: true);
+        var delegate = DelegatingClientImpl(mock, closeUnderlyingClient: true);
         delegate.close();
         expect(() => delegate.close(), throwsA(isStateError));
       });
@@ -48,14 +48,14 @@ main() {
     group('refcounted-client', () {
       test('not-close-underlying-client', () {
         var mock = mockClient(_defaultResponseHandler, expectClose: false);
-        var client = new RefCountedClient(mock, initialRefCount: 3);
+        var client = RefCountedClient(mock, initialRefCount: 3);
         client.close();
         client.close();
       });
 
       test('close-underlying-client', () {
         var mock = mockClient(_defaultResponseHandler, expectClose: true);
-        var client = new RefCountedClient(mock, initialRefCount: 3);
+        var client = RefCountedClient(mock, initialRefCount: 3);
         client.close();
         client.close();
         client.close();
@@ -63,7 +63,7 @@ main() {
 
       test('acquire-release', () {
         var mock = mockClient(_defaultResponseHandler, expectClose: true);
-        var client = new RefCountedClient(mock, initialRefCount: 1);
+        var client = RefCountedClient(mock, initialRefCount: 1);
         client.acquire();
         client.release();
         client.acquire();
@@ -73,7 +73,7 @@ main() {
 
       test('close-several-times', () {
         var mock = mockClient(_defaultResponseHandler, expectClose: true);
-        var client = new RefCountedClient(mock, initialRefCount: 1);
+        var client = RefCountedClient(mock, initialRefCount: 1);
         client.close();
         expect(() => client.close(), throwsA(isStateError));
       });
@@ -83,9 +83,9 @@ main() {
       var key = 'foo%?bar';
       var keyEncoded = 'key=${Uri.encodeQueryComponent(key)}';
 
-      RequestImpl request(String url) => new RequestImpl('GET', Uri.parse(url));
+      RequestImpl request(String url) => RequestImpl('GET', Uri.parse(url));
       Future<Response> responseF() =>
-          new Future<Response>.value(new Response.bytes([], 200));
+          Future<Response>.value(Response.bytes([], 200));
 
       test('no-query-string', () {
         var mock = mockClient((Request request) {
@@ -93,7 +93,7 @@ main() {
           return responseF();
         }, expectClose: true);
 
-        var client = new ApiKeyClient(mock, key);
+        var client = ApiKeyClient(mock, key);
         expect(client.send(request('http://localhost/abc')), completes);
         client.close();
       });
@@ -105,7 +105,7 @@ main() {
           return responseF();
         }, expectClose: true);
 
-        var client = new ApiKeyClient(mock, key);
+        var client = ApiKeyClient(mock, key);
         expect(client.send(request('http://localhost/abc?x')), completes);
         client.close();
       });
@@ -114,7 +114,7 @@ main() {
         var mock = mockClient(expectAsync1(_defaultResponseHandler, count: 0),
             expectClose: true);
 
-        var client = new ApiKeyClient(mock, key);
+        var client = ApiKeyClient(mock, key);
         expect(client.send(request('http://localhost/abc?key=a')),
             throwsException);
         client.close();

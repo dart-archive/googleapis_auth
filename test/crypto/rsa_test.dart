@@ -12,7 +12,7 @@ import '../test_utils.dart';
 /// 2 << 64
 final _bigNumber = BigInt.parse('20000000000000000', radix: 16);
 
-main() {
+void main() {
   group('rsa-algorithm', () {
     test('integer-to-bytes', () {
       expect(RSAAlgorithm.integer2Bytes(BigInt.one, 1), equals([1]));

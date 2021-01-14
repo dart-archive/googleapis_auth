@@ -44,7 +44,7 @@ Future<AutoRefreshingAuthClient> fromApplicationsCredentialsFile(
         ),
         baseClient,
       ),
-      quotaProject: credentials["quota_project_id"],
+      quotaProject: credentials['quota_project_id'],
     );
   }
   return await clientViaServiceAccount(

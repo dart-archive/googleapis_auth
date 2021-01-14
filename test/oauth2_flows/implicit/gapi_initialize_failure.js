@@ -30,8 +30,8 @@
   //    GapiAuth.prototype.authorize = ...;
 
   // Initialize the gapi.auth mock.
-  window.gapi = new Object();
-  window.gapi.auth = new GapiAuth();
+  window.gapi = Object();
+  window.gapi.auth = GapiAuth();
 
   // Call the dart function. This signals that gapi.auth was loaded.
   var dartFunction = findDartOnLoadCallback();

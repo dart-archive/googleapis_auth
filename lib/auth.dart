@@ -28,20 +28,17 @@ class AccessToken {
 
   /// [expiry] must be a UTC `DateTime`.
   AccessToken(this.type, this.data, this.expiry) {
-    if (type == null || data == null || expiry == null) {
-      throw new ArgumentError('Arguments type/data/expiry may not be null.');
-    }
-
     if (!expiry.isUtc) {
-      throw new ArgumentError('The expiry date must be a Utc DateTime.');
+      throw ArgumentError('The expiry date must be a Utc DateTime.');
     }
   }
 
   bool get hasExpired {
-    return new DateTime.now().toUtc().isAfter(expiry);
+    return DateTime.now().toUtc().isAfter(expiry);
   }
 
-  String toString() => "AccessToken(type=$type, data=$data, expiry=$expiry)";
+  @override
+  String toString() => 'AccessToken(type=$type, data=$data, expiry=$expiry)';
 }
 
 /// OAuth2 Credentials.
@@ -59,11 +56,7 @@ class AccessCredentials {
   final List<String> scopes;
 
   AccessCredentials(this.accessToken, this.refreshToken, this.scopes,
-      {this.idToken}) {
-    if (accessToken == null || scopes == null) {
-      throw new ArgumentError('Arguments accessToken/scopes must not be null.');
-    }
-  }
+      {this.idToken});
 }
 
 /// Represents the client application's credentials.
@@ -74,17 +67,9 @@ class ClientId {
   /// The client secret used to identify this application to the server.
   final String? secret;
 
-  ClientId(this.identifier, this.secret) {
-    if (identifier == null) {
-      throw new ArgumentError('Argument identifier may not be null.');
-    }
-  }
+  ClientId(this.identifier, this.secret);
 
-  ClientId.serviceAccount(this.identifier) : secret = null {
-    if (identifier == null) {
-      throw new ArgumentError('Argument identifier may not be null.');
-    }
-  }
+  ClientId.serviceAccount(this.identifier) : secret = null;
 }
 
 /// Represents credentials for a service account.
@@ -115,7 +100,7 @@ class ServiceAccountCredentials {
       json = jsonDecode(json);
     }
     if (json is! Map) {
-      throw new ArgumentError('json must be a Map or a String encoding a Map.');
+      throw ArgumentError('json must be a Map or a String encoding a Map.');
     }
     var identifier = json['client_id'];
     var privateKey = json['private_key'];
@@ -123,17 +108,17 @@ class ServiceAccountCredentials {
     var type = json['type'];
 
     if (type != 'service_account') {
-      throw new ArgumentError('The given credentials are not of type '
+      throw ArgumentError('The given credentials are not of type '
           'service_account (was: $type).');
     }
 
     if (identifier == null || privateKey == null || email == null) {
-      throw new ArgumentError('The given credentials do not contain all the '
+      throw ArgumentError('The given credentials do not contain all the '
           'fields: client_id, private_key and client_email.');
     }
 
-    var clientId = new ClientId(identifier, null);
-    return new ServiceAccountCredentials(email, clientId, privateKey,
+    var clientId = ClientId(identifier, null);
+    return ServiceAccountCredentials(email, clientId, privateKey,
         impersonatedUser: impersonatedUser);
   }
 
@@ -152,12 +137,7 @@ class ServiceAccountCredentials {
   ServiceAccountCredentials(this.email, this.clientId, String privateKey,
       {this.impersonatedUser})
       : privateKey = privateKey,
-        privateRSAKey = keyFromString(privateKey) {
-    if (email == null || clientId == null || privateKey == null) {
-      throw new ArgumentError(
-          'Arguments email/clientId/privateKey must not be null.');
-    }
-  }
+        privateRSAKey = keyFromString(privateKey);
 }
 
 /// A authenticated HTTP client.
@@ -178,6 +158,7 @@ abstract class AutoRefreshingAuthClient implements AuthClient {
 class RefreshFailedException implements Exception {
   final String message;
   RefreshFailedException(this.message);
+  @override
   String toString() => message;
 }
 
@@ -185,6 +166,7 @@ class RefreshFailedException implements Exception {
 class AccessDeniedException implements Exception {
   final String message;
   AccessDeniedException(this.message);
+  @override
   String toString() => message;
 }
 
@@ -192,6 +174,7 @@ class AccessDeniedException implements Exception {
 class UserConsentException implements Exception {
   final String message;
   UserConsentException(this.message);
+  @override
   String toString() => message;
 }
 
@@ -206,9 +189,9 @@ class UserConsentException implements Exception {
 AuthClient authenticatedClient(
     Client baseClient, AccessCredentials credentials) {
   if (credentials.accessToken.type != 'Bearer') {
-    throw new ArgumentError('Only Bearer access tokens are accepted.');
+    throw ArgumentError('Only Bearer access tokens are accepted.');
   }
-  return new AuthenticatedClient(baseClient, credentials);
+  return AuthenticatedClient(baseClient, credentials);
 }
 
 /// Obtain an `http.Client` which automatically refreshes [credentials]
@@ -220,12 +203,12 @@ AuthClient authenticatedClient(
 AutoRefreshingAuthClient autoRefreshingClient(
     ClientId clientId, AccessCredentials credentials, Client baseClient) {
   if (credentials.accessToken.type != 'Bearer') {
-    throw new ArgumentError('Only Bearer access tokens are accepted.');
+    throw ArgumentError('Only Bearer access tokens are accepted.');
   }
   if (credentials.refreshToken == null) {
-    throw new ArgumentError('Refresh token in AccessCredentials was `null`.');
+    throw ArgumentError('Refresh token in AccessCredentials was `null`.');
   }
-  return new AutoRefreshingClient(baseClient, clientId, credentials);
+  return AutoRefreshingClient(baseClient, clientId, credentials);
 }
 
 /// Tries to obtain refreshed [AccessCredentials] based on [credentials] using
@@ -239,9 +222,9 @@ Future<AccessCredentials> refreshCredentials(
     'grant_type=refresh_token',
   ];
 
-  var body = new Stream<List<int>>.fromIterable(
-      [(ascii.encode(formValues.join('&')))]);
-  var request = new RequestImpl('POST', _googleTokenUri, body);
+  var body =
+      Stream<List<int>>.fromIterable([(ascii.encode(formValues.join('&')))]);
+  var request = RequestImpl('POST', _googleTokenUri, body);
   request.headers['content-type'] = 'application/x-www-form-urlencoded';
 
   var response = await client.send(request);
@@ -251,8 +234,7 @@ Future<AccessCredentials> refreshCredentials(
   if (contentType == null ||
       (!contentType.contains('json') && !contentType.contains('javascript'))) {
     await response.stream.drain().catchError((_) {});
-    throw new Exception(
-        'Server responded with invalid content type: $contentType. '
+    throw Exception('Server responded with invalid content type: $contentType. '
         'Expected json response.');
   }
 
@@ -268,19 +250,17 @@ Future<AccessCredentials> refreshCredentials(
   var error = jsonMap['error'];
 
   if (response.statusCode != 200 && error != null) {
-    throw new RefreshFailedException('Refreshing attempt failed. '
+    throw RefreshFailedException('Refreshing attempt failed. '
         'Response was ${response.statusCode}. Error message was $error.');
   }
 
   if (token == null || seconds is! int || tokenType != 'Bearer') {
-    throw new Exception('Refresing attempt failed. '
+    throw Exception('Refresing attempt failed. '
         'Invalid server response.');
   }
 
-  return new AccessCredentials(
-      new AccessToken(tokenType, token, expiryDate(seconds)),
-      credentials.refreshToken,
-      credentials.scopes,
+  return AccessCredentials(AccessToken(tokenType, token, expiryDate(seconds)),
+      credentials.refreshToken, credentials.scopes,
       idToken: idToken);
 }
 

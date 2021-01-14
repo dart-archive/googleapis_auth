@@ -9,12 +9,12 @@ import 'package:googleapis_auth/src/oauth2_flows/implicit.dart' as impl;
 
 import 'utils.dart';
 
-main() {
+void main() {
   impl.gapiUrl = resource('gapi_initialize_successful.js');
 
   test('gapi-initialize-successful', () {
-    var clientId = new auth.ClientId('a', 'b');
-    var clientId2 = new auth.ClientId('c', 'd');
+    var clientId = auth.ClientId('a', 'b');
+    var clientId2 = auth.ClientId('c', 'd');
     var scopes = ['scope1', 'scope2'];
 
     expect(auth.createImplicitBrowserFlow(clientId, scopes), completes);

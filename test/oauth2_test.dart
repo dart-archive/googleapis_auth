@@ -18,54 +18,54 @@ import 'test_utils.dart';
 final _defaultResponse = Response('', 500);
 final _defaultResponseHandler = (Request _) async => _defaultResponse;
 
-main() {
+void main() {
   test('access-token', () {
-    var expiry = new DateTime.now().subtract(const Duration(seconds: 1));
+    var expiry = DateTime.now().subtract(const Duration(seconds: 1));
     var expiryUtc = expiry.toUtc();
 
-    expect(() => new AccessToken('foo', 'bar', expiry), throwsArgumentError);
+    expect(() => AccessToken('foo', 'bar', expiry), throwsArgumentError);
 
-    var token = new AccessToken('foo', 'bar', expiryUtc);
+    var token = AccessToken('foo', 'bar', expiryUtc);
     expect(token.type, equals('foo'));
     expect(token.data, equals('bar'));
     expect(token.expiry, equals(expiryUtc));
     expect(token.hasExpired, isTrue);
 
     var nonExpiredToken =
-        new AccessToken('foo', 'bar', expiryUtc.add(const Duration(days: 1)));
+        AccessToken('foo', 'bar', expiryUtc.add(const Duration(days: 1)));
     expect(nonExpiredToken.hasExpired, isFalse);
   });
 
   test('access-credentials', () {
-    var expiry = new DateTime.now().add(const Duration(days: 1)).toUtc();
-    var aToken = new AccessToken('foo', 'bar', expiry);
+    var expiry = DateTime.now().add(const Duration(days: 1)).toUtc();
+    var aToken = AccessToken('foo', 'bar', expiry);
 
-    var credentials = new AccessCredentials(aToken, 'refresh', ['scope']);
+    var credentials = AccessCredentials(aToken, 'refresh', ['scope']);
     expect(credentials.accessToken, equals(aToken));
     expect(credentials.refreshToken, equals('refresh'));
     expect(credentials.scopes, equals(['scope']));
   });
 
   test('client-id', () {
-    var clientId = new ClientId('id', 'secret');
+    var clientId = ClientId('id', 'secret');
     expect(clientId.identifier, equals('id'));
     expect(clientId.secret, equals('secret'));
   });
 
   group('service-account-credentials', () {
-    var clientId = new ClientId.serviceAccount('id');
+    var clientId = ClientId.serviceAccount('id');
 
     var credentials = const {
-      "private_key_id": "301029",
-      "private_key": TestPrivateKeyString,
-      "client_email": "a@b.com",
-      "client_id": "myid",
-      "type": "service_account"
+      'private_key_id': '301029',
+      'private_key': TestPrivateKeyString,
+      'client_email': 'a@b.com',
+      'client_id': 'myid',
+      'type': 'service_account'
     };
 
     test('from-valid-individual-params', () {
-      var credentials = new ServiceAccountCredentials(
-          'email', clientId, TestPrivateKeyString);
+      var credentials =
+          ServiceAccountCredentials('email', clientId, TestPrivateKeyString);
       expect(credentials.email, equals('email'));
       expect(credentials.clientId, equals(clientId));
       expect(credentials.privateKey, equals(TestPrivateKeyString));
@@ -73,7 +73,7 @@ main() {
     });
 
     test('from-valid-individual-params-with-user', () {
-      var credentials = new ServiceAccountCredentials(
+      var credentials = ServiceAccountCredentials(
           'email', clientId, TestPrivateKeyString,
           impersonatedUser: 'x@y.com');
       expect(credentials.email, equals('email'));
@@ -84,7 +84,7 @@ main() {
 
     test('from-json-string', () {
       var credentialsFromJson =
-          new ServiceAccountCredentials.fromJson(jsonEncode(credentials));
+          ServiceAccountCredentials.fromJson(jsonEncode(credentials));
       expect(credentialsFromJson.email, equals('a@b.com'));
       expect(credentialsFromJson.clientId.identifier, equals('myid'));
       expect(credentialsFromJson.clientId.secret, isNull);
@@ -93,7 +93,7 @@ main() {
     });
 
     test('from-json-string-with-user', () {
-      var credentialsFromJson = new ServiceAccountCredentials.fromJson(
+      var credentialsFromJson = ServiceAccountCredentials.fromJson(
           jsonEncode(credentials),
           impersonatedUser: 'x@y.com');
       expect(credentialsFromJson.email, equals('a@b.com'));
@@ -104,8 +104,7 @@ main() {
     });
 
     test('from-json-map', () {
-      var credentialsFromJson =
-          new ServiceAccountCredentials.fromJson(credentials);
+      var credentialsFromJson = ServiceAccountCredentials.fromJson(credentials);
       expect(credentialsFromJson.email, equals('a@b.com'));
       expect(credentialsFromJson.clientId.identifier, equals('myid'));
       expect(credentialsFromJson.clientId.secret, isNull);
@@ -114,8 +113,7 @@ main() {
     });
 
     test('from-json-map-with-user', () {
-      var credentialsFromJson = new ServiceAccountCredentials.fromJson(
-          credentials,
+      var credentialsFromJson = ServiceAccountCredentials.fromJson(credentials,
           impersonatedUser: 'x@y.com');
       expect(credentialsFromJson.email, equals('a@b.com'));
       expect(credentialsFromJson.clientId.identifier, equals('myid'));
@@ -126,12 +124,11 @@ main() {
   });
 
   group('client-wrappers', () {
-    var clientId = new ClientId('id', 'secret');
-    var tomorrow = new DateTime.now().add(const Duration(days: 1)).toUtc();
-    var yesterday =
-        new DateTime.now().subtract(const Duration(days: 1)).toUtc();
-    var aToken = new AccessToken('Bearer', 'bar', tomorrow);
-    var credentials = new AccessCredentials(aToken, 'refresh', ['s1', 's2']);
+    var clientId = ClientId('id', 'secret');
+    var tomorrow = DateTime.now().add(const Duration(days: 1)).toUtc();
+    var yesterday = DateTime.now().subtract(const Duration(days: 1)).toUtc();
+    var aToken = AccessToken('Bearer', 'bar', tomorrow);
+    var credentials = AccessCredentials(aToken, 'refresh', ['s1', 's2']);
 
     Future<Response> successfulRefresh(Request request) {
       expect(request.method, equals('POST'));
@@ -149,25 +146,23 @@ main() {
         'expires_in': 3600,
       });
 
-      return new Future.value(
-          new Response(body, 200, headers: _jsonContentType));
+      return Future.value(Response(body, 200, headers: _jsonContentType));
     }
 
     Future<Response> refreshErrorResponse(Request request) {
       var body = jsonEncode({'error': 'An error occured'});
-      return new Future<Response>.value(
-          new Response(body, 400, headers: _jsonContentType));
+      return Future<Response>.value(
+          Response(body, 400, headers: _jsonContentType));
     }
 
     Future<Response> serverError(Request request) {
-      return new Future<Response>.error(
-          new Exception('transport layer exception'));
+      return Future<Response>.error(Exception('transport layer exception'));
     }
 
     test('refreshCredentials-successfull', () async {
       var newCredentials = await refreshCredentials(clientId, credentials,
           mockClient(expectAsync1(successfulRefresh), expectClose: false));
-      var expectedResultUtc = new DateTime.now().toUtc().add(
+      var expectedResultUtc = DateTime.now().toUtc().add(
           const Duration(seconds: 3600 - MAX_EXPECTED_TIMEDIFF_IN_SECONDS));
 
       var accessToken = newCredentials.accessToken;
@@ -212,12 +207,12 @@ main() {
               expect(request.headers.length, equals(1));
               expect(request.headers['Authorization'], equals('Bearer bar'));
 
-              return new Future.value(new Response('', 204));
+              return Future.value(Response('', 204));
             }), expectClose: false),
             credentials);
         expect(client.credentials, equals(credentials));
 
-        var response = await client.send(new RequestImpl('POST', url));
+        var response = await client.send(RequestImpl('POST', url));
         expect(response.statusCode, equals(204));
       });
 
@@ -230,19 +225,19 @@ main() {
               expect(request.headers['Authorization'], equals('Bearer bar'));
 
               var headers = const {'www-authenticate': 'foobar'};
-              return new Future.value(new Response('', 401, headers: headers));
+              return Future.value(Response('', 401, headers: headers));
             }), expectClose: false),
             credentials);
         expect(client.credentials, equals(credentials));
 
-        expect(client.send(new RequestImpl('POST', url)),
+        expect(client.send(RequestImpl('POST', url)),
             throwsA(isAccessDeniedException));
       });
 
       test('non-bearer-token', () {
         var aToken = credentials.accessToken;
-        var nonBearerCredentials = new AccessCredentials(
-            new AccessToken('foobar', aToken.data, aToken.expiry),
+        var nonBearerCredentials = AccessCredentials(
+            AccessToken('foobar', aToken.data, aToken.expiry),
             'refresh',
             ['s1', 's2']);
 
@@ -262,17 +257,17 @@ main() {
             clientId,
             credentials,
             mockClient(expectAsync1((request) {
-              return new Future.value(new Response('', 200));
+              return Future.value(Response('', 200));
             }), expectClose: false));
         expect(client.credentials, equals(credentials));
 
-        var response = await client.send(new RequestImpl('POST', url));
+        var response = await client.send(RequestImpl('POST', url));
         expect(response.statusCode, equals(200));
       });
 
       test('no-refresh-token', () {
-        var credentials = new AccessCredentials(
-            new AccessToken('Bearer', 'bar', yesterday), null, ['s1', 's2']);
+        var credentials = AccessCredentials(
+            AccessToken('Bearer', 'bar', yesterday), null, ['s1', 's2']);
 
         expect(
             () => autoRefreshingClient(clientId, credentials,
@@ -281,10 +276,8 @@ main() {
       });
 
       test('refresh-failed', () {
-        var credentials = new AccessCredentials(
-            new AccessToken('Bearer', 'bar', yesterday),
-            'refresh',
-            ['s1', 's2']);
+        var credentials = AccessCredentials(
+            AccessToken('Bearer', 'bar', yesterday), 'refresh', ['s1', 's2']);
 
         var client = autoRefreshingClient(
             clientId,
@@ -296,16 +289,14 @@ main() {
             }), expectClose: false));
         expect(client.credentials, equals(credentials));
 
-        var request = new RequestImpl('POST', url);
+        var request = RequestImpl('POST', url);
         request.headers.addAll({'foo': 'bar'});
         expect(client.send(request), throwsA(isRefreshFailedException));
       });
 
       test('invalid-content-type', () {
-        var credentials = new AccessCredentials(
-            new AccessToken('Bearer', 'bar', yesterday),
-            'refresh',
-            ['s1', 's2']);
+        var credentials = AccessCredentials(
+            AccessToken('Bearer', 'bar', yesterday), 'refresh', ['s1', 's2']);
 
         var client = autoRefreshingClient(
             clientId,
@@ -315,20 +306,20 @@ main() {
               expect(request.headers['foo'], isNull);
               var headers = {'content-type': 'image/png'};
 
-              return new Future.value(new Response('', 200, headers: headers));
+              return Future.value(Response('', 200, headers: headers));
             }), expectClose: false));
         expect(client.credentials, equals(credentials));
 
-        var request = new RequestImpl('POST', url);
+        var request = RequestImpl('POST', url);
         request.headers.addAll({'foo': 'bar'});
         expect(client.send(request), throwsA(isException));
       });
 
       test('successful-refresh', () async {
-        int serverInvocation = 0;
+        var serverInvocation = 0;
 
-        var credentials = new AccessCredentials(
-            new AccessToken('Bearer', 'bar', yesterday), 'refresh', ['s1']);
+        var credentials = AccessCredentials(
+            AccessToken('Bearer', 'bar', yesterday), 'refresh', ['s1']);
 
         var client = autoRefreshingClient(
             clientId,
@@ -342,20 +333,20 @@ main() {
                   } else {
                     // This is the real request.
                     expect(request.headers['foo'], equals('bar'));
-                    return new Future.value(new Response('', 200));
+                    return Future.value(Response('', 200));
                   }
                 }, count: 2),
                 expectClose: false));
         expect(client.credentials, equals(credentials));
 
-        bool executed = false;
+        var executed = false;
         client.credentialUpdates.listen(expectAsync1((newCredentials) {
           expect(newCredentials.accessToken.type, equals('Bearer'));
           expect(newCredentials.accessToken.data, equals('atoken'));
           executed = true;
         }), onDone: expectAsync0(() {}));
 
-        var request = new RequestImpl('POST', url);
+        var request = RequestImpl('POST', url);
         request.headers.addAll({'foo': 'bar'});
 
         var response = await client.send(request);

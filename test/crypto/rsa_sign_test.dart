@@ -13,7 +13,7 @@ import '../test_utils.dart';
 
 void main() {
   group('rsa-sha256-signer', () {
-    var signer = new RS256Signer(testPrivateKey);
+    var signer = RS256Signer(testPrivateKey);
 
     // NOTE:
     // The signatures can be regenerated via the openssl commandline utility:

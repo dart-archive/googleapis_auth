@@ -13,16 +13,18 @@ import 'http_client_base.dart';
 
 /// Will close the underlying `http.Client` depending on a constructor argument.
 class AuthenticatedClient extends DelegatingClient implements AuthClient {
+  @override
   final AccessCredentials credentials;
   final String? quotaProject;
 
   AuthenticatedClient(Client client, this.credentials, {this.quotaProject})
       : super(client, closeUnderlyingClient: false);
 
+  @override
   Future<StreamedResponse> send(BaseRequest request) async {
     // Make new request object and perform the authenticated request.
     var modifiedRequest =
-        new RequestImpl(request.method, request.url, request.finalize());
+        RequestImpl(request.method, request.url, request.finalize());
     modifiedRequest.headers.addAll(request.headers);
     modifiedRequest.headers['Authorization'] =
         'Bearer ${credentials.accessToken.data}';
@@ -33,7 +35,7 @@ class AuthenticatedClient extends DelegatingClient implements AuthClient {
     var wwwAuthenticate = response.headers['www-authenticate'];
     if (wwwAuthenticate != null) {
       await response.stream.drain();
-      throw new AccessDeniedException('Access was denied '
+      throw AccessDeniedException('Access was denied '
           '(www-authenticate header was: $wwwAuthenticate).');
     }
     return response;
@@ -52,10 +54,11 @@ class ApiKeyClient extends DelegatingClient {
       : _encodedApiKey = Uri.encodeQueryComponent(apiKey),
         super(client, closeUnderlyingClient: true);
 
+  @override
   Future<StreamedResponse> send(BaseRequest request) {
     var url = request.url;
     if (url.queryParameters.containsKey('key')) {
-      return new Future.error(new Exception(
+      return Future.error(Exception(
           'Tried to make a HTTP request which has already a "key" query '
           'parameter. Adding the API key would override that existing value.'));
     }
@@ -66,8 +69,7 @@ class ApiKeyClient extends DelegatingClient {
       url = url.replace(query: '${url.query}&key=$_encodedApiKey');
     }
 
-    var modifiedRequest =
-        new RequestImpl(request.method, url, request.finalize());
+    var modifiedRequest = RequestImpl(request.method, url, request.finalize());
     modifiedRequest.headers.addAll(request.headers);
     return baseClient.send(modifiedRequest);
   }
@@ -77,11 +79,12 @@ class ApiKeyClient extends DelegatingClient {
 class AutoRefreshingClient extends AutoRefreshDelegatingClient {
   final ClientId clientId;
   final String? quotaProject;
+  @override
   AccessCredentials credentials;
   late Client authClient;
 
   AutoRefreshingClient(Client client, this.clientId, this.credentials,
-      {bool closeUnderlyingClient: false, this.quotaProject})
+      {bool closeUnderlyingClient = false, this.quotaProject})
       : super(client, closeUnderlyingClient: closeUnderlyingClient) {
     assert(credentials.accessToken.type == 'Bearer');
     assert(credentials.refreshToken != null);
@@ -92,6 +95,7 @@ class AutoRefreshingClient extends AutoRefreshDelegatingClient {
     );
   }
 
+  @override
   Future<StreamedResponse> send(BaseRequest request) async {
     if (!credentials.accessToken.hasExpired) {
       // TODO: Can this return a "access token expired" message?
@@ -114,11 +118,13 @@ class AutoRefreshingClient extends AutoRefreshDelegatingClient {
 abstract class AutoRefreshDelegatingClient extends DelegatingClient
     implements AutoRefreshingAuthClient {
   final StreamController<AccessCredentials> _credentialStreamController =
-      new StreamController.broadcast(sync: true);
+      StreamController.broadcast(sync: true);
 
-  AutoRefreshDelegatingClient(Client client, {bool closeUnderlyingClient: true})
+  AutoRefreshDelegatingClient(Client client,
+      {bool closeUnderlyingClient = true})
       : super(client, closeUnderlyingClient: closeUnderlyingClient);
 
+  @override
   Stream<AccessCredentials> get credentialUpdates =>
       _credentialStreamController.stream;
 
@@ -126,6 +132,7 @@ abstract class AutoRefreshDelegatingClient extends DelegatingClient
     _credentialStreamController.add(credentials);
   }
 
+  @override
   void close() {
     _credentialStreamController.close();
     super.close();

@@ -9,13 +9,13 @@ import 'dart:typed_data';
 import 'package:googleapis_auth/src/crypto/asn1.dart';
 import 'package:test/test.dart';
 
-main() {
-  expectArgumentError(List<int> bytes) {
-    expect(() => ASN1Parser.parse(new Uint8List.fromList(bytes)),
+void main() {
+  void expectArgumentError(List<int> bytes) {
+    expect(() => ASN1Parser.parse(Uint8List.fromList(bytes)),
         throwsA(isArgumentError));
   }
 
-  invalidLenTest(int tagBytes) {
+  void invalidLenTest(int tagBytes) {
     test('invalid-len', () {
       expectArgumentError([tagBytes]);
       expectArgumentError([tagBytes, 0x07]);
@@ -29,7 +29,7 @@ main() {
     group('sequence', () {
       test('empty', () {
         var sequenceBytes = [ASN1Parser.SEQUENCE_TAG, 0];
-        var sequence = ASN1Parser.parse(new Uint8List.fromList(sequenceBytes));
+        var sequence = ASN1Parser.parse(Uint8List.fromList(sequenceBytes));
         expect(sequence is ASN1Sequence, isTrue);
         expect((sequence as ASN1Sequence).objects, isEmpty);
       });
@@ -41,7 +41,7 @@ main() {
           ASN1Parser.NULL_TAG,
           0
         ];
-        var sequence = ASN1Parser.parse(new Uint8List.fromList(sequenceBytes));
+        var sequence = ASN1Parser.parse(Uint8List.fromList(sequenceBytes));
         expect(sequence is ASN1Sequence, isTrue);
         expect((sequence as ASN1Sequence).objects, hasLength(1));
         expect(sequence.objects[0] is ASN1Null, isTrue);
@@ -49,14 +49,14 @@ main() {
 
       test('many-elements', () {
         var sequenceBytes = [ASN1Parser.SEQUENCE_TAG, 0x82, 0x01, 0x00];
-        for (int i = 0; i < 128; i++) {
+        for (var i = 0; i < 128; i++) {
           sequenceBytes.addAll([ASN1Parser.NULL_TAG, 0]);
         }
 
-        var sequence = ASN1Parser.parse(new Uint8List.fromList(sequenceBytes));
+        var sequence = ASN1Parser.parse(Uint8List.fromList(sequenceBytes));
         expect(sequence is ASN1Sequence, isTrue);
         expect((sequence as ASN1Sequence).objects.length, equals(128));
-        for (int i = 0; i < 128; i++) {
+        for (var i = 0; i < 128; i++) {
           expect(sequence.objects[i] is ASN1Null, isTrue);
         }
       });
@@ -66,19 +66,19 @@ main() {
 
     group('integer', () {
       test('small', () {
-        for (int i = 0; i < 256; i++) {
+        for (var i = 0; i < 256; i++) {
           var integerBytes = [ASN1Parser.INTEGER_TAG, 1, i];
-          var integer = ASN1Parser.parse(new Uint8List.fromList(integerBytes))
-              as ASN1Integer;
-          expect(integer.integer, new BigInt.from(i));
+          var integer =
+              ASN1Parser.parse(Uint8List.fromList(integerBytes)) as ASN1Integer;
+          expect(integer.integer, BigInt.from(i));
         }
       });
 
       test('multi-byte', () {
         var integerBytes = [ASN1Parser.INTEGER_TAG, 3, 1, 2, 3];
-        var integer = ASN1Parser.parse(new Uint8List.fromList(integerBytes));
+        var integer = ASN1Parser.parse(Uint8List.fromList(integerBytes));
         expect(integer is ASN1Integer, isTrue);
-        expect((integer as ASN1Integer).integer, new BigInt.from(0x010203));
+        expect((integer as ASN1Integer).integer, BigInt.from(0x010203));
       });
 
       invalidLenTest(ASN1Parser.INTEGER_TAG);
@@ -88,20 +88,22 @@ main() {
       test('small', () {
         var octetStringBytes = [ASN1Parser.OCTET_STRING_TAG, 3, 1, 2, 3];
         var octetString =
-            ASN1Parser.parse(new Uint8List.fromList(octetStringBytes));
+            ASN1Parser.parse(Uint8List.fromList(octetStringBytes));
         expect(octetString is ASN1OctetString, isTrue);
         expect((octetString as ASN1OctetString).bytes, equals([1, 2, 3]));
       });
 
       test('large', () {
         var octetStringBytes = [ASN1Parser.OCTET_STRING_TAG, 0x82, 0x01, 0x00];
-        for (int i = 0; i < 256; i++) octetStringBytes.add(i % 256);
+        for (var i = 0; i < 256; i++) {
+          octetStringBytes.add(i % 256);
+        }
 
         var octetString =
-            ASN1Parser.parse(new Uint8List.fromList(octetStringBytes));
+            ASN1Parser.parse(Uint8List.fromList(octetStringBytes));
         expect(octetString is ASN1OctetString, isTrue);
-        ASN1OctetString castedOctetString = octetString as ASN1OctetString;
-        for (int i = 0; i < 256; i++) {
+        var castedOctetString = octetString as ASN1OctetString;
+        for (var i = 0; i < 256; i++) {
           expect(castedOctetString.bytes[i], equals((i % 256)));
         }
       });
@@ -114,19 +116,21 @@ main() {
       // the oid structure.
       test('small', () {
         var objIdBytes = [ASN1Parser.OBJECT_ID_TAG, 3, 1, 2, 3];
-        var objId = ASN1Parser.parse(new Uint8List.fromList(objIdBytes));
+        var objId = ASN1Parser.parse(Uint8List.fromList(objIdBytes));
         expect(objId is ASN1ObjectIdentifier, isTrue);
         expect((objId as ASN1ObjectIdentifier).bytes, equals([1, 2, 3]));
       });
 
       test('large', () {
         var objIdBytes = [ASN1Parser.OBJECT_ID_TAG, 0x82, 0x01, 0x00];
-        for (int i = 0; i < 256; i++) objIdBytes.add(i % 256);
+        for (var i = 0; i < 256; i++) {
+          objIdBytes.add(i % 256);
+        }
 
-        var objId = ASN1Parser.parse(new Uint8List.fromList(objIdBytes));
+        var objId = ASN1Parser.parse(Uint8List.fromList(objIdBytes));
         expect(objId is ASN1ObjectIdentifier, isTrue);
-        ASN1ObjectIdentifier castedObjId = objId as ASN1ObjectIdentifier;
-        for (int i = 0; i < 256; i++) {
+        var castedObjId = objId as ASN1ObjectIdentifier;
+        for (var i = 0; i < 256; i++) {
           expect(castedObjId.bytes[i], equals((i % 256)));
         }
       });
@@ -137,7 +141,7 @@ main() {
 
   test('null', () {
     var objId =
-        ASN1Parser.parse(new Uint8List.fromList([ASN1Parser.NULL_TAG, 0x00]));
+        ASN1Parser.parse(Uint8List.fromList([ASN1Parser.NULL_TAG, 0x00]));
     expect(objId is ASN1Null, isTrue);
 
     expectArgumentError([ASN1Parser.NULL_TAG]);

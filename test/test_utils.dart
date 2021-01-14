@@ -13,22 +13,19 @@ import 'package:http/http.dart';
 import 'package:http/testing.dart';
 import 'package:test/test.dart';
 
-const Matcher isUserConsentException =
-    const TypeMatcher<UserConsentException>();
+const Matcher isUserConsentException = TypeMatcher<UserConsentException>();
 
-const Matcher isRefreshFailedException =
-    const TypeMatcher<RefreshFailedException>();
+const Matcher isRefreshFailedException = TypeMatcher<RefreshFailedException>();
 
-const Matcher isAccessDeniedException =
-    const TypeMatcher<AccessDeniedException>();
+const Matcher isAccessDeniedException = TypeMatcher<AccessDeniedException>();
 
-const Matcher isTransportException = const TypeMatcher<TransportException>();
+const Matcher isTransportException = TypeMatcher<TransportException>();
 
 class TransportException implements Exception {}
 
 Client get transportFailure {
-  return new MockClient(expectAsync1((Request _) {
-    return new Future<Response>.error(new TransportException());
+  return MockClient(expectAsync1((Request _) {
+    return Future<Response>.error(TransportException());
   }));
 }
 
@@ -62,27 +59,29 @@ QpYYDJZwkgZrVQoKMIdCs9xfyVhZERq945NYLekwE1t2W+tOVBgR
 
 final testPrivateKey = keyFromString(TestPrivateKeyString);
 
-expectExpiryOneHourFromNow(AccessToken accessToken) {
-  var now = new DateTime.now().toUtc();
+void expectExpiryOneHourFromNow(AccessToken accessToken) {
+  var now = DateTime.now().toUtc();
   var diff = accessToken.expiry.difference(now).inSeconds -
       (3600 - MAX_EXPECTED_TIMEDIFF_IN_SECONDS);
   expect(-2 <= diff && diff <= 2, isTrue);
 }
 
-Client mockClient(Future<Response> requestHandler(Request _),
-    {bool expectClose: true}) {
-  return new ExpectCloseMockClient(requestHandler, expectClose ? 1 : 0);
+Client mockClient(Future<Response> Function(Request _) requestHandler,
+    {bool expectClose = true}) {
+  return ExpectCloseMockClient(requestHandler, expectClose ? 1 : 0);
 }
 
 /// A client which will keep the VM alive until `close()` was called.
 class ExpectCloseMockClient extends MockClient {
   late Function _expectedToBeCalled;
 
-  ExpectCloseMockClient(Future<Response> requestHandler(Request _), int c)
+  ExpectCloseMockClient(
+      Future<Response> Function(Request _) requestHandler, int c)
       : super(requestHandler) {
     _expectedToBeCalled = expectAsync0(() {}, count: c);
   }
 
+  @override
   void close() {
     super.close();
     _expectedToBeCalled();

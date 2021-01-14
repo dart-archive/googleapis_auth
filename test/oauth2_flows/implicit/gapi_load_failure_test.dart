@@ -12,12 +12,12 @@ import 'package:googleapis_auth/src/oauth2_flows/implicit.dart' as impl;
 
 import 'utils.dart';
 
-main() {
+void main() {
   // The default timeout is too small for us to detect the timeout of loading
   // the gapi.auth library.
-  Timeout timeout = const Timeout(const Duration(hours: 1));
+  var timeout = const Timeout(Duration(hours: 1));
 
-  var clientId = new auth.ClientId('a', 'b');
+  var clientId = auth.ClientId('a', 'b');
   var scopes = ['scope1', 'scope2'];
 
   test('gapi-load-failure', () {
@@ -37,7 +37,7 @@ main() {
       error.preventDefault();
     }));
 
-    var sw = new Stopwatch()..start();
+    var sw = Stopwatch()..start();
     try {
       await auth.createImplicitBrowserFlow(clientId, scopes);
       fail('expected error');

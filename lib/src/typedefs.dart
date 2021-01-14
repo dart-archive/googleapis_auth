@@ -8,7 +8,7 @@ library googleapis_auth.typedefs;
 ///
 /// The user is required to go to [uri] and either approve or decline the
 /// application's request for access resources on his behalf.
-typedef void PromptUserForConsent(String uri);
+typedef PromptUserForConsent = void Function(String uri);
 
 /// Function for directing the user or it's user-agent to [uri].
 ///
@@ -18,4 +18,4 @@ typedef void PromptUserForConsent(String uri);
 /// The user will be given an authorization code. This function should complete
 /// with this authorization code. If the user declined to give access this
 /// function should complete with an error.
-typedef Future<String> PromptUserForConsentManual(String uri);
+typedef PromptUserForConsentManual = Future<String> Function(String uri);

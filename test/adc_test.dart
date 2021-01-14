@@ -1,4 +1,4 @@
-@TestOn("vm")
+@TestOn('vm')
 library googleapis_auth.adc_test;
 
 import 'dart:io';
@@ -10,16 +10,16 @@ import 'package:test/test.dart';
 
 import 'test_utils.dart';
 
-main() {
+void main() {
   test('fromApplicationsCredentialsFile', () async {
     final tmp = await Directory.systemTemp.createTemp('googleapis_auth-test');
     try {
       final credsFile = File.fromUri(tmp.uri.resolve('creds.json'));
       await credsFile.writeAsString(json.encode({
-        "client_id": "id",
-        "client_secret": "secret",
-        "refresh_token": "refresh",
-        "type": "authorized_user"
+        'client_id': 'id',
+        'client_secret': 'secret',
+        'refresh_token': 'refresh',
+        'type': 'authorized_user'
       }));
       final c = await fromApplicationsCredentialsFile(
         credsFile,
@@ -40,13 +40,13 @@ main() {
               'access_token': 'atoken',
               'expires_in': 3600,
             });
-            return new Response(body, 200, headers: _jsonContentType);
+            return Response(body, 200, headers: _jsonContentType);
           }
           if (url == 'https://storage.googleapis.com/b/bucket/o/obj') {
             expect(request.method, equals('GET'));
             expect(request.headers['Authorization'], equals('Bearer atoken'));
             expect(request.headers['X-Goog-User-Project'], isNull);
-            return new Response('hello world', 200);
+            return Response('hello world', 200);
           }
           return Response('bad', 404);
         }, expectClose: false),
@@ -69,11 +69,11 @@ main() {
     try {
       final credsFile = File.fromUri(tmp.uri.resolve('creds.json'));
       await credsFile.writeAsString(json.encode({
-        "client_id": "id",
-        "client_secret": "secret",
-        "refresh_token": "refresh",
-        "type": "authorized_user",
-        "quota_project_id": "project"
+        'client_id': 'id',
+        'client_secret': 'secret',
+        'refresh_token': 'refresh',
+        'type': 'authorized_user',
+        'quota_project_id': 'project'
       }));
       final c = await fromApplicationsCredentialsFile(
         credsFile,
@@ -94,13 +94,13 @@ main() {
               'access_token': 'atoken',
               'expires_in': 3600,
             });
-            return new Response(body, 200, headers: _jsonContentType);
+            return Response(body, 200, headers: _jsonContentType);
           }
           if (url == 'https://storage.googleapis.com/b/bucket/o/obj') {
             expect(request.method, equals('GET'));
             expect(request.headers['Authorization'], equals('Bearer atoken'));
             expect(request.headers['X-Goog-User-Project'], equals('project'));
-            return new Response('hello world', 200);
+            return Response('hello world', 200);
           }
           return Response('bad', 404);
         }, expectClose: false),

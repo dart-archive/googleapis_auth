@@ -90,17 +90,17 @@ abstract class RSAAlgorithm {
   static BigInt bytes2BigInt(List<int> bytes) {
     var number = BigInt.zero;
     for (var i = 0; i < bytes.length; i++) {
-      number = (number << 8) | new BigInt.from(bytes[i]);
+      number = (number << 8) | BigInt.from(bytes[i]);
     }
     return number;
   }
 
   static List<int> integer2Bytes(BigInt integer, int intendedLength) {
     if (integer < BigInt.one) {
-      throw new ArgumentError('Only positive integers are supported.');
+      throw ArgumentError('Only positive integers are supported.');
     }
-    var bytes = new Uint8List(intendedLength);
-    for (int i = bytes.length - 1; i >= 0; i--) {
+    var bytes = Uint8List(intendedLength);
+    for (var i = bytes.length - 1; i >= 0; i--) {
       bytes[i] = (integer & _bigIntFF).toInt();
       integer >>= 8;
     }
@@ -108,4 +108,4 @@ abstract class RSAAlgorithm {
   }
 }
 
-final _bigIntFF = new BigInt.from(0xff);
+final _bigIntFF = BigInt.from(0xff);

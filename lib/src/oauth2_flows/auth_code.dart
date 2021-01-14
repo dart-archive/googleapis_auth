@@ -39,12 +39,12 @@ Future<List<String>> obtainScopesFromAccessToken(
     Map json = jsonDecode(response.body);
     var scope = json['scope'];
     if (scope is! String) {
-      throw new Exception(
+      throw Exception(
           'The response did not include a `scope` value of type `String`.');
     }
     return scope.split(' ').toList();
   } else {
-    throw new Exception('Unable to obtain list of scopes an access token '
+    throw Exception('Unable to obtain list of scopes an access token '
         'is valid for. Server responded with ${response.statusCode}.');
   }
 }
@@ -61,13 +61,13 @@ Future<AccessCredentials> obtainAccessCredentialsUsingCode(
     'client_secret=${Uri.encodeQueryComponent(clientId.secret!)}',
   ];
 
-  var body = new Stream<List<int>>.fromIterable(
+  var body = Stream<List<int>>.fromIterable(
       <List<int>>[ascii.encode(formValues.join('&'))]);
-  var request = new RequestImpl('POST', uri, body);
+  var request = RequestImpl('POST', uri, body);
   request.headers['content-type'] = CONTENT_TYPE_URLENCODED;
 
   var response = await client.send(request);
-  Map jsonMap = (await utf8.decoder
+  var jsonMap = (await utf8.decoder
       .bind(response.stream)
       .transform(json.decoder)
       .first) as Map;
@@ -80,7 +80,7 @@ Future<AccessCredentials> obtainAccessCredentialsUsingCode(
   var error = jsonMap['error'];
 
   if (response.statusCode != 200 && error != null) {
-    throw new Exception('Failed to exchange authorization code. '
+    throw Exception('Failed to exchange authorization code. '
         'Response was ${response.statusCode}. Error message was $error.');
   }
 
@@ -88,22 +88,22 @@ Future<AccessCredentials> obtainAccessCredentialsUsingCode(
       accessToken == null ||
       seconds is! int ||
       tokenType != 'Bearer') {
-    throw new Exception('Failed to exchange authorization code. '
+    throw Exception('Failed to exchange authorization code. '
         'Invalid server response. '
         'Http status code was: ${response.statusCode}.');
   }
 
   if (scopes != null) {
-    return new AccessCredentials(
-        new AccessToken('Bearer', accessToken, expiryDate(seconds)),
+    return AccessCredentials(
+        AccessToken('Bearer', accessToken, expiryDate(seconds)),
         refreshToken,
         scopes,
         idToken: idToken);
   }
 
   scopes = await obtainScopesFromAccessToken(accessToken, client);
-  return new AccessCredentials(
-      new AccessToken('Bearer', accessToken, expiryDate(seconds)),
+  return AccessCredentials(
+      AccessToken('Bearer', accessToken, expiryDate(seconds)),
       refreshToken,
       scopes,
       idToken: idToken);
@@ -166,13 +166,14 @@ class AuthorizationCodeGrantServerFlow
       http.Client client, this.userPrompt)
       : super(clientId, scopes, client);
 
+  @override
   Future<AccessCredentials> run() async {
-    HttpServer server = await HttpServer.bind('localhost', 0);
+    var server = await HttpServer.bind('localhost', 0);
 
     try {
       var port = server.port;
       var redirectionUri = 'http://localhost:$port';
-      var state = 'authcodestate${new DateTime.now().millisecondsSinceEpoch}';
+      var state = 'authcodestate${DateTime.now().millisecondsSinceEpoch}';
 
       // Prompt user and wait until he goes to URL and the google authorization
       // server calls back to our locally running HTTP server.
@@ -187,22 +188,22 @@ class AuthorizationCodeGrantServerFlow
         var error = uri.queryParameters['error'];
 
         if (request.method != 'GET') {
-          throw new Exception('Invalid response from server '
+          throw Exception('Invalid response from server '
               '(expected GET request callback, got: ${request.method}).');
         }
 
         if (state != returnedState) {
-          throw new Exception(
+          throw Exception(
               'Invalid response from server (state did not match).');
         }
 
         if (error != null) {
-          throw new UserConsentException(
+          throw UserConsentException(
               'Error occured while obtaining access credentials: $error');
         }
 
         if (code == null || code == '') {
-          throw new Exception(
+          throw Exception(
               'Invalid response from server (no auth code transmitted).');
         }
         var credentials =
@@ -257,6 +258,7 @@ class AuthorizationCodeGrantManualFlow
       http.Client client, this.userPrompt)
       : super(clientId, scopes, client);
 
+  @override
   Future<AccessCredentials> run() async {
     var redirectionUri = 'urn:ietf:wg:oauth:2.0:oob';
 

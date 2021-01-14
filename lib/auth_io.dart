@@ -40,7 +40,7 @@ Future<AutoRefreshingAuthClient> clientViaApplicationDefaultCredentials({
   Client? baseClient,
 }) async {
   if (baseClient == null) {
-    baseClient = new Client();
+    baseClient = Client();
   } else {
     baseClient = nonClosingClient(baseClient);
   }
@@ -98,13 +98,13 @@ Future<AutoRefreshingAuthClient> clientViaApplicationDefaultCredentials({
 Future<AutoRefreshingAuthClient> clientViaUserConsent(
     ClientId clientId, List<String> scopes, PromptUserForConsent userPrompt,
     {Client? baseClient}) async {
-  bool closeUnderlyingClient = false;
+  var closeUnderlyingClient = false;
   if (baseClient == null) {
-    baseClient = new Client();
+    baseClient = Client();
     closeUnderlyingClient = true;
   }
 
-  var flow = new AuthorizationCodeGrantServerFlow(
+  var flow = AuthorizationCodeGrantServerFlow(
       clientId, scopes, baseClient, userPrompt);
 
   AccessCredentials credentials;
@@ -117,7 +117,7 @@ Future<AutoRefreshingAuthClient> clientViaUserConsent(
     }
     rethrow;
   }
-  return new AutoRefreshingClient(baseClient, clientId, credentials,
+  return AutoRefreshingClient(baseClient, clientId, credentials,
       closeUnderlyingClient: closeUnderlyingClient);
 }
 
@@ -139,13 +139,13 @@ Future<AutoRefreshingAuthClient> clientViaUserConsent(
 Future<AutoRefreshingAuthClient> clientViaUserConsentManual(ClientId clientId,
     List<String> scopes, PromptUserForConsentManual userPrompt,
     {Client? baseClient}) async {
-  bool closeUnderlyingClient = false;
+  var closeUnderlyingClient = false;
   if (baseClient == null) {
-    baseClient = new Client();
+    baseClient = Client();
     closeUnderlyingClient = true;
   }
 
-  var flow = new AuthorizationCodeGrantManualFlow(
+  var flow = AuthorizationCodeGrantManualFlow(
       clientId, scopes, baseClient, userPrompt);
 
   AccessCredentials credentials;
@@ -159,7 +159,7 @@ Future<AutoRefreshingAuthClient> clientViaUserConsentManual(ClientId clientId,
     rethrow;
   }
 
-  return new AutoRefreshingClient(baseClient, clientId, credentials,
+  return AutoRefreshingClient(baseClient, clientId, credentials,
       closeUnderlyingClient: closeUnderlyingClient);
 }
 
@@ -182,17 +182,13 @@ Future<AutoRefreshingAuthClient> clientViaServiceAccount(
     ServiceAccountCredentials clientCredentials, List<String> scopes,
     {Client? baseClient}) async {
   if (baseClient == null) {
-    baseClient = new Client();
+    baseClient = Client();
   } else {
     baseClient = nonClosingClient(baseClient);
   }
 
-  var flow = new JwtFlow(
-      clientCredentials.email,
-      clientCredentials.privateRSAKey,
-      clientCredentials.impersonatedUser,
-      scopes,
-      baseClient);
+  var flow = JwtFlow(clientCredentials.email, clientCredentials.privateRSAKey,
+      clientCredentials.impersonatedUser, scopes, baseClient);
 
   AccessCredentials credentials;
   try {
@@ -202,7 +198,7 @@ Future<AutoRefreshingAuthClient> clientViaServiceAccount(
     rethrow;
   }
 
-  return new _ServiceAccountClient(baseClient, credentials, flow);
+  return _ServiceAccountClient(baseClient, credentials, flow);
 }
 
 /// Obtains oauth2 credentials and returns an authenticated HTTP client.
@@ -223,12 +219,12 @@ Future<AutoRefreshingAuthClient> clientViaServiceAccount(
 Future<AutoRefreshingAuthClient> clientViaMetadataServer(
     {Client? baseClient}) async {
   if (baseClient == null) {
-    baseClient = new Client();
+    baseClient = Client();
   } else {
     baseClient = nonClosingClient(baseClient);
   }
 
-  var flow = new MetadataServerAuthorizationFlow(baseClient);
+  var flow = MetadataServerAuthorizationFlow(baseClient);
 
   AccessCredentials credentials;
 
@@ -238,7 +234,7 @@ Future<AutoRefreshingAuthClient> clientViaMetadataServer(
     baseClient.close();
     rethrow;
   }
-  return new _MetadataServerClient(baseClient, credentials, flow);
+  return _MetadataServerClient(baseClient, credentials, flow);
 }
 
 /// Obtains a HTTP client which uses the given [apiKey] for making HTTP
@@ -251,11 +247,11 @@ Future<AutoRefreshingAuthClient> clientViaMetadataServer(
 /// Closing the returned [Client] will not close [baseClient].
 Client clientViaApiKey(String apiKey, {Client? baseClient}) {
   if (baseClient == null) {
-    baseClient = new Client();
+    baseClient = Client();
   } else {
     baseClient = nonClosingClient(baseClient);
   }
-  return new ApiKeyClient(baseClient, apiKey);
+  return ApiKeyClient(baseClient, apiKey);
 }
 
 /// Obtain oauth2 [AccessCredentials] using the oauth2 authentication code flow.
@@ -279,8 +275,7 @@ Future<AccessCredentials> obtainAccessCredentialsViaUserConsent(
     List<String> scopes,
     Client client,
     PromptUserForConsent userPrompt) {
-  return new AuthorizationCodeGrantServerFlow(
-          clientId, scopes, client, userPrompt)
+  return AuthorizationCodeGrantServerFlow(clientId, scopes, client, userPrompt)
       .run();
 }
 
@@ -305,8 +300,7 @@ Future<AccessCredentials> obtainAccessCredentialsViaUserConsentManual(
     List<String> scopes,
     Client client,
     PromptUserForConsentManual userPrompt) {
-  return new AuthorizationCodeGrantManualFlow(
-          clientId, scopes, client, userPrompt)
+  return AuthorizationCodeGrantManualFlow(clientId, scopes, client, userPrompt)
       .run();
 }
 
@@ -322,7 +316,7 @@ Future<AccessCredentials> obtainAccessCredentialsViaServiceAccount(
     ServiceAccountCredentials clientCredentials,
     List<String> scopes,
     Client baseClient) {
-  return new JwtFlow(clientCredentials.email, clientCredentials.privateRSAKey,
+  return JwtFlow(clientCredentials.email, clientCredentials.privateRSAKey,
           clientCredentials.impersonatedUser, scopes, baseClient)
       .run();
 }
@@ -338,7 +332,7 @@ Future<AccessCredentials> obtainAccessCredentialsViaServiceAccount(
 /// Google Compute Engine VM with configured access to Google APIs.
 Future<AccessCredentials> obtainAccessCredentialsViaMetadataServer(
     Client baseClient) {
-  return new MetadataServerAuthorizationFlow(baseClient).run();
+  return MetadataServerAuthorizationFlow(baseClient).run();
 }
 
 /// Obtain oauth2 [AccessCredentials] by exchanging an authorization code.
@@ -365,7 +359,7 @@ Future<AccessCredentials> obtainAccessCredentialsViaMetadataServer(
 ///   https://developers.google.com/+/web/signin/server-side-flow
 Future<AccessCredentials> obtainAccessCredentialsViaCodeExchange(
     Client baseClient, ClientId clientId, String code,
-    {String redirectUrl: 'postmessage'}) {
+    {String redirectUrl = 'postmessage'}) {
   return obtainAccessCredentialsUsingCode(
       clientId, code, redirectUrl, baseClient);
 }
@@ -373,6 +367,7 @@ Future<AccessCredentials> obtainAccessCredentialsViaCodeExchange(
 /// Will close the underlying `http.Client`.
 class _ServiceAccountClient extends AutoRefreshDelegatingClient {
   final JwtFlow flow;
+  @override
   AccessCredentials credentials;
   late Client authClient;
 
@@ -381,6 +376,7 @@ class _ServiceAccountClient extends AutoRefreshDelegatingClient {
     authClient = authenticatedClient(baseClient, credentials);
   }
 
+  @override
   Future<StreamedResponse> send(BaseRequest request) async {
     if (!credentials.accessToken.hasExpired) {
       return authClient.send(request);
@@ -397,6 +393,7 @@ class _ServiceAccountClient extends AutoRefreshDelegatingClient {
 /// Will close the underlying `http.Client`.
 class _MetadataServerClient extends AutoRefreshDelegatingClient {
   final MetadataServerAuthorizationFlow flow;
+  @override
   AccessCredentials credentials;
   Client authClient;
 
@@ -404,6 +401,7 @@ class _MetadataServerClient extends AutoRefreshDelegatingClient {
       : authClient = authenticatedClient(client, credentials),
         super(client);
 
+  @override
   Future<StreamedResponse> send(BaseRequest request) async {
     if (!credentials.accessToken.hasExpired) {
       return authClient.send(request);

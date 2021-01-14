@@ -16,15 +16,15 @@ class ASN1Parser {
   static const SEQUENCE_TAG = 0x30;
 
   static ASN1Object parse(Uint8List bytes) {
-    invalidFormat(String msg) {
-      throw new ArgumentError("Invalid DER encoding: $msg");
+    Never invalidFormat(String msg) {
+      throw ArgumentError('Invalid DER encoding: $msg');
     }
 
-    var data = new ByteData.view(bytes.buffer);
-    int offset = 0;
-    int end = bytes.length;
+    var data = ByteData.view(bytes.buffer);
+    var offset = 0;
+    var end = bytes.length;
 
-    checkNBytesAvailable(int n) {
+    void checkNBytesAvailable(int n) {
       if ((offset + n) > end) {
         invalidFormat('Tried to read more bytes than available.');
       }
@@ -51,10 +51,10 @@ class ASN1Parser {
       // Long length encoding form:
       // This byte has in bits 0..6 the number of bytes following which encode
       // the length.
-      int countLengthBytes = lengthByte & 0x7f;
+      var countLengthBytes = lengthByte & 0x7f;
       checkNBytesAvailable(countLengthBytes);
 
-      int length = 0;
+      var length = 0;
       while (countLengthBytes > 0) {
         length = (length << 8) | data.getUint8(offset++);
         countLengthBytes--;
@@ -75,29 +75,29 @@ class ASN1Parser {
       var tag = bytes[offset++];
       switch (tag) {
         case INTEGER_TAG:
-          int size = readEncodedLength();
-          return new ASN1Integer(RSAAlgorithm.bytes2BigInt(readBytes(size)));
+          var size = readEncodedLength();
+          return ASN1Integer(RSAAlgorithm.bytes2BigInt(readBytes(size)));
         case OCTET_STRING_TAG:
           var size = readEncodedLength();
-          return new ASN1OctetString(readBytes(size));
+          return ASN1OctetString(readBytes(size));
         case NULL_TAG:
           readNullBytes();
-          return new ASN1Null();
+          return ASN1Null();
         case OBJECT_ID_TAG:
           var size = readEncodedLength();
-          return new ASN1ObjectIdentifier(readBytes(size));
+          return ASN1ObjectIdentifier(readBytes(size));
         case SEQUENCE_TAG:
           var lengthInBytes = readEncodedLength();
           if ((offset + lengthInBytes) > end) {
             invalidFormat('Tried to read more bytes than available.');
           }
-          int endOfSequence = offset + lengthInBytes;
+          var endOfSequence = offset + lengthInBytes;
 
           var objects = <ASN1Object>[];
           while (offset < endOfSequence) {
             objects.add(decodeObject());
           }
-          return new ASN1Sequence(objects);
+          return ASN1Sequence(objects);
         default:
           invalidFormat(
               'Unexpected tag $tag at offset ${offset - 1} (end: $end).');
@@ -106,7 +106,7 @@ class ASN1Parser {
 
     var obj = decodeObject();
     if (offset != bytes.length) {
-      throw new ArgumentError('More bytes than expected in ASN1 encoding.');
+      throw ArgumentError('More bytes than expected in ASN1 encoding.');
     }
     return obj;
   }

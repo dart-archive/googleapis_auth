@@ -9,15 +9,15 @@ import 'package:googleapis_auth/src/oauth2_flows/implicit.dart' as impl;
 
 import 'utils.dart';
 
-main() {
+void main() {
   impl.gapiUrl = resource('gapi_auth_user_denied.js');
 
   test('gapi-auth-user-denied', () async {
-    var clientId = new auth.ClientId('foo_client', 'foo_secret');
+    var clientId = auth.ClientId('foo_client', 'foo_secret');
     var scopes = ['scope1', 'scope2'];
 
-    auth.BrowserOAuth2Flow flow =
-        await auth.createImplicitBrowserFlow(clientId, scopes);
+    var flow = await auth.createImplicitBrowserFlow(clientId, scopes);
+    await flow
     try {
       await flow.obtainAccessCredentialsViaUserConsent();
       fail('expected error');

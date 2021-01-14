@@ -19,7 +19,7 @@ class RS256Signer {
   // NIST sha-256 OID (2 16 840 1 101 3 4 2 1)
   // See a reference for the encoding here:
   // http://msdn.microsoft.com/en-us/library/bb540809%28v=vs.85%29.aspx
-  static const _RSA_SHA256_ALGORITHM_IDENTIFIER = const [
+  static const _RSA_SHA256_ALGORITHM_IDENTIFIER = [
     0x06,
     0x09,
     0x60,
@@ -41,7 +41,7 @@ class RS256Signer {
     var digest = _digestInfo(sha256.convert(bytes).bytes);
     var modulusLen = (_rsaKey.bitLength + 7) ~/ 8;
 
-    var block = new Uint8List(modulusLen);
+    var block = Uint8List(modulusLen);
     var padLength = block.length - digest.length - 3;
     block[0] = 0x00;
     block[1] = 0x01;
@@ -57,7 +57,7 @@ class RS256Signer {
     //     digest OCTET STRING
     // }
     var offset = 0;
-    var digestInfo = new Uint8List(
+    var digestInfo = Uint8List(
         2 + 2 + _RSA_SHA256_ALGORITHM_IDENTIFIER.length + 2 + 2 + hash.length);
     {
       // DigestInfo

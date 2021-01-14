@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@TestOn("vm")
+@TestOn('vm')
 library googleapis_auth.metadata_server;
 
 import 'dart:async';
@@ -14,7 +14,7 @@ import 'package:test/test.dart';
 
 import '../test_utils.dart';
 
-main() {
+void main() {
   var apiUrl = 'http://metadata/computeMetadata/v1';
   var apiHeaderKey = 'Metadata-Flavor';
   var apiHeaderValue = 'Google';
@@ -31,7 +31,7 @@ main() {
       'expires_in': 3600,
       'token_type': 'Bearer',
     });
-    return new Future.value(new Response(body, 200));
+    return Future.value(Response(body, 200));
   }
 
   Future<Response> invalidAccessToken(Request request) {
@@ -44,7 +44,7 @@ main() {
       'access_token': 'atok',
       'token_type': 'Bearer',
     });
-    return new Future.value(new Response(body, 200));
+    return Future.value(Response(body, 200));
   }
 
   Future<Response> successfulScopes(Request request) {
@@ -52,12 +52,12 @@ main() {
     expect(request.url.toString(), equals(scopesUrl));
     expect(request.headers[apiHeaderKey], equals(apiHeaderValue));
 
-    return new Future.value(new Response('s1\ns2', 200));
+    return Future.value(Response('s1\ns2', 200));
   }
 
   group('metadata-server-authorization-flow', () {
     test('successfull', () async {
-      var flow = new MetadataServerAuthorizationFlow(mockClient(
+      var flow = MetadataServerAuthorizationFlow(mockClient(
           expectAsync1((request) {
             var url = request.url.toString();
             if (url == tokenUrl) {
@@ -65,7 +65,7 @@ main() {
             } else if (url == scopesUrl) {
               return successfulScopes(request);
             } else {
-              fail("Invalid URL $url (expected: $tokenUrl or $scopesUrl).");
+              fail('Invalid URL $url (expected: $tokenUrl or $scopesUrl).');
             }
           }, count: 2),
           expectClose: false));
@@ -78,39 +78,42 @@ main() {
     });
 
     test('invalid-server-reponse', () {
-      int requestNr = 0;
-      var flow = new MetadataServerAuthorizationFlow(mockClient(
+      var requestNr = 0;
+      var flow = MetadataServerAuthorizationFlow(mockClient(
           expectAsync1((request) {
-            if (requestNr++ == 0)
+            if (requestNr++ == 0) {
               return invalidAccessToken(request);
-            else
+            } else {
               return successfulScopes(request);
+            }
           }, count: 2),
           expectClose: false));
       expect(flow.run(), throwsA(isException));
     });
 
     test('token-transport-error', () {
-      int requestNr = 0;
-      var flow = new MetadataServerAuthorizationFlow(mockClient(
+      var requestNr = 0;
+      var flow = MetadataServerAuthorizationFlow(mockClient(
           expectAsync1((request) {
-            if (requestNr++ == 0)
+            if (requestNr++ == 0) {
               return transportFailure.get(Uri.http('failure', ''));
-            else
+            } else {
               return successfulScopes(request);
+            }
           }, count: 2),
           expectClose: false));
       expect(flow.run(), throwsA(isTransportException));
     });
 
     test('scopes-transport-error', () {
-      int requestNr = 0;
-      var flow = new MetadataServerAuthorizationFlow(mockClient(
+      var requestNr = 0;
+      var flow = MetadataServerAuthorizationFlow(mockClient(
           expectAsync1((request) {
-            if (requestNr++ == 0)
+            if (requestNr++ == 0) {
               return successfulAccessToken(request);
-            else
+            } else {
               return transportFailure.get(Uri.http('failure', ''));
+            }
           }, count: 2),
           expectClose: false));
       expect(flow.run(), throwsA(isTransportException));

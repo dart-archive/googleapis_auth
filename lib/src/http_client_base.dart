@@ -17,11 +17,12 @@ abstract class DelegatingClient extends BaseClient {
   final bool closeUnderlyingClient;
   bool _isClosed = false;
 
-  DelegatingClient(this.baseClient, {this.closeUnderlyingClient: true});
+  DelegatingClient(this.baseClient, {this.closeUnderlyingClient = true});
 
+  @override
   void close() {
     if (_isClosed) {
-      throw new StateError('Cannot close a HTTP client more than once.');
+      throw StateError('Cannot close a HTTP client more than once.');
     }
     _isClosed = true;
     super.close();
@@ -40,15 +41,15 @@ abstract class DelegatingClient extends BaseClient {
 class RefCountedClient extends DelegatingClient {
   int _refCount;
 
-  RefCountedClient(Client baseClient, {int initialRefCount: 1})
+  RefCountedClient(Client baseClient, {int initialRefCount = 1})
       : _refCount = initialRefCount,
         super(baseClient, closeUnderlyingClient: true) {
-    if (_refCount == null || _refCount <= 0) {
-      throw new ArgumentError(
-          'A reference count of $initialRefCount is invalid.');
+    if (_refCount <= 0) {
+      throw ArgumentError('A reference count of $initialRefCount is invalid.');
     }
   }
 
+  @override
   Future<StreamedResponse> send(BaseRequest request) {
     _ensureClientIsOpen();
     return baseClient.send(request);
@@ -73,13 +74,14 @@ class RefCountedClient extends DelegatingClient {
   }
 
   /// Is equivalent to calling `release`.
+  @override
   void close() {
     release();
   }
 
   void _ensureClientIsOpen() {
     if (_refCount <= 0) {
-      throw new StateError(
+      throw StateError(
           'This reference counted HTTP client has reached a count of zero and '
           'can no longer be used for making HTTP requests.');
     }
@@ -90,7 +92,7 @@ class RefCountedClient extends DelegatingClient {
 // Calling close on the returned client once will not close the underlying
 // [baseClient].
 Client nonClosingClient(Client baseClient) =>
-    new RefCountedClient(baseClient, initialRefCount: 2);
+    RefCountedClient(baseClient, initialRefCount: 2);
 
 class RequestImpl extends BaseRequest {
   final Stream<List<int>> _stream;
@@ -99,8 +101,9 @@ class RequestImpl extends BaseRequest {
       : _stream = stream ?? Stream.empty(),
         super(method, url);
 
+  @override
   ByteStream finalize() {
     super.finalize();
-    return new ByteStream(_stream);
+    return ByteStream(_stream);
   }
 }

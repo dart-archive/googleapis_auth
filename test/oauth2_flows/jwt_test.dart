@@ -13,7 +13,7 @@ import 'package:test/test.dart';
 
 import '../test_utils.dart';
 
-main() {
+void main() {
   var tokenUrl = 'https://accounts.google.com/o/oauth2/token';
 
   Future<Response> successfulSignRequest(Request request) {
@@ -32,7 +32,7 @@ main() {
       'expires_in': 3600,
       'token_type': 'Bearer',
     });
-    return new Future.value(new Response(body, 200));
+    return Future.value(Response(body, 200));
   }
 
   Future<Response> invalidAccessToken(Request request) {
@@ -41,7 +41,7 @@ main() {
       'access_token': 'atok',
       'token_type': 'Bearer',
     });
-    return new Future.value(new Response(body, 200));
+    return Future.value(Response(body, 200));
   }
 
   group('jwt-flow', () {
@@ -49,7 +49,7 @@ main() {
     var scopes = ['s1', 's2'];
 
     test('successfull', () async {
-      var flow = new JwtFlow(clientEmail, testPrivateKey, null, scopes,
+      var flow = JwtFlow(clientEmail, testPrivateKey, null, scopes,
           mockClient(expectAsync1(successfulSignRequest), expectClose: false));
 
       var credentials = await flow.run();
@@ -60,7 +60,7 @@ main() {
     });
 
     test('successfull-with-user', () async {
-      var flow = new JwtFlow(clientEmail, testPrivateKey, 'x@y.com', scopes,
+      var flow = JwtFlow(clientEmail, testPrivateKey, 'x@y.com', scopes,
           mockClient(expectAsync1(successfulSignRequest), expectClose: false));
 
       var credentials = await flow.run();
@@ -71,15 +71,15 @@ main() {
     });
 
     test('invalid-server-response', () {
-      var flow = new JwtFlow(clientEmail, testPrivateKey, null, scopes,
+      var flow = JwtFlow(clientEmail, testPrivateKey, null, scopes,
           mockClient(expectAsync1(invalidAccessToken), expectClose: false));
 
       expect(flow.run(), throwsA(isException));
     });
 
     test('transport-failure', () {
-      var flow = new JwtFlow(
-          clientEmail, testPrivateKey, null, scopes, transportFailure);
+      var flow =
+          JwtFlow(clientEmail, testPrivateKey, null, scopes, transportFailure);
 
       expect(flow.run(), throwsA(isTransportException));
     });

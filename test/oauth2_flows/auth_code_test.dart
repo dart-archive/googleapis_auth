@@ -15,10 +15,10 @@ import 'package:test/test.dart';
 
 import '../test_utils.dart';
 
-typedef Future<Response> RequestHandler(Request _);
+typedef RequestHandler = Future<Response> Function(Request _);
 
-main() {
-  var clientId = new ClientId('id', 'secret');
+void main() {
+  var clientId = ClientId('id', 'secret');
   var scopes = ['s1', 's2'];
 
   // Validation + Responses from the authorization server.
@@ -58,7 +58,7 @@ main() {
         'refresh_token': 'my-refresh-token',
         'id_token': 'my-id-token',
       };
-      return new Response(jsonEncode(result), 200);
+      return Response(jsonEncode(result), 200);
     };
   }
 
@@ -70,7 +70,7 @@ main() {
       'refresh_token': 'my-refresh-token',
       'id_token': 'my-id-token',
     };
-    return new Future.value(new Response(jsonEncode(result), 200));
+    return Future.value(Response(jsonEncode(result), 200));
   }
 
   // Validation functions for user prompt and access credentials.
@@ -84,7 +84,7 @@ main() {
     expectExpiryOneHourFromNow(credentials.accessToken);
   }
 
-  Uri validateUserPromptUri(String url, {bool manual: false}) {
+  Uri validateUserPromptUri(String url, {bool manual = false}) {
     var uri = Uri.parse(url);
     expect(uri.scheme, equals('https'));
     expect(uri.host, equals('accounts.google.com'));
@@ -111,11 +111,11 @@ main() {
     group('manual-copy-paste', () {
       Future<String> manualUserPrompt(String url) {
         validateUserPromptUri(url, manual: true);
-        return new Future.value('mycode');
+        return Future.value('mycode');
       }
 
       test('successfull', () async {
-        var flow = new AuthorizationCodeGrantManualFlow(
+        var flow = AuthorizationCodeGrantManualFlow(
             clientId,
             scopes,
             mockClient(successFullResponse(manual: true), expectClose: false),
@@ -126,10 +126,10 @@ main() {
       test('user-exception', () {
         // We use a TransportException here for convenience.
         Future<String> manualUserPromptError(String url) {
-          return new Future.error(new TransportException());
+          return Future.error(TransportException());
         }
 
-        var flow = new AuthorizationCodeGrantManualFlow(
+        var flow = AuthorizationCodeGrantManualFlow(
             clientId,
             scopes,
             mockClient(successFullResponse(manual: true), expectClose: false),
@@ -138,13 +138,13 @@ main() {
       });
 
       test('transport-exception', () {
-        var flow = new AuthorizationCodeGrantManualFlow(
+        var flow = AuthorizationCodeGrantManualFlow(
             clientId, scopes, transportFailure, manualUserPrompt);
         expect(flow.run(), throwsA(isTransportException));
       });
 
       test('invalid-server-response', () {
-        var flow = new AuthorizationCodeGrantManualFlow(clientId, scopes,
+        var flow = AuthorizationCodeGrantManualFlow(clientId, scopes,
             mockClient(invalidResponse, expectClose: false), manualUserPrompt);
         expect(flow.run(), throwsA(isException));
       });
@@ -152,7 +152,7 @@ main() {
 
     group('http-server', () {
       void callRedirectionEndpoint(Uri authCodeCall) {
-        var ioClient = new HttpClient();
+        var ioClient = HttpClient();
         ioClient
             .getUrl(authCodeCall)
             .then((request) => request.close())
@@ -164,7 +164,7 @@ main() {
 
       void userPrompt(String url) {
         var redirectUri = validateUserPromptUri(url);
-        var authCodeCall = new Uri(
+        var authCodeCall = Uri(
             scheme: redirectUri.scheme,
             host: redirectUri.host,
             port: redirectUri.port,
@@ -178,7 +178,7 @@ main() {
 
       void userPromptInvalidAuthCodeCallback(String url) {
         var redirectUri = validateUserPromptUri(url);
-        var authCodeCall = new Uri(
+        var authCodeCall = Uri(
             scheme: redirectUri.scheme,
             host: redirectUri.host,
             port: redirectUri.port,
@@ -191,7 +191,7 @@ main() {
       }
 
       test('successfull', () async {
-        var flow = new AuthorizationCodeGrantServerFlow(
+        var flow = AuthorizationCodeGrantServerFlow(
             clientId,
             scopes,
             mockClient(successFullResponse(manual: false), expectClose: false),
@@ -200,13 +200,13 @@ main() {
       });
 
       test('transport-exception', () {
-        var flow = new AuthorizationCodeGrantServerFlow(
+        var flow = AuthorizationCodeGrantServerFlow(
             clientId, scopes, transportFailure, expectAsync1(userPrompt));
         expect(flow.run(), throwsA(isTransportException));
       });
 
       test('invalid-server-response', () {
-        var flow = new AuthorizationCodeGrantServerFlow(
+        var flow = AuthorizationCodeGrantServerFlow(
             clientId,
             scopes,
             mockClient(invalidResponse, expectClose: false),
@@ -215,7 +215,7 @@ main() {
       });
 
       test('failed-authentication', () {
-        var flow = new AuthorizationCodeGrantServerFlow(
+        var flow = AuthorizationCodeGrantServerFlow(
             clientId,
             scopes,
             mockClient(successFullResponse(manual: false), expectClose: false),
@@ -227,11 +227,11 @@ main() {
 
   group('scopes-from-tokeninfo-endpoint', () {
     var successfulResponseJson = jsonEncode({
-      "issued_to": "XYZ.apps.googleusercontent.com",
-      "audience": "XYZ.apps.googleusercontent.com",
-      "scope": "scopeA scopeB",
-      "expires_in": 3210,
-      "access_type": "offline"
+      'issued_to': 'XYZ.apps.googleusercontent.com',
+      'audience': 'XYZ.apps.googleusercontent.com',
+      'scope': 'scopeA scopeB',
+      'expires_in': 3210,
+      'access_type': 'offline'
     });
     var expectedUri =
         'https://www.googleapis.com/oauth2/v2/tokeninfo?access_token=my_token';
@@ -239,16 +239,16 @@ main() {
     test('successfull', () async {
       var http = mockClient(expectAsync1((BaseRequest request) async {
         expect(request.url.toString(), expectedUri);
-        return new Response(successfulResponseJson, 200);
+        return Response(successfulResponseJson, 200);
       }), expectClose: false);
-      List<String> scopes = await obtainScopesFromAccessToken('my_token', http);
+      var scopes = await obtainScopesFromAccessToken('my_token', http);
       expect(scopes, equals(['scopeA', 'scopeB']));
     });
 
     test('non-200-status-code', () {
       var http = mockClient(expectAsync1((BaseRequest request) async {
         expect(request.url.toString(), expectedUri);
-        return new Response(successfulResponseJson, 201);
+        return Response(successfulResponseJson, 201);
       }), expectClose: false);
       expect(obtainScopesFromAccessToken('my_token', http), throwsException);
     });
@@ -256,7 +256,7 @@ main() {
     test('no-scope', () {
       var http = mockClient(expectAsync1((BaseRequest request) async {
         expect(request.url.toString(), expectedUri);
-        return new Response(jsonEncode({}), 200);
+        return Response(jsonEncode({}), 200);
       }), expectClose: false);
       expect(obtainScopesFromAccessToken('my_token', http), throwsException);
     });

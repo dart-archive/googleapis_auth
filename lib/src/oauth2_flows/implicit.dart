@@ -4,9 +4,9 @@
 
 library googleapis_auth.implicit_gapi_flow;
 
-import "dart:async";
+import 'dart:async';
 import 'dart:html' as html;
-import "dart:js" as js;
+import 'dart:js' as js;
 
 import '../../auth.dart';
 import '../utils.dart';
@@ -16,7 +16,7 @@ String gapiUrl = 'https://apis.google.com/js/client.js';
 
 // According to the CSP3 spec a nonce must be a valid base64 string.
 // https://w3c.github.io/webappsec-csp/#grammardef-base64-value
-final _noncePattern = new RegExp('^[\\w+\/_-]+[=]{0,2}\$');
+final _noncePattern = RegExp('^[\\w+\/_-]+[=]{0,2}\$');
 
 /// This class performs the implicit browser-based oauth2 flow.
 ///
@@ -38,7 +38,7 @@ final _noncePattern = new RegExp('^[\\w+\/_-]+[=]{0,2}\$');
 ///      => Completes with a tuple [AccessCredentials cred, String authCode]
 ///         or an Exception.
 class ImplicitFlow {
-  static const CallbackTimeout = const Duration(seconds: 20);
+  static const CallbackTimeout = Duration(seconds: 20);
 
   final String _clientId;
   final List<String> _scopes;
@@ -61,11 +61,11 @@ class ImplicitFlow {
       return _pendingInitialization!;
     }
 
-    var completer = new Completer();
+    var completer = Completer();
 
-    var timeout = new Timer(CallbackTimeout, () {
+    var timeout = Timer(CallbackTimeout, () {
       _pendingInitialization = null;
-      completer.completeError(new Exception(
+      completer.completeError(Exception(
           'Timed out while waiting for the gapi.auth library to load.'));
     });
 
@@ -80,7 +80,7 @@ class ImplicitFlow {
             }
           ]);
         } on NoSuchMethodError {
-          throw new StateError('gapi.auth not loaded.');
+          throw StateError('gapi.auth not loaded.');
         }
       } catch (error, stack) {
         _pendingInitialization = null;
@@ -97,7 +97,7 @@ class ImplicitFlow {
       _pendingInitialization = null;
       if (!completer.isCompleted) {
         // script loading errors can still happen after timeouts
-        completer.completeError(new Exception('Failed to load gapi library.'));
+        completer.completeError(Exception('Failed to load gapi library.'));
       }
     });
     html.document.body!.append(script);
@@ -107,12 +107,12 @@ class ImplicitFlow {
   }
 
   Future<LoginResult> loginHybrid(
-          {bool force: false, bool immediate: false, String? loginHint}) =>
+          {bool force = false, bool immediate = false, String? loginHint}) =>
       _login(force, immediate, true, loginHint, null);
 
   Future<AccessCredentials> login(
-      {bool force: false,
-      bool immediate: false,
+      {bool force = false,
+      bool immediate = false,
       String? loginHint,
       List<ResponseType>? responseTypes}) async {
     return (await _login(force, immediate, false, loginHint, responseTypes))
@@ -129,7 +129,7 @@ class ImplicitFlow {
       String? loginHint, List<ResponseType>? responseTypes) {
     assert(hybrid != true || responseTypes?.isNotEmpty != true);
 
-    var completer = new Completer<LoginResult>();
+    var completer = Completer<LoginResult>();
 
     var gapi = js.context['gapi']['auth'];
 
@@ -153,7 +153,7 @@ class ImplicitFlow {
     }
 
     gapi.callMethod('authorize', [
-      new js.JsObject.jsify(json),
+      js.JsObject.jsify(json),
       (jsTokenObject) {
         var tokenType = jsTokenObject['token_type'];
         var token = jsTokenObject['access_token'];
@@ -168,31 +168,30 @@ class ImplicitFlow {
         }
         if (error != null) {
           completer.completeError(
-              new UserConsentException('Failed to get user consent: $error.'));
+              UserConsentException('Failed to get user consent: $error.'));
         } else if (token == null ||
             expiresIn is! int ||
             tokenType != 'Bearer') {
-          completer.completeError(new Exception(
+          completer.completeError(Exception(
               'Failed to obtain user consent. Invalid server response.'));
         } else if (responseTypes?.contains(ResponseType.idToken) == true &&
             idToken?.isNotEmpty != true) {
           completer.completeError(
-              new Exception('Expected to get id_token, but did not.'));
+              Exception('Expected to get id_token, but did not.'));
         } else {
-          var accessToken =
-              new AccessToken('Bearer', token, expiryDate(expiresIn));
-          var credentials = new AccessCredentials(accessToken, null, _scopes,
-              idToken: idToken);
+          var accessToken = AccessToken('Bearer', token, expiryDate(expiresIn));
+          var credentials =
+              AccessCredentials(accessToken, null, _scopes, idToken: idToken);
 
           if (hybrid) {
             if (code == null) {
-              completer.completeError(new Exception('Expected to get auth code '
+              completer.completeError(Exception('Expected to get auth code '
                   'from server in hybrid flow, but did not.'));
               return;
             }
-            completer.complete(new LoginResult(credentials, code: code));
+            completer.complete(LoginResult(credentials, code: code));
           } else {
-            completer.complete(new LoginResult(credentials));
+            completer.complete(LoginResult(credentials));
           }
         }
       }
@@ -242,12 +241,12 @@ String _responseTypeToString(ResponseType responseType) {
 /// More specifically, the script has the correct `nonce` value set.
 final _ScriptFactory _createScript = (() {
   final nonce = _getNonce();
-  if (nonce == null) return () => new html.ScriptElement();
+  if (nonce == null) return () => html.ScriptElement();
 
-  return () => new html.ScriptElement()..nonce = nonce;
+  return () => html.ScriptElement()..nonce = nonce;
 })();
 
-typedef html.ScriptElement _ScriptFactory();
+typedef _ScriptFactory = html.ScriptElement Function();
 
 /// Returns CSP nonce, if set for any script tag.
 String? _getNonce({html.Window? window}) {
