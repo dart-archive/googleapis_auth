@@ -50,8 +50,6 @@ class AccessCredentials {
   final AccessToken accessToken;
 
   /// A refresh token, which can be used to refresh the access credentials.
-  ///
-  /// This field may be null.
   final String? refreshToken;
 
   /// A JWT used in calls to Google APIs that accept an id_token param.
@@ -258,12 +256,10 @@ Future<AccessCredentials> refreshCredentials(
         'Expected json response.');
   }
 
-  var object = (await response.stream
+  var jsonMap = await response.stream
       .transform(ascii.decoder)
       .transform(json.decoder)
-      .first)!;
-
-  var jsonMap = object as Map;
+      .first as Map;
 
   var idToken = jsonMap['id_token'];
   var token = jsonMap['access_token'];

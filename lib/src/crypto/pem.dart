@@ -87,7 +87,7 @@ RSAPrivateKey _extractRSAKeyFromDERBytes(Uint8List bytes) {
     if (asn is ASN1Sequence) {
       var objects = asn.objects;
       if (objects.length == 3 && objects[2] is ASN1OctetString) {
-        ASN1OctetString string = objects[2] as ASN1OctetString;
+        var string = objects[2] as ASN1OctetString;
         // Seems like the embedded form.
         // TODO: Validate that rsa identifier matches!
         return privateKeyFromSequence(

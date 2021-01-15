@@ -398,12 +398,11 @@ class _ServiceAccountClient extends AutoRefreshDelegatingClient {
 class _MetadataServerClient extends AutoRefreshDelegatingClient {
   final MetadataServerAuthorizationFlow flow;
   AccessCredentials credentials;
-  late Client authClient;
+  Client authClient;
 
   _MetadataServerClient(Client client, this.credentials, this.flow)
-      : super(client) {
-    authClient = authenticatedClient(baseClient, credentials);
-  }
+      : authClient = authenticatedClient(client, credentials),
+        super(client);
 
   Future<StreamedResponse> send(BaseRequest request) async {
     if (!credentials.accessToken.hasExpired) {

@@ -96,7 +96,7 @@ class RequestImpl extends BaseRequest {
   final Stream<List<int>> _stream;
 
   RequestImpl(String method, Uri url, [Stream<List<int>>? stream])
-      : _stream = stream == null ? new Stream.fromIterable([]) : stream,
+      : _stream = stream ?? Stream.empty(),
         super(method, url);
 
   ByteStream finalize() {

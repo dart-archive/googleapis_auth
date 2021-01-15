@@ -70,11 +70,10 @@ class JwtFlow {
     request.headers['content-type'] = CONTENT_TYPE_URLENCODED;
 
     var httpResponse = await _client.send(request);
-    var object = (await httpResponse.stream
+    var response = await httpResponse.stream
         .transform(utf8.decoder)
         .transform(json.decoder)
-        .first)!;
-    Map response = object as Map;
+        .first as Map;
     var tokenType = response['token_type'];
     var token = response['access_token'];
     var expiresIn = response['expires_in'];

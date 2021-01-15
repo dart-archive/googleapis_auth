@@ -55,17 +55,15 @@ Client clientViaApiKey(String apiKey, {Client? baseClient}) {
 Future<BrowserOAuth2Flow> createImplicitBrowserFlow(
     ClientId clientId, List<String> scopes,
     {Client? baseClient}) {
-  if (baseClient == null) {
-    baseClient = new RefCountedClient(new BrowserClient(), initialRefCount: 1);
-  } else {
-    baseClient = new RefCountedClient(baseClient, initialRefCount: 2);
-  }
+  var refCountedClient = baseClient == null
+      ? RefCountedClient(BrowserClient(), initialRefCount: 1)
+      : RefCountedClient(baseClient, initialRefCount: 2);
 
   var flow = new ImplicitFlow(clientId.identifier, scopes);
   return flow.initialize().catchError((error, stack) {
-    baseClient!.close();
+    refCountedClient.close();
     return new Future.error(error, stack);
-  }).then((_) => new BrowserOAuth2Flow._(flow, baseClient as RefCountedClient));
+  }).then((_) => new BrowserOAuth2Flow._(flow, refCountedClient));
 }
 
 /// Used for obtaining oauth2 access credentials.
@@ -260,12 +258,11 @@ class HybridFlowResult {
 class _AutoRefreshingBrowserClient extends AutoRefreshDelegatingClient {
   AccessCredentials credentials;
   ImplicitFlow _flow;
-  late Client _authClient;
+  Client _authClient;
 
   _AutoRefreshingBrowserClient(Client client, this.credentials, this._flow)
-      : super(client) {
-    _authClient = authenticatedClient(baseClient, credentials);
-  }
+      : _authClient = authenticatedClient(client, credentials),
+        super(client);
 
   Future<StreamedResponse> send(BaseRequest request) {
     if (!credentials.accessToken.hasExpired) {
