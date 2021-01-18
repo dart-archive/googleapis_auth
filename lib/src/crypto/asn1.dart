@@ -102,8 +102,6 @@ class ASN1Parser {
           invalidFormat(
               'Unexpected tag $tag at offset ${offset - 1} (end: $end).');
       }
-      // Unreachable.
-      return null;
     }
 
     var obj = decodeObject();

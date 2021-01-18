@@ -12,7 +12,6 @@ import '../test_utils.dart';
 main() {
   group('pem', () {
     test('null', () {
-      expect(() => keyFromString(null), throwsA(isArgumentError));
       expect(() => keyFromString(''), throwsA(isArgumentError));
     });
 

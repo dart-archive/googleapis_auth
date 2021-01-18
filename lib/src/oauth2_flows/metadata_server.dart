@@ -51,8 +51,8 @@ class MetadataServerAuthorizationFlow {
 
   Future<AccessCredentials> run() async {
     final results = await Future.wait([_getToken(), _getScopes()]);
-    final Map token = results.first;
-    final String scopesString = results.last;
+    final Map token = results.first as Map<dynamic, dynamic>;
+    final String scopesString = results.last as String;
 
     var json = token;
     var scopes = scopesString

@@ -51,14 +51,14 @@ Future<List<String>> obtainScopesFromAccessToken(
 
 Future<AccessCredentials> obtainAccessCredentialsUsingCode(
     ClientId clientId, String code, String redirectUrl, http.Client client,
-    [List<String> scopes]) async {
+    [List<String>? scopes]) async {
   var uri = Uri.parse('https://accounts.google.com/o/oauth2/token');
   var formValues = [
     'grant_type=authorization_code',
     'code=${Uri.encodeQueryComponent(code)}',
     'redirect_uri=${Uri.encodeQueryComponent(redirectUrl)}',
     'client_id=${Uri.encodeQueryComponent(clientId.identifier)}',
-    'client_secret=${Uri.encodeQueryComponent(clientId.secret)}',
+    'client_secret=${Uri.encodeQueryComponent(clientId.secret!)}',
   ];
 
   var body = new Stream<List<int>>.fromIterable(
@@ -67,8 +67,10 @@ Future<AccessCredentials> obtainAccessCredentialsUsingCode(
   request.headers['content-type'] = CONTENT_TYPE_URLENCODED;
 
   var response = await client.send(request);
-  Map jsonMap =
-      await utf8.decoder.bind(response.stream).transform(json.decoder).first;
+  Map jsonMap = (await utf8.decoder
+      .bind(response.stream)
+      .transform(json.decoder)
+      .first) as Map;
 
   var idToken = jsonMap['id_token'];
   var tokenType = jsonMap['token_type'];
@@ -129,7 +131,7 @@ abstract class AuthorizationCodeGrantAbstractFlow {
         clientId, code, redirectUri, _client, scopes);
   }
 
-  String _authenticationUri(String redirectUri, {String state}) {
+  String _authenticationUri(String redirectUri, {String? state}) {
     // TODO: Increase scopes with [include_granted_scopes].
     var queryValues = [
       'response_type=code',

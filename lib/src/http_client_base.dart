@@ -95,15 +95,12 @@ Client nonClosingClient(Client baseClient) =>
 class RequestImpl extends BaseRequest {
   final Stream<List<int>> _stream;
 
-  RequestImpl(String method, Uri url, [Stream<List<int>> stream])
-      : _stream = stream == null ? new Stream.fromIterable([]) : stream,
+  RequestImpl(String method, Uri url, [Stream<List<int>>? stream])
+      : _stream = stream ?? Stream.empty(),
         super(method, url);
 
   ByteStream finalize() {
     super.finalize();
-    if (_stream == null) {
-      return null;
-    }
     return new ByteStream(_stream);
   }
 }

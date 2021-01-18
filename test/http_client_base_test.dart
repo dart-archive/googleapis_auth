@@ -14,27 +14,30 @@ import 'package:http/http.dart';
 import 'test_utils.dart';
 
 class DelegatingClientImpl extends DelegatingClient {
-  DelegatingClientImpl(Client base, {bool closeUnderlyingClient})
+  DelegatingClientImpl(Client base, {required bool closeUnderlyingClient})
       : super(base, closeUnderlyingClient: closeUnderlyingClient);
 
   Future<StreamedResponse> send(BaseRequest request) => throw 'unsupported';
 }
 
+final _defaultResponse = Response('', 500);
+final _defaultResponseHandler = (Request _) async => _defaultResponse;
+
 main() {
   group('http-utils', () {
     group('delegating-client', () {
       test('not-close-underlying-client', () {
-        var mock = mockClient((_) {}, expectClose: false);
+        var mock = mockClient(_defaultResponseHandler, expectClose: false);
         new DelegatingClientImpl(mock, closeUnderlyingClient: false).close();
       });
 
       test('close-underlying-client', () {
-        var mock = mockClient((_) {}, expectClose: true);
+        var mock = mockClient(_defaultResponseHandler, expectClose: true);
         new DelegatingClientImpl(mock, closeUnderlyingClient: true).close();
       });
 
       test('close-several-times', () {
-        var mock = mockClient((_) {}, expectClose: true);
+        var mock = mockClient(_defaultResponseHandler, expectClose: true);
         var delegate =
             new DelegatingClientImpl(mock, closeUnderlyingClient: true);
         delegate.close();
@@ -44,14 +47,14 @@ main() {
 
     group('refcounted-client', () {
       test('not-close-underlying-client', () {
-        var mock = mockClient((_) {}, expectClose: false);
+        var mock = mockClient(_defaultResponseHandler, expectClose: false);
         var client = new RefCountedClient(mock, initialRefCount: 3);
         client.close();
         client.close();
       });
 
       test('close-underlying-client', () {
-        var mock = mockClient((_) {}, expectClose: true);
+        var mock = mockClient(_defaultResponseHandler, expectClose: true);
         var client = new RefCountedClient(mock, initialRefCount: 3);
         client.close();
         client.close();
@@ -59,7 +62,7 @@ main() {
       });
 
       test('acquire-release', () {
-        var mock = mockClient((_) {}, expectClose: true);
+        var mock = mockClient(_defaultResponseHandler, expectClose: true);
         var client = new RefCountedClient(mock, initialRefCount: 1);
         client.acquire();
         client.release();
@@ -69,7 +72,7 @@ main() {
       });
 
       test('close-several-times', () {
-        var mock = mockClient((_) {}, expectClose: true);
+        var mock = mockClient(_defaultResponseHandler, expectClose: true);
         var client = new RefCountedClient(mock, initialRefCount: 1);
         client.close();
         expect(() => client.close(), throwsA(isStateError));
@@ -108,7 +111,7 @@ main() {
       });
 
       test('with-existing-key', () {
-        var mock = mockClient(expectAsync1((Request request) {}, count: 0),
+        var mock = mockClient(expectAsync1(_defaultResponseHandler, count: 0),
             expectClose: true);
 
         var client = new ApiKeyClient(mock, key);
@@ -119,7 +122,7 @@ main() {
     });
 
     test('non-closing-client', () {
-      var mock = mockClient((_) {}, expectClose: false);
+      var mock = mockClient(_defaultResponseHandler, expectClose: false);
       nonClosingClient(mock).close();
     });
   });

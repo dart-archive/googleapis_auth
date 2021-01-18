@@ -14,7 +14,7 @@ import 'http_client_base.dart';
 /// Will close the underlying `http.Client` depending on a constructor argument.
 class AuthenticatedClient extends DelegatingClient implements AuthClient {
   final AccessCredentials credentials;
-  final String quotaProject;
+  final String? quotaProject;
 
   AuthenticatedClient(Client client, this.credentials, {this.quotaProject})
       : super(client, closeUnderlyingClient: false);
@@ -27,7 +27,7 @@ class AuthenticatedClient extends DelegatingClient implements AuthClient {
     modifiedRequest.headers['Authorization'] =
         'Bearer ${credentials.accessToken.data}';
     if (quotaProject != null) {
-      modifiedRequest.headers['X-Goog-User-Project'] = quotaProject;
+      modifiedRequest.headers['X-Goog-User-Project'] = quotaProject!;
     }
     var response = await baseClient.send(modifiedRequest);
     var wwwAuthenticate = response.headers['www-authenticate'];
@@ -76,9 +76,9 @@ class ApiKeyClient extends DelegatingClient {
 /// Will close the underlying `http.Client` depending on a constructor argument.
 class AutoRefreshingClient extends AutoRefreshDelegatingClient {
   final ClientId clientId;
-  final String quotaProject;
+  final String? quotaProject;
   AccessCredentials credentials;
-  Client authClient;
+  late Client authClient;
 
   AutoRefreshingClient(Client client, this.clientId, this.credentials,
       {bool closeUnderlyingClient: false, this.quotaProject})

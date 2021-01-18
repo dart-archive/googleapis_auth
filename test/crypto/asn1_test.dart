@@ -44,7 +44,7 @@ main() {
         var sequence = ASN1Parser.parse(new Uint8List.fromList(sequenceBytes));
         expect(sequence is ASN1Sequence, isTrue);
         expect((sequence as ASN1Sequence).objects, hasLength(1));
-        expect((sequence as ASN1Sequence).objects[0] is ASN1Null, isTrue);
+        expect(sequence.objects[0] is ASN1Null, isTrue);
       });
 
       test('many-elements', () {
@@ -57,7 +57,7 @@ main() {
         expect(sequence is ASN1Sequence, isTrue);
         expect((sequence as ASN1Sequence).objects.length, equals(128));
         for (int i = 0; i < 128; i++) {
-          expect((sequence as ASN1Sequence).objects[i] is ASN1Null, isTrue);
+          expect(sequence.objects[i] is ASN1Null, isTrue);
         }
       });
 

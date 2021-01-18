@@ -5,4 +5,4 @@
 import 'dart:html';
 
 String resource(String name) =>
-    Uri.parse(document.baseUri).resolve(name).toString();
+    Uri.parse(document.baseUri!).resolve(name).toString();
