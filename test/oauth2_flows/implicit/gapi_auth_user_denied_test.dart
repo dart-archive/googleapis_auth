@@ -17,7 +17,6 @@ void main() {
     var scopes = ['scope1', 'scope2'];
 
     var flow = await auth.createImplicitBrowserFlow(clientId, scopes);
-    await flow
     try {
       await flow.obtainAccessCredentialsViaUserConsent();
       fail('expected error');
