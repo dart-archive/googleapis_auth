@@ -1,9 +1,8 @@
-## 0.2.12+2-dev
-
 ## 0.2.12+1
 
  * Removed a `dart:async` import that isn't required for \>=Dart 2.1.
  * Require \>=Dart 2.1.
+ * Allow null-safe version of `pkg:crypto`.
 
 ## 0.2.12
  * Add `clientViaApplicationDefaultCredentials` for obtaining credentials using
